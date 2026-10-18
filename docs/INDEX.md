@@ -24,6 +24,7 @@ here, assume the next agent will not know it.
 | Why a choice was made (and its status) | `docs/DECISIONS.md` | |
 | What to build, in what order, how to verify | `docs/ROADMAP.md` | |
 | Current progress and next step | `docs/STATUS.md` | |
+| Git branches, merging, tags, pushing | `docs/GIT_WORKFLOW.md` | |
 | Rules for agents | `/AGENTS.md` | |
 | Prompt to resume in a new session | `docs/HANDOFF_PROMPT.md` | |
 | Machine/tool setup, new-device checklist | `docs/SETUP.md` | |

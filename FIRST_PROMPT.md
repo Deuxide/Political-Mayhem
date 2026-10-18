@@ -139,7 +139,8 @@ stop and ask.
      harness plus one trivial passing test, record the chosen approach and the
      exact command in `docs/DECISIONS.md` and `docs/STATUS.md`. If it needs a
      decision from me, ask before installing anything.
-   - Do task M0-T5: create `scripts/check`.
+   - Do task M0-T5: create `scripts/check` as an executable bash script
+     (`#!/usr/bin/env bash`, `chmod +x`). This machine is Linux.
 
 6. **Verify**
    - Run `rokit install`, `wally install`, `stylua src`, `selene src`, and
