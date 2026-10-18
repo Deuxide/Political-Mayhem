@@ -26,7 +26,7 @@ return {
 		outputPerSlot = 2,
 		slotsMax = 2,
 		input = {},
-		eligibleOwners = { "Middle", "Capitalist", "State" },
+		eligibleOwners = { "Middle", "Capitalist" },
 	},
 	Factory = {
 		id = "Factory",

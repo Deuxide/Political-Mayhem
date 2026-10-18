@@ -10,20 +10,21 @@ changes go through files and Rojo, never through MCP script-editing tools.
 
 ## Studio gate (hard rule)
 
-The Studio MCP only sees whatever place is open in Studio, and code reaches it
-through Rojo live sync (D-031).
+The Studio MCP only sees whatever place is open in Studio. Code reaches it by
+build-and-open followed by Rojo live sync (D-032).
 
-1. **Confirmed** means the owner said, in this session, that Studio is open
-   with the project and Rojo is connected. One confirmation per session is
-   enough unless something suggests sync dropped (see 5).
+1. **Confirmed** means the owner said, in this session, that Studio has the
+   latest `build/game.rbxl` open and Rojo is connected. One confirmation per
+   session is enough unless something suggests sync dropped (see 5).
 2. **Not confirmed -> make no MCP calls at all**, not even read-only ones. Do
    all non-Studio work first, batch every Studio check into one list, then
    **end your turn** with:
 
    ```
-   Ready for a Studio check. Please make sure Studio is open with the project
-   and Rojo is connected (rojo serve running, plugin shows Connected), and tell
-   me when it is.
+   Ready for a Studio check. I rebuilt build/game.rbxl.
+   Please close the current place without saving, open build/game.rbxl, start
+   `rojo serve` in your terminal, click Connect in the plugin, and tell me when
+   it is connected.
    After that I will check:
    - <check 1>
    - <check 2>
@@ -37,9 +38,8 @@ through Rojo live sync (D-031).
    the file) **before** testing. Changes apply to the edit-mode place; stop and
    restart a playtest to see them.
 5. If Studio's tree or script content doesn't match the files after a few
-   seconds, sync has probably dropped. Stop testing, ask the owner to check
-   `rojo serve` and the plugin, and don't report results from stale content.
-   Fallback: build-and-open (see the `rojo-workflow` skill).
+   seconds, sync has probably dropped, or too much changed. Stop testing and ask
+   for a rebuild and reopen. Don't report results from stale content.
 6. If the task doesn't need Studio (pure logic, tests, docs), don't ask.
 
 ## Environment note

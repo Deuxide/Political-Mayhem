@@ -55,30 +55,34 @@ instead of guessing.
 5. Keep `shared/` free of server-only and client-only code. Dependency
    direction: client -> shared <- server (see `AGENTS.md`).
 
-## Live sync (D-031, owner's Linux/Vinegar setup)
+## Studio sync workflow (D-032, owner's Linux/Vinegar setup)
 
-- The owner runs `rojo serve` in a separate terminal and keeps the Studio
-  plugin connected. Don't start `rojo serve` yourself (it blocks your shell) and
-  you can't click the plugin.
-- After you edit files, Rojo syncs them into the edit-mode place within a
-  moment. Before testing, confirm Studio actually has the new content (see the
-  `studio-mcp-usage` skill). To see changes in a running playtest, stop and
-  restart it.
-- Vinegar is a Flatpak. Live sync and opening project files only worked after
-  `flatpak override --user --filesystem=home org.vinegarhq.Vinegar`. If either
-  breaks, suspect that first.
-- Messages from the Rojo plugin in the console are not game errors.
-
-### Fallback: build-and-open (if sync breaks)
+Live sync only works when Studio already has (nearly) the same content as the
+project. Connecting against an old or empty place makes the plugin send too
+many requests and fail with `Unknown HTTP error: Number of requests exceeded
+limit` (Studio allows 500 HTTP requests/minute). So always start from a fresh
+build:
 
 1. Run `rojo build -o build/game.rbxl`.
 2. Ask the owner to close the old place without saving and open
-   `build/game.rbxl` (File > Open from File). Wait for confirmation.
-3. Studio is stale after every rebuild until the owner reopens it. Never
-   save over `build/game.rbxl`; `build/` is generated and gitignored.
+   `build/game.rbxl` (File > Open from File).
+3. The owner runs `rojo serve` in a separate terminal and clicks Connect in the
+   plugin. You never start `rojo serve` (it blocks your shell) and you can't
+   click the plugin.
+4. After that, small edits sync live. Before testing, confirm Studio has the new
+   content (see `studio-mcp-usage`). To see changes in a running playtest, stop
+   and restart it.
 
-If `Unknown HTTP error: Number of requests exceeded limit` appears again, tell
-the owner and use the fallback; don't loop on it.
+Repeat steps 1-3 at the start of every session and after any large change
+(branch switch, many files changed, new folders). If the request-limit error
+appears, ask for a rebuild and reopen; don't loop.
+
+Notes:
+- Vinegar is a Flatpak. Opening project files and connecting only worked after
+  `flatpak override --user --filesystem=home org.vinegarhq.Vinegar`.
+- Never save from Studio over `build/game.rbxl`; `build/` is generated and
+  gitignored. Studio-side edits don't persist.
+- Messages from the Rojo plugin in the console are not game errors.
 
 ## Troubleshooting
 

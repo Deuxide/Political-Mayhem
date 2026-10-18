@@ -2,8 +2,8 @@
 -- Abstract base class for resolution pipeline steps.
 -- Each step is a stateless strategy class with run(state, ctx) method.
 
-local Types = require(script.Parent.Types)
-local abstract = require(script.Parent.Util.abstract)
+local Types = require(script.Parent.Parent.Types)
+local abstract = require(script.Parent.Parent.Util.abstract)
 
 export type Step = {
 	_name: string,

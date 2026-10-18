@@ -58,7 +58,7 @@ function Match:getRng(): Rng.Rng return self._rng end
 
 function Match:resolveDay(): (boolean, { Types.LogEntry }?)
 	-- Deep copy state for working copy
-	local workingCopy = self._stateOps.deepCopy(self._state)
+	local workingCopy = self._stateOps:deepCopy(self._state)
 	local ctx = {
 		rng = self._rng,
 		ruleSet = self._ruleSet,
@@ -86,7 +86,7 @@ function Match:resolveDay(): (boolean, { Types.LogEntry }?)
 	return true, ctx.trace
 end
 
-function Match:snapshot(): Types.MatchState return self._stateOps.deepCopy(self._state) end
+function Match:snapshot(): Types.MatchState return self._stateOps:deepCopy(self._state) end
 
 function Match:hash(): string return StateHash.compute(self._state) end
 

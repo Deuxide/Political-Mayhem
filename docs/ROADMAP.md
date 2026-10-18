@@ -43,6 +43,21 @@ Goal: a valid initial `MatchState` from config; all data tables in code.
 | M1-T4 | `StateFactory.create(difficulty, seats, seed)` building the initial plain `MatchState` per section 5.2; `RuleSet` for difficulty multipliers; `Match.new(state, ruleSet, rng)` facade skeleton | T2, T3 | Test snapshot of initial state for each difficulty matches GAME_DESIGN |
 | M1-T5 | `StateOps` (safe resource add/subtract with non-negative checks, `CLASS_ORDER`, `deepCopy`), `StateHash`, `Match:snapshot/hash` | T1 | Unit tests; a deep copy has an identical hash; initial states for all difficulties pass `assertSerializable` |
 
+## M1.5: Repair and verification gate (do before M2-T2)
+
+Added after an independent review found that M1/M2-T1 were marked done while
+the real engine could not run. Nothing below adds features; it makes earlier
+claims true and keeps them true.
+
+| Task | Description | Done when |
+|---|---|---|
+| M1R-T1 | Make `StateFactory.create` produce a state matching `Types.luau` and GAME_DESIGN sections 4 and 5.2: `lines` (starting lines with `openSlots = 2`), `drafts`, global `stability` (60), `workers` (16 for Working), `day`, `collapseCounter`, and so on | The tests "StateFactory output has the fields BuildStep needs", "Match:resolveDay succeeds on a StateFactory state", and the determinism test in `tests/real.luau` pass |
+| M1R-T2 | Move `BuildStep` constants (costs, eligible line types, max lines) into `Config/Lines.luau` and `Config/Classes.luau`, and read them through `RuleSet`. GAME_DESIGN has **no max-lines rule**: remove the invented limit of 5 or record a decision in DECISIONS.md | No numeric literals for rules left in `BuildStep` |
+| M1R-T3 | Add a type check to `scripts/check` (for example `luau-lsp analyze` with a Rojo sourcemap; confirm it installs via Rokit). Remove `--allow-warnings` from selene and fix the warnings | `scripts/check` fails on a wrong `require` path, a `.` vs `:` method call, and a state/type mismatch (try each on purpose) |
+| M1R-T4 | Retire the pasted copies in `tests/harness.luau`: every test loads real modules via `tests/loader.luau` | `grep -n "Inlined" tests/` finds nothing |
+| M1R-T5 | Make `ResolutionPipeline` match GAME_DESIGN section 10 (R1 LockDrafts ... R14 Events) with every step a `Step` subclass under `Steps/` | Pipeline order test passes |
+| M1R-T6 | Correct `docs/STATUS.md` so every "done" item is true and each has a passing test | STATUS reviewed against `scripts/check` output |
+
 ## M2: Economy resolution
 
 Goal: a Day resolves production, market, taxes, services, upkeep, stability.
