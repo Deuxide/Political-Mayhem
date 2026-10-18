@@ -15,7 +15,7 @@ Last updated: 2026-10-16 (planning phase)
 - **Last milestone merged to stable:** none
 - **Last green check:** none yet
 - **How to run checks:** not yet defined (created in M0-T5)
-- **How to sync with Studio:** `rojo serve` (after M0-T2)
+- **How to get code into Studio:** build-and-open (D-030): `rojo build -o build/game.rbxl`, then the owner reopens it in Studio (live sync fails on this machine)
 
 ## Done
 
@@ -54,7 +54,7 @@ None.
 
 - Machine: Arch Linux (CachyOS) + Hyprland. Roblox Studio runs under Wine via
   Vinegar; the Studio MCP is configured by the owner. The owner handles Studio
-  UI actions (plugin Connect, MCP toggle). Roblox Player can't run under Wine.
+  UI actions (reopening the built place; the MCP enables itself when Studio opens). Roblox Player can't run under Wine.
 - On other devices Studio or the MCP may be unavailable; fall back to manual
   verification and record it.
 - Tooling: opencode agent, Rojo, Rokit.

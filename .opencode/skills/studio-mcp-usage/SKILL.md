@@ -24,8 +24,12 @@ tools as best-effort, and say so in your report if they fail or look wrong.
   available, do those **first**.
 - Only connect to places the owner intends. The MCP can read and modify the open
   place; stay read-only unless the task explicitly needs more.
-- `rojo serve` must be running and connected in Studio for your files to be
-  in the place. Confirm the Explorer tree matches the project before testing.
+- Code reaches Studio only through **build-and-open** (D-030): after any
+  change, rebuild with `rojo build`, ask the owner to reopen
+  `build/game.rbxl`, and wait for confirmation. Before testing, confirm the
+  Explorer tree matches the project. If you haven't been told the latest build
+  is open, ask instead of assuming.
+- Ignore `[Rojo-...]` lines in console output.
 
 ## Tools you will use (names as documented by Roblox)
 

@@ -71,17 +71,24 @@ per-player UI panels. Rounds are simultaneous and phase-based, but must
   PowerShell or batch). Don't assume Windows or macOS paths from Roblox docs.
 - **Roblox Studio runs under Wine via Vinegar.** You cannot open or click
   anything in Studio. Anything that needs Studio's UI (opening a place,
-  clicking the Rojo plugin's Connect, toggling MCP settings) is done by the
+  reopening a rebuilt place file, toggling MCP settings) is done by the
   owner: ask, and wait for confirmation.
 - **Studio MCP** is already configured by the owner. Don't try to
   reconfigure it. If its tools are missing or fail, report that; don't
   retry blindly.
-- **Rojo plugin:** the owner installs it inside Studio. Don't rely on
-  `rojo plugin install` finding Studio's plugins folder under Wine; if the
-  plugin appears missing, tell the owner instead of working around it.
-- **`rojo serve`:** run by the owner in a separate terminal. If you ever start
-  a long-running process, run it in the background and stop it when done so
-  your shell isn't blocked.
+- **No live sync (D-030).** The Rojo plugin's live sync fails on this
+  machine (`Number of requests exceeded limit`). Do **not** use `rojo serve`
+  and do not ask the owner to connect the plugin. Use **build-and-open**:
+  run `rojo build -o build/game.rbxl`, then ask the owner to reopen that
+  file in Studio (close the old copy without saving, then File > Open from
+  File). Studio is **stale after every rebuild** until the owner confirms the
+  reopen. Never verify against a place you haven't been told is the latest
+  build, and never expect edits made in Studio to persist (`build/` is
+  generated).
+- Ignore `[Rojo-...]` lines in Studio's console; they come from the plugin,
+  not from the game.
+- If you start any long-running process, run it in the background and stop it
+  when done so your shell isn't blocked.
 - **Roblox Player does not run under Wine** (Roblox blocked it), so playtests
   happen in Studio, not by joining the game with the Player on this machine.
 - **Installing tools:** use Rokit (prebuilt Linux binaries). Don't run `sudo`,
@@ -96,8 +103,7 @@ per-player UI panels. Rounds are simultaneous and phase-based, but must
 ```bash
 rokit install                # install pinned tools
 wally install                # install packages
-rojo serve                   # live sync to Studio
-rojo build -o build/game.rbxl
+rojo build -o build/game.rbxl   # then the owner reopens it in Studio (D-030)
 stylua src                   # format
 selene src                   # lint
 ```

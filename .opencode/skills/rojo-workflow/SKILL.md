@@ -15,7 +15,7 @@ and inspection. Authoritative mapping of folders to the DataModel is in
 rokit install                      # install pinned tools from rokit.toml
 wally install                      # install packages into Packages/
 rojo build -o build/game.rbxl      # build a place file (no Studio needed)
-rojo serve                         # live sync to Studio (needs the Rojo plugin)
+# rojo serve                       # live sync: NOT used on this machine (D-030)
 rojo sourcemap default.project.json -o sourcemap.json   # for editor tooling
 stylua src                         # format
 selene src                         # lint
@@ -55,21 +55,31 @@ instead of guessing.
 5. Keep `shared/` free of server-only and client-only code. Dependency
    direction: client -> shared <- server (see `AGENTS.md`).
 
-## Linux with Vinegar (owner's setup)
+## Build-and-open workflow (D-030, owner's Linux/Vinegar setup)
 
-- The Rojo CLI and Rokit run natively on Linux. Studio runs under Wine, so the
-  Rojo **plugin** is installed by the owner inside Studio (Creator Store /
-  Toolbox, or by placing `Rojo.rbxm` in the plugins folder that Studio's
-  Plugins tab opens). Don't assume `rojo plugin install` can find that folder.
-- Plugin and CLI must be the same Rojo major version.
-- Studio under Wine reaches `rojo serve` on localhost like any other app. If it
-  can't connect, check that `rojo serve` is running and which port it prints.
+Live sync does not work here: the Rojo plugin fails with `Unknown HTTP error:
+Number of requests exceeded limit` (Studio's 500 requests/minute HttpService
+limit; Rojo issue #1077). Don't use `rojo serve` and don't ask the owner to
+connect the plugin.
+
+1. Make your changes in files.
+2. Run `scripts/check` (it builds) or `rojo build -o build/game.rbxl`.
+3. Tell the owner: "Rebuilt. Please close the old place without saving, then
+   File > Open from File > `build/game.rbxl`." Wait for confirmation.
+4. Only then verify through the Studio MCP.
+
+Notes:
+- Studio is stale after every rebuild. Never claim something works in Studio
+  against a place you don't know is current.
+- Never save from Studio over `build/game.rbxl` and never expect Studio-side
+  edits to survive; `build/` is generated and gitignored.
+- Ignore `[Rojo-...]` lines in console output; they come from the plugin.
+- A newer Rojo (7.7.0 switched from long polling to websockets) might fix live
+  sync. Only try it if the owner asks, and record the result in
+  `docs/DECISIONS.md` as a new row.
 
 ## Troubleshooting
 
-- Plugin won't connect: confirm `rojo serve` is running in the project root and
-  that the plugin and CLI versions are compatible (they are released
-  together); restart Studio after installing the plugin.
 - `rojo build` fails: usually a bad path in `default.project.json` or invalid
   JSON in a `.model.json` / `.meta.json` file.
 - `wally install` fails: check network access, then `wally.toml` package
