@@ -8,6 +8,13 @@ description: Use when the Roblox Studio MCP tools are available and you need to 
 Decision D-020: the MCP is for **inspection and verification only**. All code
 changes go through files and Rojo, never through MCP script-editing tools.
 
+## Environment note
+
+Studio runs under Wine (Vinegar) on Linux. Screenshots and simulated input may
+behave differently than on Windows or macOS. Prefer `get_console_output` and
+`inspect_instance` as the source of truth, treat `screen_capture` and input
+tools as best-effort, and say so in your report if they fail or look wrong.
+
 ## Before you start
 
 - If Studio or the MCP tools are not available, **say so**. Don't pretend to

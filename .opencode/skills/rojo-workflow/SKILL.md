@@ -55,6 +55,16 @@ instead of guessing.
 5. Keep `shared/` free of server-only and client-only code. Dependency
    direction: client -> shared <- server (see `AGENTS.md`).
 
+## Linux with Vinegar (owner's setup)
+
+- The Rojo CLI and Rokit run natively on Linux. Studio runs under Wine, so the
+  Rojo **plugin** is installed by the owner inside Studio (Creator Store /
+  Toolbox, or by placing `Rojo.rbxm` in the plugins folder that Studio's
+  Plugins tab opens). Don't assume `rojo plugin install` can find that folder.
+- Plugin and CLI must be the same Rojo major version.
+- Studio under Wine reaches `rojo serve` on localhost like any other app. If it
+  can't connect, check that `rojo serve` is running and which port it prints.
+
 ## Troubleshooting
 
 - Plugin won't connect: confirm `rojo serve` is running in the project root and

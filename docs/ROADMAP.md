@@ -25,7 +25,7 @@ Goal: an empty but fully wired project that builds, lints, tests, and syncs.
 | M0-T2 | `default.project.json` per ARCHITECTURE section 4; `wally.toml` with React-Lua deps; `wally install` | T1 | Packages resolve; `rojo build` produces `build/game.rbxl` |
 | M0-T3 | Full folder skeleton and stubs; server and client boot; placeholder UI with four corner panels | T2 | Playtest shows "Hegemony: scaffold OK" and four labeled corners; no errors in output |
 | M0-T4 | **Spike: test strategy (D-014).** Determine how to run `shared/Game` modules under **Lune** while they still work unchanged in Studio via Rojo. Evaluate the options listed in D-014 (relative string requires, a Rojo-aware bundler such as Wax, or in-Studio fallback). Build `tests/harness` and one passing test (`lune run tests/run` or equivalent). Record outcome in DECISIONS.md | T3 | D-014 status updated with chosen approach and the exact command to run tests |
-| M0-T5 | `scripts/check` script that runs: stylua check, selene, rojo build, tests | T4 | One command prints PASS/FAIL |
+| M0-T5 | `scripts/check` (executable bash script; the dev machine is Linux) that runs: stylua check, selene, rojo build, tests | T4 | One command prints PASS/FAIL |
 | M0-T6 | MCP verification: connect to Studio via MCP, confirm Explorer matches project, run playtest, read output | T3 | Result recorded in STATUS.md; if MCP unavailable, manual steps recorded |
 
 ## M1: Core types, config, match creation

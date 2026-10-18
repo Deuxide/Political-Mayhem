@@ -49,8 +49,12 @@ None.
 
 ## Environment notes
 
-- Tooling: opencode agent, Rojo + Roblox Studio, Roblox Studio MCP (may be
-  unavailable on some devices; fall back to manual verification and record it).
+- Machine: Arch Linux (CachyOS) + Hyprland. Roblox Studio runs under Wine via
+  Vinegar; the Studio MCP is configured by the owner. The owner handles Studio
+  UI actions (plugin Connect, MCP toggle). Roblox Player can't run under Wine.
+- On other devices Studio or the MCP may be unavailable; fall back to manual
+  verification and record it.
+- Tooling: opencode agent, Rojo, Rokit.
 - No secrets, tokens, or API keys belong in this repo.
 
 ## Known issues

@@ -59,6 +59,33 @@ per-player UI panels. Rounds are simultaneous and phase-based, but must
   is decided in task M0-T4 (decision D-014); once decided, the command is
   recorded in `docs/STATUS.md` and `scripts/check`.
 
+## Environment (owner's machine)
+
+- **OS:** Arch Linux (CachyOS) with Hyprland (Wayland). Use Linux paths (`/`)
+  and POSIX/bash tooling. Write every script as `#!/usr/bin/env bash` (never
+  PowerShell or batch). Don't assume Windows or macOS paths from Roblox docs.
+- **Roblox Studio runs under Wine via Vinegar.** You cannot open or click
+  anything in Studio. Anything that needs Studio's UI (opening a place,
+  clicking the Rojo plugin's Connect, toggling MCP settings) is done by the
+  owner: ask, and wait for confirmation.
+- **Studio MCP** is already configured by the owner. Don't try to
+  reconfigure it. If its tools are missing or fail, report that; don't
+  retry blindly.
+- **Rojo plugin:** the owner installs it inside Studio. Don't rely on
+  `rojo plugin install` finding Studio's plugins folder under Wine; if the
+  plugin appears missing, tell the owner instead of working around it.
+- **`rojo serve`:** run by the owner in a separate terminal. If you ever start
+  a long-running process, run it in the background and stop it when done so
+  your shell isn't blocked.
+- **Roblox Player does not run under Wine** (Roblox blocked it), so playtests
+  happen in Studio, not by joining the game with the Player on this machine.
+- **Installing tools:** use Rokit (prebuilt Linux binaries). Don't run `sudo`,
+  `pacman`, or AUR helpers without asking. If Rokit itself is missing, stop and
+  tell the owner.
+- Studio UI under Wine may behave differently for screenshots and simulated
+  input. Treat MCP screenshot/input tools as best-effort and rely on console
+  output when they misbehave.
+
 ## Commands
 
 ```bash
