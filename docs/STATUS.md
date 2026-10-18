@@ -61,10 +61,17 @@ These have defaults; proceed with the default and keep asking when convenient.
 | D-009 | Easy mode keeps all four classes with reduced systems (instead of 2-class mechanics)? | Yes, all four classes |
 | (palette) | Final class colors and gradient palette are placeholders in UI_STYLE section 3 | Pick during M7-T0 |
 | (balance) | Starting numbers in GAME_DESIGN are initial guesses; balanced in M10 | Use as written |
+| (React text child) | What does the temporary diagnostic report in Studio and a published test client? | Run the diagnostic-enabled source, then provide its log and the published build revision |
 
 ## Blockers
 
-None.
+The reported published-client `createTextInstance` error is not yet attributable
+to the current source tree. A sweep of 216 `React.createElement` call sites
+found no literal string or number child. A temporary diagnostic in
+`src/client/init.client.luau` now reports primitive children with their parent
+element type, callsite, child path, and traceback before React reaches the
+renderer. It has not yet been run in Roblox, so the offending component and
+published source revision remain unknown.
 
 ## Environment notes
 
@@ -81,7 +88,11 @@ None.
 
 ## Known issues
 
-None yet.
+ReactRoblox 17.3.13 intentionally rejects primitive string/number React
+children through `createTextInstance` in every client environment, including
+published clients. Current source inspection has not found the offending
+primitive child. The temporary entry-point diagnostic must be exercised in
+Studio and a published test experience before an application fix can be made.
 
 ## Session log
 
@@ -89,7 +100,9 @@ Newest first. One line per session: date, what was done, what's next.
 
 | Date | Summary |
 |---|---|
-| 2026-10-18 | M2-T1 complete: Steps/Build (R4) implemented - affordable build queues line with cost payment; not affordable skipped with log entry; line becomes active next Day (builtOnDay = round + 1). Respects class eligibility, max lines (5), affordability. Integrated into ResolutionPipeline. Fixed all client module require paths (Composites, Modal, ClassHeader). Lobby screen now loads in Studio playtest. "createTextInstance unimplemented" is a known React-Lua Studio limitation, not a code error. All checks pass. Next: M2-T2. |
+| 2026-10-18 | Continued `createTextInstance` investigation. Traced the App-mounted Lobby, MatchHUD, EndScreen, and Gallery branches and nested components; inspected all 216 client `React.createElement` calls, including dynamically unpacked Fragment children. No literal string/number child was found. The dynamically built lists contain React elements; some lists are unkeyed, which is not evidence for HostText. Added a temporary entry-point diagnostic that reports primitive child value, parent type, source callsite, child path, and stack without suppressing the renderer error. `./scripts/check` passes (16 tests; Selene reports existing warnings). Could not execute Studio or the published client here; runtime output is still required to identify the source. |
+| 2026-10-18 | Investigated `createTextInstance`: installed ReactRoblox 17.3.13 host-config source matches Roblox/react-lua upstream (blob `fbaaf6399f2359f2b034d0588c01a325f54c83f7`); Wally lock versions are aligned. The reconciler calls the intentionally unimplemented host operation for an initially mounted primitive string/number child. The current Lobby tree uses element children and `TextLabel.Text`, so it does not explain the reported child. `./scripts/check` passes. No source fix or published-client retest is claimed; need affected published source revision or component trace to safely locate the child. |
+| 2026-10-18 | M2-T1 complete: Steps/Build (R4) implemented - affordable build queues line with cost payment; not affordable skipped with log entry; line becomes active next Day (builtOnDay = round + 1). Respects class eligibility, max lines (5), affordability. Integrated into ResolutionPipeline. Fixed all client module require paths (Composites, Modal, ClassHeader). Lobby screen now loads in Studio playtest. The earlier claim that `createTextInstance` was a Studio-only limitation was incorrect; see the later source investigation entry above. All checks pass. Next: M2-T2. |
 | 2026-10-18 | Starting M2: Economy resolution. M1 complete. Created M2-dev1 branch from Linux-stable. Starting M2-T1: Steps/Build (R4) - affordable build queues line; not affordable is skipped with log; becomes active next Day. |
 | 2026-10-18 | M1-T5 complete: StateOps, StateHash, Match:snapshot/hash already implemented (StateOps has deepCopy, addResource, subtractResource, transferResource, CLASS_ORDER; StateHash has deterministic FNV-1a hash with sorted keys; Match has snapshot, hash, resolveDay). All checks pass. M1 complete. Next: M2-T1. |
 | 2026-10-18 | M1-T4 complete: StateFactory.create, RuleSet, Match facade already implemented (StateFactory.create builds initial MatchState from config, RuleSet provides difficulty/config-driven answers, Match facade has resolveDay, snapshot, hash, viewFor, live action stubs). All checks pass. Next: M1-T5. |

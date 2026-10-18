@@ -76,20 +76,24 @@ per-player UI panels. Rounds are simultaneous and phase-based, but must
 - **Studio MCP** is already configured by the owner. Don't try to
   reconfigure it. If its tools are missing or fail, report that; don't
   retry blindly.
-- **Rojo live sync works (D-031).** The owner runs `rojo serve` in a separate
-  terminal and keeps the Studio plugin connected. Don't start `rojo serve`
-  yourself and don't ask the owner to reopen `build/game.rbxl`. After you edit
-  files, Studio updates automatically (the edit-mode place); verify that
-  before testing (see the `studio-mcp-usage` skill). Fallback if sync breaks:
-  build-and-open (`rojo build -o build/game.rbxl`, then the owner reopens it).
+- **Studio sync workflow (D-032).** Rojo live sync only works when Studio
+  already has (nearly) the same content as the project; connecting against an
+  old or empty place triggers `Number of requests exceeded limit`. So:
+  (1) you run `rojo build -o build/game.rbxl`; (2) the owner opens that file in
+  Studio (closing the old place without saving); (3) the owner runs
+  `rojo serve` in a separate terminal and clicks Connect; (4) after that,
+  small edits sync live. Repeat the build-and-open step at the start of a
+  session and after any large change (branch switch, many files changed, new
+  folders). Never start `rojo serve` yourself. If the owner reports the
+  request-limit error, ask for a rebuild and reopen; don't loop on it.
 - **Studio gate (hard rule).** Do not call **any** Studio MCP tool until the
-  owner has confirmed, in this session, that Studio is open with the project
-  and Rojo is connected. If you need Studio and don't have that confirmation:
-  finish all other work first, batch every Studio check into one list, then
-  **stop and end your turn** with the request template in `studio-mcp-usage`,
-  and wait. If sync looks stale (Studio's content doesn't match the files),
-  stop testing and ask the owner to check Rojo. If a task doesn't need Studio,
-  don't ask.
+  owner has confirmed, in this session, that Studio has the latest
+  `build/game.rbxl` open and Rojo is connected. If you need Studio and don't
+  have that confirmation: finish all other work first, batch every Studio
+  check into one list, then **stop and end your turn** with the request
+  template in `studio-mcp-usage`, and wait. If sync looks stale (Studio's
+  content doesn't match the files), stop testing and ask for a rebuild and
+  reopen. If a task doesn't need Studio, don't ask.
 - Vinegar is a Flatpak. It needed
   `flatpak override --user --filesystem=home org.vinegarhq.Vinegar` before
   Studio could open project files and Rojo could connect. If either breaks,
@@ -139,6 +143,19 @@ Decide which kind your code is before writing it:
 - The UI tree uses React function components (composition), not classes.
 
 ## Roblox-specific rules
+
+- **React-Lua children (react-lua issue #42).** Never put a raw children table
+  (such as `props.children`) as a *value inside another children table*, and
+  never put a falsy child followed by a table of children in one `createElement`
+  call. Forward children by wrapping them:
+  `Content = React.createElement(React.Fragment, nil, props.children)`.
+  An error such as `createTextInstance is unimplemented` almost always means
+  this or a stray string/number child. Fix the code; don't abandon React-Lua.
+  See the `react-lua-ui` skill.
+- **Tests run the real code.** Tests must load modules from `src/` through
+  `tests/loader.luau`, never pasted copies. A task is not done until its
+  "Done when" tests exist and pass against the real modules.
+- Methods defined with `:` must be called with `:`.
 
 - All player-typed text must be filtered with Roblox's text filtering before it
   is shown to anyone (D-025).
@@ -230,7 +247,7 @@ guessing.
 
 - [ ] Compiles with `rojo build`
 - [ ] `stylua` + `selene` clean
-- [ ] Tests added/updated and passing; new state types pass `assertSerializable`
+- [ ] Tests added/updated and passing against the **real** modules (via `tests/loader.luau`); new state types pass `assertSerializable`
 - [ ] UI rules test (`tests/ui_rules`) passing when UI code changed
 - [ ] No server trust violations (client can't cheat the new feature)
 - [ ] Verified in a Studio playtest (via MCP) when UI or networking changed
