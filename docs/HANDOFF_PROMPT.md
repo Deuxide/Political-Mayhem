@@ -12,8 +12,11 @@ Do this, in order:
 
 1. Read `AGENTS.md` fully and obey it.
 2. Read `docs/INDEX.md`, then `docs/STATUS.md`.
-3. Run `git log --oneline -20` and `git status`. Compare them with
-   STATUS.md. If they disagree, trust the repository and note the
+3. Run `git log --oneline -20`, `git status`, and
+   `git branch --show-current`. Compare them with STATUS.md. The current
+   branch must be the `M#-dev#` branch named there (see
+   `docs/GIT_WORKFLOW.md`); if it isn't, stop and ask. If the repository and
+   STATUS.md otherwise disagree, trust the repository and note the
    discrepancy.
 4. Open `docs/ROADMAP.md` and locate the current task from STATUS.md. Read its
    "Done when" criteria.

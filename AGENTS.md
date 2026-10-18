@@ -29,10 +29,15 @@ If you were pasted into a fresh session, use `docs/HANDOFF_PROMPT.md`.
   resolution". Fix the docs in the same change.
 - Never put rules or numbers in two places. Rules live in `GAME_DESIGN.md`;
   tunable values live in `src/shared/Config/`.
-- **Back up your work.** After each task commit, if a git remote is
-  configured, run `git push` (never force-push). If there is no remote or the
-  push fails, say so in `docs/STATUS.md` and tell the owner. Unpushed work can
-  be lost when a device changes.
+- **Git branches** (full rules: `docs/GIT_WORKFLOW.md`). Work only on the
+  current `M#-dev#` branch. At the start of every session run
+  `git branch --show-current`; it must match the branch in `docs/STATUS.md`,
+  otherwise stop and ask. Never commit to, merge into, or push the stable
+  branch; never force-push; never create, delete, or switch branches unless
+  the owner asks.
+- **Back up your work.** After each task commit, `git push` the current
+  branch. If there is no remote or the push fails, say so in `docs/STATUS.md`
+  and tell the owner. Unpushed work can be lost when a device changes.
 - If you are blocked or the spec is ambiguous, write the question in
   `STATUS.md` ("Open questions") and either ask the owner or proceed with the
   documented default.
@@ -58,6 +63,33 @@ per-player UI panels. Rounds are simultaneous and phase-based, but must
 - Tests: pure-logic tests for `src/shared/Game` and `Config`. The exact runner
   is decided in task M0-T4 (decision D-014); once decided, the command is
   recorded in `docs/STATUS.md` and `scripts/check`.
+
+## Environment (owner's machine)
+
+- **OS:** Arch Linux (CachyOS) with Hyprland (Wayland). Use Linux paths (`/`)
+  and POSIX/bash tooling. Write every script as `#!/usr/bin/env bash` (never
+  PowerShell or batch). Don't assume Windows or macOS paths from Roblox docs.
+- **Roblox Studio runs under Wine via Vinegar.** You cannot open or click
+  anything in Studio. Anything that needs Studio's UI (opening a place,
+  clicking the Rojo plugin's Connect, toggling MCP settings) is done by the
+  owner: ask, and wait for confirmation.
+- **Studio MCP** is already configured by the owner. Don't try to
+  reconfigure it. If its tools are missing or fail, report that; don't
+  retry blindly.
+- **Rojo plugin:** the owner installs it inside Studio. Don't rely on
+  `rojo plugin install` finding Studio's plugins folder under Wine; if the
+  plugin appears missing, tell the owner instead of working around it.
+- **`rojo serve`:** run by the owner in a separate terminal. If you ever start
+  a long-running process, run it in the background and stop it when done so
+  your shell isn't blocked.
+- **Roblox Player does not run under Wine** (Roblox blocked it), so playtests
+  happen in Studio, not by joining the game with the Player on this machine.
+- **Installing tools:** use Rokit (prebuilt Linux binaries). Don't run `sudo`,
+  `pacman`, or AUR helpers without asking. If Rokit itself is missing, stop and
+  tell the owner.
+- Studio UI under Wine may behave differently for screenshots and simulated
+  input. Treat MCP screenshot/input tools as best-effort and rely on console
+  output when they misbehave.
 
 ## Commands
 

@@ -10,6 +10,9 @@ Last updated: 2026-10-16 (planning phase)
 - **Current milestone:** M0 (Scaffold and tooling)
 - **Current task:** M0-T1 (not started)
 - **Project phase:** Planning complete; no code written yet.
+- **Current branch:** M0-dev1
+- **Stable branch:** linux-stable (rules: `docs/GIT_WORKFLOW.md`)
+- **Last milestone merged to stable:** none
 - **Last green check:** none yet
 - **How to run checks:** not yet defined (created in M0-T5)
 - **How to sync with Studio:** `rojo serve` (after M0-T2)
@@ -49,8 +52,12 @@ None.
 
 ## Environment notes
 
-- Tooling: opencode agent, Rojo + Roblox Studio, Roblox Studio MCP (may be
-  unavailable on some devices; fall back to manual verification and record it).
+- Machine: Arch Linux (CachyOS) + Hyprland. Roblox Studio runs under Wine via
+  Vinegar; the Studio MCP is configured by the owner. The owner handles Studio
+  UI actions (plugin Connect, MCP toggle). Roblox Player can't run under Wine.
+- On other devices Studio or the MCP may be unavailable; fall back to manual
+  verification and record it.
+- Tooling: opencode agent, Rojo, Rokit.
 - No secrets, tokens, or API keys belong in this repo.
 
 ## Known issues
