@@ -8,12 +8,12 @@ Last updated: 2026-10-18
 ## Snapshot
 
 - **Current milestone:** M0 (Scaffold and tooling)
-- **Current task:** M0-T2 (in progress)
-- **Project phase:** Toolchain installed; Rojo project and Wally packages next.
+- **Current task:** M0-T3 (in progress)
+- **Project phase:** Toolchain, Rojo project, and Wally packages done; folder skeleton and boot code next.
 - **Current branch:** M0-dev1
 - **Stable branch:** linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** none
-- **Last green check:** rokit install OK; tools: rojo 7.7.1, wally 0.3.2, stylua 2.6.0, selene 0.32.0, lune 0.11.0
+- **Last green check:** rokit install OK; wally install OK; rojo build produces build/game.rbxl; tools: rojo 7.7.1, wally 0.3.2, stylua 2.6.0, selene 0.32.0, lune 0.11.0
 - **How to run checks:** not yet defined (created in M0-T5)
 - **How to get code into Studio:** build-and-open (D-030): `rojo build -o build/game.rbxl`, then the owner reopens it in Studio (live sync fails on this machine)
 
@@ -25,16 +25,16 @@ Last updated: 2026-10-18
 - [x] Agent rules and handoff protocol: AGENTS.md
 - [x] Hybrid architecture (D-029, supersedes D-026) and visual design system (D-027, D-028, docs/UI_STYLE.md)
 - [x] M0-T1: toolchain files (rokit.toml, stylua.toml, selene.toml, .gitignore); rokit install works; versions verified
+- [x] M0-T2: Rojo project (default.project.json) and Wally (wally.toml with roblox/react@17.3.13, roblox/react-roblox@17.3.13); wally install OK; rojo build produces build/game.rbxl
 
 ## In progress
 
-M0-T2: Rojo project (default.project.json) and Wally (wally.toml with React-Lua deps)
+M0-T3: Full folder skeleton and stubs; server and client boot; placeholder UI with four corner panels
 
 ## Next up (in order)
 
-1. M0-T2: Rojo project and Wally
-2. M0-T3: skeleton and boot
-3. M0-T4: test-strategy spike (resolves D-014)
+1. M0-T3: skeleton and boot
+2. M0-T4: test-strategy spike (resolves D-014)
 
 ## Open questions for the owner
 
