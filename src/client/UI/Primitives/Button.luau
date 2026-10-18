@@ -50,6 +50,8 @@ local function Button(props: ButtonProps)
 			tone = variant == "ghost" and (props.tone or "neutral") or "neutral",
 			size = textSize,
 			weight = "medium",
+			sizeOverride = UDim2.fromOffset(0, 0),
+			automaticSize = Enum.AutomaticSize.XY,
 		}),
 		Button = React.createElement("TextButton", {
 			Text = "",

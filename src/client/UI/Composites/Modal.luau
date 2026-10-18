@@ -85,7 +85,7 @@ local function Modal(props: ModalProps)
 					PaddingTop = UDim.new(0, 16),
 					PaddingBottom = UDim.new(0, 16),
 				}),
-				Children = props.children,
+				Children = React.createElement(React.Fragment, nil, props.children),
 			}),
 			Actions = props.actions and #props.actions > 0 and React.createElement("Frame", {
 				BackgroundTransparency = 1,

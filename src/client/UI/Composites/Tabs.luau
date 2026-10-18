@@ -72,7 +72,7 @@ local function Tabs(props: TabsProps)
 			gradientRole = "surfaceCard",
 			size = UDim2.new(1, 0, 1, -40),
 		}, {
-			SelectedContent = selectedContent,
+			SelectedContent = React.createElement(React.Fragment, nil, selectedContent),
 		}),
 	})
 end

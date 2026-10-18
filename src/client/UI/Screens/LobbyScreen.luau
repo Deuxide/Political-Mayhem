@@ -18,6 +18,12 @@ export type LobbyScreenProps = {
 }
 
 local function LobbyScreen(props: LobbyScreenProps)
+	local function logLobbyMounted()
+		print("[UI] LobbyScreen mounted")
+		return nil
+	end
+	React.useEffect(logLobbyMounted, {})
+
 	local classCards = {}
 	for _, classId in ipairs(props.availableClasses) do
 		table.insert(

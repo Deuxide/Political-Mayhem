@@ -64,7 +64,7 @@ local function Card(props: CardProps)
 				PaddingLeft = UDim.new(0, 12),
 				PaddingRight = UDim.new(0, 12),
 			}),
-			Children = props.children,
+			Children = React.createElement(React.Fragment, nil, props.children),
 		}),
 	})
 end

@@ -10,6 +10,7 @@ export type SurfaceProps = {
 	position: UDim2?,
 	anchorPoint: Vector2?,
 	children: React.ReactNode,
+	automaticSize: Enum.AutomaticSize?,
 	layoutOrder: number?,
 	zIndex: number?,
 	clipsDescendants: boolean?,
@@ -38,6 +39,7 @@ local function Surface(props: SurfaceProps)
 
 	return React.createElement("Frame", {
 		Size = props.size or UDim2.fromScale(1, 1),
+		AutomaticSize = props.automaticSize,
 		Position = props.position,
 		AnchorPoint = props.anchorPoint,
 		BackgroundColor3 = Color3.new(1, 1, 1), -- White so gradient shows through
@@ -54,7 +56,7 @@ local function Surface(props: SurfaceProps)
 				gradientSpec.transparency
 			) or nil,
 		}),
-		Children = props.children,
+		Children = React.createElement(React.Fragment, nil, props.children),
 	})
 end
 

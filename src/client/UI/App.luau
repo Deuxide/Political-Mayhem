@@ -91,6 +91,11 @@ local function App()
 		},
 	})
 
+	React.useEffect(
+		function() print("[UI] App screen selected:", state.screen) end,
+		{ state.screen }
+	)
+
 	local function goToMatch()
 		setState(
 			function(prev)

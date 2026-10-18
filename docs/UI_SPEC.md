@@ -5,6 +5,9 @@ fed by `View_Snapshot` / `View_Patch`, and contain **no game rules**.
 
 ## 1. Principles
 
+- The client React root is parented to an enabled `ScreenGui` under the local
+  player's `PlayerGui`; rendered `GuiObject`s must remain descendants of that
+  `ScreenGui`.
 - **Hide the turn structure** (D-021): "Day 4 of 12", "Market Hours", an in-world
   clock/sun dial instead of a numeric "Your turn" banner. Never say "round",
   "turn", or "waiting for players".

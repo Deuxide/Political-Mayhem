@@ -8,19 +8,20 @@ Last updated: 2026-10-18
 ## Snapshot
 
 - **Current milestone:** M2 (Economy resolution)
-- **Current task:** M2-T1 (in progress)
+- **Current task:** M2-T2 (in progress)
 - **Project phase:** M1 complete; M2 economy resolution steps next.
 - **Current branch:** M2-dev1
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** none
-- **Last green check:** All checks pass (stylua, selene --allow-warnings, rojo build, lune tests)
+- **Last green check:** Previously recorded as all checks passing; latest `./scripts/check` has 3 real-module test failures (details in the session log).
+- **Latest check:** StyLua and Rojo build pass; Selene reports 0 errors and 180 warnings; 16 harness tests pass; 3 unrelated real-module tests fail because `StateFactory` omits `lines`, causing two `BuildStep` resolution failures.
 - **How to run checks:** `./scripts/check`
-- **How to get code into Studio:** build-and-open (D-030): `rojo build -o build/game.rbxl`, then the owner reopens it in Studio (live sync fails on this machine)
+- **How to get code into Studio:** Rojo live sync (D-031): the owner runs `rojo serve` and keeps Studio connected; build-and-open (`rojo build -o build/game.rbxl`) is the fallback.
 
 ## Done
 
 - [x] Design documented: GAME_DESIGN, ARCHITECTURE, NETWORKING, UI_SPEC
-- [x] Decisions logged: DECISIONS.md (D-001 to D-031)
+- [x] Decisions logged: DECISIONS.md (D-001 to D-034)
 - [x] Roadmap with task-level acceptance criteria: ROADMAP.md
 - [x] Agent rules and handoff protocol: AGENTS.md
 - [x] Hybrid architecture (D-029, supersedes D-026) and visual design system (D-027, D-028, docs/UI_STYLE.md)
@@ -61,17 +62,31 @@ These have defaults; proceed with the default and keep asking when convenient.
 | D-009 | Easy mode keeps all four classes with reduced systems (instead of 2-class mechanics)? | Yes, all four classes |
 | (palette) | Final class colors and gradient palette are placeholders in UI_STYLE section 3 | Pick during M7-T0 |
 | (balance) | Starting numbers in GAME_DESIGN are initial guesses; balanced in M10 | Use as written |
-| (React text child) | What does the temporary diagnostic report in Studio and a published test client? | Run the diagnostic-enabled source, then provide its log and the published build revision |
+| (React #42 runtime check) | Does the Fragment workaround eliminate `createTextInstance` in Studio and a published test client, including after rerenders? | Owner reports the latest Studio playtest log no longer contains the error; published-client retest is not reported |
 
 ## Blockers
 
-The reported published-client `createTextInstance` error is not yet attributable
-to the current source tree. A sweep of 216 `React.createElement` call sites
-found no literal string or number child. A temporary diagnostic in
-`src/client/init.client.luau` now reports primitive children with their parent
-element type, callsite, child path, and traceback before React reaches the
-renderer. It has not yet been run in Roblox, so the offending component and
-published source revision remain unknown.
+Owner reports the latest Studio playtest log no longer contains
+`createTextInstance`. The published-client result is not reported. The Lobby UI
+is still missing. Source inspection found that the client created its React
+root directly on `PlayerGui`, without a `ScreenGui` ancestor, so the host
+`GuiObject`s had no renderable GUI container. The root now mounts under an
+enabled `ScreenGui`. `Surface` also now forwards `AutomaticSize`; Button text
+uses intrinsic sizing so its zero-offset frame can acquire a visible and
+interactive size. Targeted logs record GUI parenting, root creation, App screen
+selection, and Lobby mount. Studio verification of the actual UI tree,
+visibility, and button interaction remains required.
+
+Roblox Studio MCP tools were not available in this session, and owner-side
+runtime results were not provided, so the current visibility fix is not
+verified. Keep the targeted startup logs until the Lobby render and interaction
+checks are confirmed, then remove them in a follow-up cleanup.
+
+Owner verification required: with this source synced in Studio, confirm
+`PlayerGui.PoliticalMayhemUI` exists and is enabled, and its React-rendered
+Lobby descendants are visible. Select each class and toggle Ready; confirm the
+buttons respond and no React rendering errors appear. If a published test
+experience is available, publish this source and repeat the test.
 
 ## Environment notes
 
@@ -88,11 +103,12 @@ published source revision remain unknown.
 
 ## Known issues
 
-ReactRoblox 17.3.13 intentionally rejects primitive string/number React
-children through `createTextInstance` in every client environment, including
-published clients. Current source inspection has not found the offending
-primitive child. The temporary entry-point diagnostic must be exercised in
-Studio and a published test experience before an application fix can be made.
+The React-Lua issue #42 application workaround is in place. The owner reports
+the latest Studio log has no `createTextInstance` error; published-client
+verification remains unknown. Separately, the React UI did not have a
+`ScreenGui` ancestor. The client now creates and logs an enabled ScreenGui root;
+confirm visibility and interactivity in Studio before considering this UI
+incident resolved.
 
 ## Session log
 
@@ -100,6 +116,8 @@ Newest first. One line per session: date, what was done, what's next.
 
 | Date | Summary |
 |---|---|
+| 2026-10-18 | Investigated the missing Lobby UI. The client previously called `ReactRoblox.createRoot(Players.LocalPlayer.PlayerGui)`, and the installed host config appends rendered instances directly to that container; no `ScreenGui` existed under `PlayerGui`, so the UI had no renderable GUI ancestor. Changed startup to create an enabled `PoliticalMayhemUI` ScreenGui, parent it to PlayerGui, and render into it. Added finite startup/App/Lobby diagnostic logs for Studio confirmation. Found and fixed the coupled zero-size button issue: `Button` passed `automaticSize` to Surface, but Surface discarded it; Surface now applies AutomaticSize and Button's Text requests intrinsic XY sizing. The reported asset `203785492` is not referenced in the repository sources, so its warning is unrelated; no evidence connects the CorePackages FoundationProvider warning to this UI. The prior Fragment grouping only adds a non-Instance React grouping and does not remove the ScreenGui container requirement. `./scripts/check`: StyLua passed, Selene reported 0 errors (180 warnings), Rojo build passed, 16 harness tests passed, 3 existing real-module tests failed due missing `StateFactory.lines` and consequent `BuildStep` failures. Owner reports latest Studio output has no `createTextInstance` error, but Studio MCP tools were unavailable and no owner verification was received for GUI visibility/interactivity or published-client behavior. |
+| 2026-10-18 | Traced the issue #42 trigger in the installed reconciler: `createChild` calls `assignStableKey` on any table-valued child, and `getIteratorFn` later yields the injected `.key` entry as a string child. In the Lobby path, `Surface` forwarded its keyed `props.children` map as `Children`; `Card` and `Modal` did likewise, and `Tabs` nested selected content as a named child value. Wrapped those forwarded collections in React Fragments and removed the temporary entry-point diagnostic. `./scripts/check`: StyLua and Rojo build passed; Selene had 0 errors/180 warnings; 16 harness tests passed, but 3 unrelated real-module tests failed (`StateFactory` missing `lines`, cascading into two `BuildStep` resolution failures). No Studio MCP/runtime or published-client retest was available; owner verification remains required. |
 | 2026-10-18 | Continued `createTextInstance` investigation. Traced the App-mounted Lobby, MatchHUD, EndScreen, and Gallery branches and nested components; inspected all 216 client `React.createElement` calls, including dynamically unpacked Fragment children. No literal string/number child was found. The dynamically built lists contain React elements; some lists are unkeyed, which is not evidence for HostText. Added a temporary entry-point diagnostic that reports primitive child value, parent type, source callsite, child path, and stack without suppressing the renderer error. `./scripts/check` passes (16 tests; Selene reports existing warnings). Could not execute Studio or the published client here; runtime output is still required to identify the source. |
 | 2026-10-18 | Investigated `createTextInstance`: installed ReactRoblox 17.3.13 host-config source matches Roblox/react-lua upstream (blob `fbaaf6399f2359f2b034d0588c01a325f54c83f7`); Wally lock versions are aligned. The reconciler calls the intentionally unimplemented host operation for an initially mounted primitive string/number child. The current Lobby tree uses element children and `TextLabel.Text`, so it does not explain the reported child. `./scripts/check` passes. No source fix or published-client retest is claimed; need affected published source revision or component trace to safely locate the child. |
 | 2026-10-18 | M2-T1 complete: Steps/Build (R4) implemented - affordable build queues line with cost payment; not affordable skipped with log entry; line becomes active next Day (builtOnDay = round + 1). Respects class eligibility, max lines (5), affordability. Integrated into ResolutionPipeline. Fixed all client module require paths (Composites, Modal, ClassHeader). Lobby screen now loads in Studio playtest. The earlier claim that `createTextInstance` was a Studio-only limitation was incorrect; see the later source investigation entry above. All checks pass. Next: M2-T2. |
