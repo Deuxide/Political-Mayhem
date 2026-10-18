@@ -15,7 +15,7 @@ and inspection. Authoritative mapping of folders to the DataModel is in
 rokit install                      # install pinned tools from rokit.toml
 wally install                      # install packages into Packages/
 rojo build -o build/game.rbxl      # build a place file (no Studio needed)
-# rojo serve                       # live sync: NOT used on this machine (D-030)
+rojo serve                         # live sync (run by the owner in a separate terminal)
 rojo sourcemap default.project.json -o sourcemap.json   # for editor tooling
 stylua src                         # format
 selene src                         # lint
@@ -55,28 +55,30 @@ instead of guessing.
 5. Keep `shared/` free of server-only and client-only code. Dependency
    direction: client -> shared <- server (see `AGENTS.md`).
 
-## Build-and-open workflow (D-030, owner's Linux/Vinegar setup)
+## Live sync (D-031, owner's Linux/Vinegar setup)
 
-Live sync does not work here: the Rojo plugin fails with `Unknown HTTP error:
-Number of requests exceeded limit` (Studio's 500 requests/minute HttpService
-limit; Rojo issue #1077). Don't use `rojo serve` and don't ask the owner to
-connect the plugin.
+- The owner runs `rojo serve` in a separate terminal and keeps the Studio
+  plugin connected. Don't start `rojo serve` yourself (it blocks your shell) and
+  you can't click the plugin.
+- After you edit files, Rojo syncs them into the edit-mode place within a
+  moment. Before testing, confirm Studio actually has the new content (see the
+  `studio-mcp-usage` skill). To see changes in a running playtest, stop and
+  restart it.
+- Vinegar is a Flatpak. Live sync and opening project files only worked after
+  `flatpak override --user --filesystem=home org.vinegarhq.Vinegar`. If either
+  breaks, suspect that first.
+- Messages from the Rojo plugin in the console are not game errors.
 
-1. Make your changes in files.
-2. Run `scripts/check` (it builds) or `rojo build -o build/game.rbxl`.
-3. Tell the owner: "Rebuilt. Please close the old place without saving, then
-   File > Open from File > `build/game.rbxl`." Wait for confirmation.
-4. Only then verify through the Studio MCP.
+### Fallback: build-and-open (if sync breaks)
 
-Notes:
-- Studio is stale after every rebuild. Never claim something works in Studio
-  against a place you don't know is current.
-- Never save from Studio over `build/game.rbxl` and never expect Studio-side
-  edits to survive; `build/` is generated and gitignored.
-- Ignore `[Rojo-...]` lines in console output; they come from the plugin.
-- A newer Rojo (7.7.0 switched from long polling to websockets) might fix live
-  sync. Only try it if the owner asks, and record the result in
-  `docs/DECISIONS.md` as a new row.
+1. Run `rojo build -o build/game.rbxl`.
+2. Ask the owner to close the old place without saving and open
+   `build/game.rbxl` (File > Open from File). Wait for confirmation.
+3. Studio is stale after every rebuild until the owner reopens it. Never
+   save over `build/game.rbxl`; `build/` is generated and gitignored.
+
+If `Unknown HTTP error: Number of requests exceeded limit` appears again, tell
+the owner and use the fallback; don't loop on it.
 
 ## Troubleshooting
 

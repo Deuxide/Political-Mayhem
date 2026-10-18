@@ -1,0 +1,9 @@
+# StyLua configuration for Luau
+# https://github.com/JohnnyMorganz/StyLua
+
+indent_width = 4
+indent_type = "Tabs"
+column_width = 100
+quote_style = "AutoPreferDouble"
+call_parentheses = "Always"
+collapse_simple_statement = "Always"
