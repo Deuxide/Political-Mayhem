@@ -2,8 +2,10 @@
 -- SegmentedTrack composite: multiple TrackSegments in a row.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local TrackSegment = require(script.Parent.Primitives.TrackSegment)
-local Text = require(script.Parent.Primitives.Text)
+local Primitives = require(script.Parent.Primitives)
+
+local TrackSegment = Primitives.TrackSegment
+local Text = Primitives.Text
 
 export type SegmentedTrackProps = {
 	value: number, -- current value (0 to max)

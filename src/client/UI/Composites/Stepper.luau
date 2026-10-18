@@ -2,9 +2,11 @@
 -- Stepper composite: minus/plus buttons around a value display.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Button = require(script.Parent.Primitives.Button)
-local Text = require(script.Parent.Primitives.Text)
-local Surface = require(script.Parent.Primitives.Surface)
+local Primitives = require(script.Parent.Primitives)
+
+local Button = Primitives.Button
+local Text = Primitives.Text
+local Surface = Primitives.Surface
 
 export type StepperProps = {
 	value: number,

@@ -2,8 +2,10 @@
 -- Tabs composite: tab bar with content panels.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Button = require(script.Parent.Primitives.Button)
-local Surface = require(script.Parent.Primitives.Surface)
+local Primitives = require(script.Parent.Primitives)
+
+local Button = Primitives.Button
+local Surface = Primitives.Surface
 
 export type Tab = {
 	id: string,

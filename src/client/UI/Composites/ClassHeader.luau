@@ -2,10 +2,12 @@
 -- ClassHeader composite: class icon + name + VP track.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Surface = require(script.Parent.Primitives.Surface)
-local Text = require(script.Parent.Primitives.Text)
-local Icon = require(script.Parent.Primitives.Icon)
+local Primitives = require(script.Parent.Primitives)
 local SegmentedTrack = require(script.Parent.Composites.SegmentedTrack)
+
+local Surface = Primitives.Surface
+local Text = Primitives.Text
+local Icon = Primitives.Icon
 
 export type ClassHeaderProps = {
 	classId: string, -- "Working", "Middle", "Capitalist", "State"

@@ -2,8 +2,10 @@
 -- Tooltip composite: hover tooltip using Surface.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Surface = require(script.Parent.Primitives.Surface)
-local Text = require(script.Parent.Primitives.Text)
+local Primitives = require(script.Parent.Primitives)
+
+local Surface = Primitives.Surface
+local Text = Primitives.Text
 
 export type TooltipProps = {
 	text: string,

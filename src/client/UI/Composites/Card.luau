@@ -2,9 +2,11 @@
 -- Card composite: surface with header band and body.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Surface = require(script.Parent.Primitives.Surface)
-local Text = require(script.Parent.Primitives.Text)
-local Divider = require(script.Parent.Primitives.Divider)
+local Primitives = require(script.Parent.Primitives)
+
+local Surface = Primitives.Surface
+local Text = Primitives.Text
+local Divider = Primitives.Divider
 
 export type CardProps = {
 	title: string,

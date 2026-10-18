@@ -2,8 +2,10 @@
 -- StatRow composite: label + value row for stats display.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Text = require(script.Parent.Primitives.Text)
-local Divider = require(script.Parent.Primitives.Divider)
+local Primitives = require(script.Parent.Primitives)
+
+local Text = Primitives.Text
+local Divider = Primitives.Divider
 
 export type StatRowProps = {
 	label: string,
