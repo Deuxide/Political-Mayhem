@@ -2,7 +2,7 @@
 -- Modal composite: overlay with scrim.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Primitives = require(script.Parent.Primitives)
+local Primitives = require(script.Parent.Parent.Primitives)
 local ThemeContext = require(script.Parent.Theme.ThemeContext)
 
 local Surface = Primitives.Surface

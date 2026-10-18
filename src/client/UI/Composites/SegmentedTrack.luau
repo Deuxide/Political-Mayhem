@@ -2,7 +2,7 @@
 -- SegmentedTrack composite: multiple TrackSegments in a row.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Primitives = require(script.Parent.Primitives)
+local Primitives = require(script.Parent.Parent.Primitives)
 
 local TrackSegment = Primitives.TrackSegment
 local Text = Primitives.Text

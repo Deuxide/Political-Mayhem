@@ -2,7 +2,7 @@
 -- Card composite: surface with header band and body.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Primitives = require(script.Parent.Primitives)
+local Primitives = require(script.Parent.Parent.Primitives)
 
 local Surface = Primitives.Surface
 local Text = Primitives.Text

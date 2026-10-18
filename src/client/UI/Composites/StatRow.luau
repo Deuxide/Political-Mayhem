@@ -2,7 +2,7 @@
 -- StatRow composite: label + value row for stats display.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Primitives = require(script.Parent.Primitives)
+local Primitives = require(script.Parent.Parent.Primitives)
 
 local Text = Primitives.Text
 local Divider = Primitives.Divider

@@ -2,7 +2,7 @@
 -- Stepper composite: minus/plus buttons around a value display.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Primitives = require(script.Parent.Primitives)
+local Primitives = require(script.Parent.Parent.Primitives)
 
 local Button = Primitives.Button
 local Text = Primitives.Text

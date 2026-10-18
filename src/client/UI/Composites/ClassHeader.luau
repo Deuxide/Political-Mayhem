@@ -2,7 +2,7 @@
 -- ClassHeader composite: class icon + name + VP track.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local Primitives = require(script.Parent.Primitives)
+local Primitives = require(script.Parent.Parent.Primitives)
 local SegmentedTrack = require(script.Parent.Composites.SegmentedTrack)
 
 local Surface = Primitives.Surface
