@@ -1,23 +1,28 @@
 --!strict
--- Market configurations: base prices, caps.
+-- Market configurations: prices, caps, tariff handling.
 
 export type Market = {
-	basePrices: { [string]: number },
-	caps: { [string]: number },
+	exportPrices: { [string]: number },
+	importPrices: { [string]: number },
+	caps: { sell: number, buy: number },
+	revenueCountsAsIncome: boolean,
+	directTradesUntaxed: boolean,
 }
 
 return {
-	basePrices = {
-		Money = 1,
-		Food = 3,
-		Goods = 4,
+	exportPrices = {
+		Food = 2,
+		Goods = 3,
 		Health = 5,
-		Education = 6,
+		Education = 4,
 	},
-	caps = {
-		Food = 100,
-		Goods = 100,
-		Health = 50,
-		Education = 50,
+	importPrices = {
+		Food = 4,
+		Goods = 6,
+		Health = 10,
+		Education = 8,
 	},
+	caps = { sell = 6, buy = 6 }, -- per class per day
+	revenueCountsAsIncome = true,
+	directTradesUntaxed = true,
 }
