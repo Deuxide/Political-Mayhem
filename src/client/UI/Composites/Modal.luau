@@ -3,7 +3,7 @@
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
 local Primitives = require(script.Parent.Parent.Primitives)
-local ThemeContext = require(script.Parent.Theme.ThemeContext)
+local ThemeContext = require(script.Parent.Parent.Theme.ThemeContext)
 
 local Surface = Primitives.Surface
 local Text = Primitives.Text

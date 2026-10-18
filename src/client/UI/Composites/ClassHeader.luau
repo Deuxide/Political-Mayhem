@@ -3,7 +3,7 @@
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
 local Primitives = require(script.Parent.Parent.Primitives)
-local SegmentedTrack = require(script.Parent.Composites.SegmentedTrack)
+local SegmentedTrack = require(script.Parent.SegmentedTrack)
 
 local Surface = Primitives.Surface
 local Text = Primitives.Text
