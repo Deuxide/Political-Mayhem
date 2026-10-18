@@ -34,18 +34,18 @@ Last updated: 2026-10-18
 ## Done
 
 - [x] M1-T0: Code-model foundation (class template, Signal, abstract-method helper, assertSerializable test helper)
+- [x] M1-T1: Types.luau - all types from GAME_DESIGN section 4
 
 ## In progress
 
-M1-T1: Types.luau - all types from GAME_DESIGN section 4
+M1-T2: Config/* - all data tables
 
 ## Next up (in order)
 
-1. M1-T1: Types.luau - all types from GAME_DESIGN section 4
-2. M1-T2: Config/* - all data tables
-3. M1-T3: Rng.luau - seedable PRNG
-4. M1-T4: StateFactory.create, RuleSet, Match facade
-5. M1-T5: StateOps, StateHash, Match:snapshot/hash
+1. M1-T2: Config/* - all data tables
+2. M1-T3: Rng.luau - seedable PRNG
+3. M1-T4: StateFactory.create, RuleSet, Match facade
+4. M1-T5: StateOps, StateHash, Match:snapshot/hash
 
 ## Open questions for the owner
 
@@ -84,6 +84,7 @@ Newest first. One line per session: date, what was done, what's next.
 
 | Date | Summary |
 |---|---|
+| 2026-10-18 | M1-T1 complete: Types.luau with all types from GAME_DESIGN section 4 (MatchState, ClassState, Line, Bill, TradeOffer, Promise, Alliance, Reputation, ActionDraft, LogEntry, PlayerView, VictoryResult, Event, Seat, DifficultyConfig, plus utility functions). All checks pass. Next: M1-T2. |
 | 2026-10-18 | M1-T0 complete: Code-model foundation (abstract helper, Signal, ClassTemplate, assertSerializable tests). All checks pass. Next: M1-T1. |
 | 2026-10-18 | M0 complete: scaffold, tooling, folder structure, boot code, placeholder UI, test harness, check script. Live sync restored via Flatpak override (D-031). MCP verification: Explorer matches, server boots, client loads (fixed Screens module). Next: M1-T0. |
 | 2026-10-16 | Switched architecture to hybrid (D-029): plain-data state, strategy classes, function modules. Updated ARCHITECTURE, AGENTS, ROADMAP, GAME_DESIGN, FIRST_PROMPT. Next: M0-T1. |
