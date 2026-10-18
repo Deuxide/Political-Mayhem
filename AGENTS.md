@@ -85,6 +85,14 @@ per-player UI panels. Rounds are simultaneous and phase-based, but must
   reopen. Never verify against a place you haven't been told is the latest
   build, and never expect edits made in Studio to persist (`build/` is
   generated).
+- **Studio gate (hard rule).** Do not call **any** Studio MCP tool, not even
+  read-only ones, until the owner has confirmed, **after your most recent
+  `rojo build`**, that the latest `build/game.rbxl` is open in Studio. Any
+  rebuild cancels that confirmation. If you need Studio and don't have a
+  current confirmation: finish all other work first, batch every Studio check
+  into one list, then **stop and end your turn** with the request template in
+  the `studio-mcp-usage` skill, and wait. If a task doesn't need Studio, don't
+  ask.
 - Ignore `[Rojo-...]` lines in Studio's console; they come from the plugin,
   not from the game.
 - If you start any long-running process, run it in the background and stop it

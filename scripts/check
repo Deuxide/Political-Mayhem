@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# scripts/check - runs all checks: stylua, selene, rojo build, tests
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+
+echo "=== Running checks ==="
+
+# Format check
+echo "--- stylua check ---"
+if ! command -v stylua &> /dev/null; then
+    echo "stylua not found, trying rokit..."
+    if [ -f ~/.rokit/bin/stylua ]; then
+        ~/.rokit/bin/stylua --check src
+    else
+        echo "ERROR: stylua not installed"
+        exit 1
+    fi
+else
+    stylua --check src
+fi
+
+# Lint
+echo "--- selene ---"
+if ! command -v selene &> /dev/null; then
+    echo "selene not found, trying rokit..."
+    if [ -f ~/.rokit/bin/selene ]; then
+        ~/.rokit/bin/selene --allow-warnings src
+    else
+        echo "ERROR: selene not installed"
+        exit 1
+    fi
+else
+    selene --allow-warnings src
+fi
+
+# Build
+echo "--- rojo build ---"
+if ! command -v rojo &> /dev/null; then
+    echo "rojo not found, trying rokit..."
+    if [ -f ~/.rokit/bin/rojo ]; then
+        ~/.rokit/bin/rojo build -o build/game.rbxl
+    else
+        echo "ERROR: rojo not installed"
+        exit 1
+    fi
+else
+    rojo build -o build/game.rbxl
+fi
+
+# Tests
+echo "--- tests ---"
+if ! command -v lune &> /dev/null; then
+    echo "lune not found, trying rokit..."
+    if [ -f ~/.rokit/bin/lune ]; then
+        ~/.rokit/bin/lune run tests/run.luau
+    else
+        echo "ERROR: lune not installed"
+        exit 1
+    fi
+else
+    lune run tests/run.luau
+fi
+
+echo ""
+echo "=== All checks passed! ==="

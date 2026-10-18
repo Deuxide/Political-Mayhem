@@ -6,13 +6,4 @@ indent_type = "Tabs"
 column_width = 100
 quote_style = "AutoPreferDouble"
 call_parentheses = "Always"
-collapse_simple_statement = "IfElse"
-space_around_comma = true
-space_inside_square_brackets = true
-space_inside_curly_braces = true
-space_inside_parentheses = true
-trailing_table_separator = "Always"
--- Luau-specific
-respect_ignore_comments = true
-ignore_not = false
-glob = "src/**/*.luau"
+collapse_simple_statement = "Always"

@@ -8,6 +8,35 @@ description: Use when the Roblox Studio MCP tools are available and you need to 
 Decision D-020: the MCP is for **inspection and verification only**. All code
 changes go through files and Rojo, never through MCP script-editing tools.
 
+## Studio gate (hard rule)
+
+The Studio MCP only sees whatever place is open, and on this machine code
+reaches Studio only by build-and-open (D-030). So:
+
+1. **Confirmed** means: the owner said the latest `build/game.rbxl` is open,
+   and that was **after your most recent `rojo build`**.
+2. **Not confirmed -> make no MCP calls at all**, not even read-only ones; they
+   would inspect stale content and give false results.
+3. Do all non-Studio work first (code, tests, lint, build). Then batch **every**
+   Studio check for this step into one list, and **end your turn** with:
+
+   ```
+   Ready for a Studio check. I rebuilt build/game.rbxl.
+   Please close the current place without saving, then
+   File > Open from File > build/game.rbxl, and tell me when it's open.
+   After that I will check:
+   - <check 1>
+   - <check 2>
+   ```
+
+4. When the owner says it's open, start with `list_roblox_studios` and
+   `get_studio_state`, then confirm the Explorer tree matches the expected
+   structure. If it doesn't, say so: the wrong or an old file may be open. Ask
+   rather than guessing.
+5. Any rebuild voids the confirmation. If verification shows a bug, fix it,
+   rebuild, and request a new reopen. Don't keep inspecting the old place.
+6. If the task doesn't need Studio (pure logic, tests, docs), don't ask.
+
 ## Environment note
 
 Studio runs under Wine (Vinegar) on Linux. Screenshots and simulated input may
