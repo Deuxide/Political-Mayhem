@@ -145,10 +145,12 @@ stop and ask.
 6. **Verify**
    - Run `rokit install`, `wally install`, `stylua src`, `selene src`, and
      `rojo build -o build/game.rbxl`. Fix anything that fails.
-   - Using the Roblox Studio MCP, connect to Studio (assuming `rojo serve` is
-     running and synced), check the Explorer tree matches the project
-     structure, run a playtest, and report whether the placeholder UI mounted
-     and whether there were any errors in the output.
+   - Live sync (`rojo serve` + plugin) doesn't work on this machine (D-030).
+     Use build-and-open: after `rojo build`, ask me to reopen
+     `build/game.rbxl` in Studio and wait for my confirmation. Then, using the
+     Roblox Studio MCP, check the Explorer tree matches the project structure,
+     run a playtest, and report whether the placeholder UI mounted and
+     whether there were any errors in the output (ignore `[Rojo-...]` lines).
    - If MCP or Studio isn't available in this session, say so and tell me
      exactly what to check manually instead of pretending it was verified.
 
