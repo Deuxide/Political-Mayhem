@@ -38,14 +38,15 @@ Last updated: 2026-10-18
 - [x] M1-T2: Config/* - all data tables (Classes, Resources, Lines, Policies, Market, Objectives, Events, Difficulty)
 - [x] M1-T3: Rng.luau - seedable PRNG with next, int, shuffle, clone; deterministic
 - [x] M1-T4: StateFactory.create, RuleSet, Match facade (resolveDay, snapshot, hash, viewFor, live action stubs)
+- [x] M1-T5: StateOps, StateHash, Match:snapshot/hash (all implemented)
 
 ## In progress
 
-M1-T5: StateOps, StateHash, Match:snapshot/hash
+M1 complete - ready for M2
 
 ## Next up (in order)
 
-1. M1-T5: StateOps, StateHash, Match:snapshot/hash
+1. M2-T1: Steps/Build (R4)
 
 ## Open questions for the owner
 
@@ -84,6 +85,7 @@ Newest first. One line per session: date, what was done, what's next.
 
 | Date | Summary |
 |---|---|
+| 2026-10-18 | M1-T5 complete: StateOps, StateHash, Match:snapshot/hash already implemented (StateOps has deepCopy, addResource, subtractResource, transferResource, CLASS_ORDER; StateHash has deterministic FNV-1a hash with sorted keys; Match has snapshot, hash, resolveDay). All checks pass. M1 complete. Next: M2-T1. |
 | 2026-10-18 | M1-T4 complete: StateFactory.create, RuleSet, Match facade already implemented (StateFactory.create builds initial MatchState from config, RuleSet provides difficulty/config-driven answers, Match facade has resolveDay, snapshot, hash, viewFor, live action stubs). All checks pass. Next: M1-T5. |
 | 2026-10-18 | M1-T3 complete: Rng.luau already implemented with xorshift32 PRNG (next, int, shuffle, clone). Deterministic, all tests pass. Next: M1-T4. |
 | 2026-10-18 | M1-T2 complete: Config/* with all 8 data tables (Classes, Resources, Lines, Policies, Market, Objectives, Events, Difficulty) matching GAME_DESIGN. Config validator test passes. All checks pass. Next: M1-T3. |
