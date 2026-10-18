@@ -7,10 +7,10 @@ Last updated: 2026-10-18
 
 ## Snapshot
 
-- **Current milestone:** M1 (Core types, config, match creation)
-- **Current task:** M1-T0 (in progress)
-- **Project phase:** M0 complete; M1 code-model foundation next.
-- **Current branch:** M1-dev1
+- **Current milestone:** M2 (Economy resolution)
+- **Current task:** M2-T1 (in progress)
+- **Project phase:** M1 complete; M2 economy resolution steps next.
+- **Current branch:** M2-dev1
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** none
 - **Last green check:** All checks pass (stylua, selene --allow-warnings, rojo build, lune tests)
@@ -31,8 +31,6 @@ Last updated: 2026-10-18
 - [x] M0-T5: `scripts/check` executable bash script runs stylua, selene, rojo build, tests
 - [x] M0-T6: MCP verification - confirmed Explorer matches project structure, playtest ran, server booted, client loaded (UI error on Screens module fixed with init.luau files)
 
-## Done
-
 - [x] M1-T0: Code-model foundation (class template, Signal, abstract-method helper, assertSerializable test helper)
 - [x] M1-T1: Types.luau - all types from GAME_DESIGN section 4
 - [x] M1-T2: Config/* - all data tables (Classes, Resources, Lines, Policies, Market, Objectives, Events, Difficulty)
@@ -42,11 +40,17 @@ Last updated: 2026-10-18
 
 ## In progress
 
-M1 complete - ready for M2
+M2-T1: Steps/Build (R4)
 
 ## Next up (in order)
 
-1. M2-T1: Steps/Build (R4)
+1. M2-T1: Steps/Build (R4) - affordable build queues line; not affordable is skipped with log; becomes active next Day
+2. M2-T2: Steps/Production (R5): strikes, staffing, wages (incl. insufficient funds), Factory Education input, outputs
+3. M2-T3: Steps/Market (R6): sell then buy, caps, tariff pricing
+4. M2-T4: Steps/Taxes (R7)
+5. M2-T5: Steps/PublicServices (R8)
+6. M2-T6: Steps/Upkeep (R9) with needs table, Stability, collapse counter
+7. M2-T7: ResolutionPipeline and Match:resolveDay composing the Step objects (stubs for R2, R3, R10 to R14); event log entries with causes
 
 ## Open questions for the owner
 
@@ -85,6 +89,7 @@ Newest first. One line per session: date, what was done, what's next.
 
 | Date | Summary |
 |---|---|
+| 2026-10-18 | Starting M2: Economy resolution. M1 complete. Created M2-dev1 branch from Linux-stable. Starting M2-T1: Steps/Build (R4) - affordable build queues line; not affordable is skipped with log; becomes active next Day. |
 | 2026-10-18 | M1-T5 complete: StateOps, StateHash, Match:snapshot/hash already implemented (StateOps has deepCopy, addResource, subtractResource, transferResource, CLASS_ORDER; StateHash has deterministic FNV-1a hash with sorted keys; Match has snapshot, hash, resolveDay). All checks pass. M1 complete. Next: M2-T1. |
 | 2026-10-18 | M1-T4 complete: StateFactory.create, RuleSet, Match facade already implemented (StateFactory.create builds initial MatchState from config, RuleSet provides difficulty/config-driven answers, Match facade has resolveDay, snapshot, hash, viewFor, live action stubs). All checks pass. Next: M1-T5. |
 | 2026-10-18 | M1-T3 complete: Rng.luau already implemented with xorshift32 PRNG (next, int, shuffle, clone). Deterministic, all tests pass. Next: M1-T4. |
