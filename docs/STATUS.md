@@ -7,15 +7,15 @@ Last updated: 2026-10-18
 
 ## Snapshot
 
-- **Current milestone:** M0 (Scaffold and tooling)
-- **Current task:** M0-T6 (completed - MCP verification)
-- **Project phase:** All scaffold tasks complete; M0 done.
-- **Current branch:** M0-dev1
-- **Stable branch:** linux-stable (rules: `docs/GIT_WORKFLOW.md`)
+- **Current milestone:** M1 (Core types, config, match creation)
+- **Current task:** M1-T0 (in progress)
+- **Project phase:** M0 complete; M1 code-model foundation next.
+- **Current branch:** M1-dev1
+- **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** none
 - **Last green check:** All checks pass (stylua, selene --allow-warnings, rojo build, lune tests)
-- **How to run checks:** `./scripts/check` (created in M0-T5)
-- **How to get code into Studio:** Rojo live sync (D-031): owner runs `rojo serve` in a separate terminal; Studio updates automatically. Fallback: build-and-open (`rojo build -o build/game.rbxl`, then owner reopens).
+- **How to run checks:** `./scripts/check`
+- **How to get code into Studio:** build-and-open (D-030): `rojo build -o build/game.rbxl`, then the owner reopens it in Studio (live sync fails on this machine)
 
 ## Done
 
@@ -31,9 +31,18 @@ Last updated: 2026-10-18
 - [x] M0-T5: `scripts/check` executable bash script runs stylua, selene, rojo build, tests
 - [x] M0-T6: MCP verification - confirmed Explorer matches project structure, playtest ran, server booted, client loaded (UI error on Screens module fixed with init.luau files)
 
+## In progress
+
+M1-T0: Code-model foundation (class template, Signal, abstract-method helper, assertSerializable test helper)
+
 ## Next up (in order)
 
-1. M1-T0: Code-model foundation (class template, Signal, abstract-method helper, assertSerializable)
+1. M1-T0: class template, Signal, abstract-method helper, assertSerializable test helper
+2. M1-T1: Types.luau - all types from GAME_DESIGN section 4
+3. M1-T2: Config/* - all data tables
+4. M1-T3: Rng.luau - seedable PRNG
+5. M1-T4: StateFactory.create, RuleSet, Match facade
+5. M1-T5: StateOps, StateHash, Match:snapshot/hash
 
 ## Open questions for the owner
 

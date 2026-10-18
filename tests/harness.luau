@@ -1,7 +1,8 @@
 --!strict
 -- Test harness for running shared/Game tests under Lune.
--- This version inlines the Rng code to avoid module resolution issues.
+-- Inlined implementations match the actual modules in src/shared/Game.
 
+-- Inlined Rng (matches src/shared/Game/Rng.luau)
 local function xorshift32(state: number): number
 	state = bit32.bxor(state, bit32.lshift(state, 13))
 	state = bit32.bxor(state, bit32.rshift(state, 17))
@@ -47,7 +48,7 @@ function Rng:clone()
 	return copy
 end
 
--- SerializableChecker (inlined)
+-- Inlined SerializableChecker (matches src/shared/Game/State/assertSerializable.luau)
 local function assertSerializable(value: any, path: string?)
 	local function check(v: any, p: string, seen: { [any]: boolean })
 		local t = type(v)
@@ -84,6 +85,69 @@ local function assertSerializable(value: any, path: string?)
 	end
 
 	check(value, path or "root", {})
+end
+
+-- Inlined abstract helper (matches src/shared/Game/Util/abstract.luau)
+local function abstract(methodName: string): never
+	error("not implemented: " .. methodName, 2)
+end
+
+-- Inlined Signal (matches src/shared/Game/Util/Signal.luau, adapted for Lune)
+local Signal = {}
+Signal.__index = Signal
+
+function Signal.new()
+	return setmetatable({ _connections = {} }, Signal)
+end
+
+function Signal:Connect(callback)
+	local connection = {
+		_connected = true,
+		_callback = callback,
+		Disconnect = function(self)
+			self._connected = false
+		end,
+	}
+	table.insert(self._connections, connection)
+	return connection
+end
+
+function Signal:Fire(...)
+	for i = #self._connections, 1, -1 do
+		local conn = self._connections[i]
+		if conn._connected then
+			-- Direct call instead of task.spawn for Lune compatibility
+			conn._callback(...)
+		else
+			table.remove(self._connections, i)
+		end
+	end
+end
+
+function Signal:Wait()
+	local thread = coroutine.running()
+	local conn
+	conn = self:Connect(function(...)
+		conn:Disconnect()
+		coroutine.resume(thread, ...)
+	end)
+	return coroutine.yield()
+end
+
+function Signal:Once(callback)
+	local conn
+	conn = self:Connect(function(...)
+		conn:Disconnect()
+		callback(...)
+	end)
+	return conn
+end
+
+function Signal:Destroy()
+	for _, conn in ipairs(self._connections) do
+		conn._connected = false
+	end
+	table.clear(self._connections)
 end
 
 export type TestHarness = {
@@ -188,6 +252,77 @@ function TestHarness.run()
 			assertSerializable(t)
 		end)
 		assertTrue(not success)
+	end)
+
+	-- Abstract helper tests
+	test("abstract helper throws with method name", function()
+		local success = pcall(function()
+			abstract("MyClass:myMethod")
+		end)
+		assertTrue(not success)
+	end)
+
+	-- Signal tests
+	test("Signal:Connect and Fire", function()
+		local signal = Signal.new()
+		local called = false
+		local value = 0
+		signal:Connect(function(v)
+			called = true
+			value = v
+		end)
+		signal:Fire(42)
+		assertTrue(called)
+		assertEquals(value, 42)
+	end)
+
+	test("Signal:Connect multiple callbacks", function()
+		local signal = Signal.new()
+		local count = 0
+		signal:Connect(function() count += 1 end)
+		signal:Connect(function() count += 1 end)
+		signal:Fire()
+		assertEquals(count, 2)
+	end)
+
+	test("Signal:Disconnect prevents firing", function()
+		local signal = Signal.new()
+		local called = false
+		local conn = signal:Connect(function() called = true end)
+		conn:Disconnect()
+		signal:Fire()
+		assertTrue(not called)
+	end)
+
+	test("Signal:Wait resumes with fired values", function()
+		local signal = Signal.new()
+		local received
+		-- Use coroutine directly since task.spawn doesn't exist in Lune
+		local co = coroutine.create(function()
+			received = { signal:Wait() }
+		end)
+		coroutine.resume(co)
+		signal:Fire("hello", "world")
+		assertEquals(received[1], "hello")
+		assertEquals(received[2], "world")
+	end)
+
+	test("Signal:Once fires only once", function()
+		local signal = Signal.new()
+		local count = 0
+		signal:Once(function() count += 1 end)
+		signal:Fire()
+		signal:Fire()
+		assertEquals(count, 1)
+	end)
+
+	test("Signal:Destroy clears all connections", function()
+		local signal = Signal.new()
+		signal:Connect(function() end)
+		signal:Connect(function() end)
+		signal:Destroy()
+		signal:Fire()
+		-- Should not error
 	end)
 
 	print("\nResults: " .. passed .. " passed, " .. failed .. " failed")
