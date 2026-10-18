@@ -2,6 +2,7 @@
 -- Resolution pipeline: runs the 13 steps R1..R14 in order.
 
 local Types = require(script.Parent.Types)
+local BuildStep = require(script.Parent.Steps.BuildStep)
 
 export type Step = {
 	_name: string,
@@ -63,19 +64,8 @@ function ResolutionPipeline.new(ruleSet: any): ResolutionPipeline
 		end,
 	})
 
-	-- R4: Build (stub)
-	table.insert(self._steps, {
-		_name = "Build",
-		run = function(self, state, ctx)
-			table.insert(ctx.trace, {
-				round = state.round,
-				step = "Build",
-				class = nil,
-				message = "Build queue processed",
-				data = {},
-			})
-		end,
-	})
+	-- R4: Build
+	table.insert(self._steps, BuildStep.new())
 
 	-- R5: Production (stub)
 	table.insert(self._steps, {
