@@ -3,10 +3,12 @@
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
 local ThemeContext = require(script.Parent.Theme.ThemeContext)
-local LobbyScreen = require(script.Screens.LobbyScreen)
-local MatchHUD = require(script.Screens.MatchHUD)
-local EndScreen = require(script.Screens.EndScreen)
-local GalleryScreen = require(script.Gallery.GalleryScreen)
+local Screens = require(script.Parent.Screens)
+local GalleryScreen = require(script.Parent.Gallery.GalleryScreen)
+
+local LobbyScreen = Screens.LobbyScreen
+local MatchHUD = Screens.MatchHUD
+local EndScreen = Screens.EndScreen
 
 local function App()
 	local state, setState = React.useState({
