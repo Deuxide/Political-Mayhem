@@ -2,7 +2,7 @@
 -- App: main React root component.
 
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
-local ThemeContext = require(script.Theme.ThemeContext)
+local ThemeContext = require(script.Parent.Theme.ThemeContext)
 local LobbyScreen = require(script.Screens.LobbyScreen)
 local MatchHUD = require(script.Screens.MatchHUD)
 local EndScreen = require(script.Screens.EndScreen)

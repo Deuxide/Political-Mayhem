@@ -71,30 +71,30 @@ per-player UI panels. Rounds are simultaneous and phase-based, but must
   PowerShell or batch). Don't assume Windows or macOS paths from Roblox docs.
 - **Roblox Studio runs under Wine via Vinegar.** You cannot open or click
   anything in Studio. Anything that needs Studio's UI (opening a place,
-  reopening a rebuilt place file, toggling MCP settings) is done by the
+  opening the place, toggling MCP settings) is done by the
   owner: ask, and wait for confirmation.
 - **Studio MCP** is already configured by the owner. Don't try to
   reconfigure it. If its tools are missing or fail, report that; don't
   retry blindly.
-- **No live sync (D-030).** The Rojo plugin's live sync fails on this
-  machine (`Number of requests exceeded limit`). Do **not** use `rojo serve`
-  and do not ask the owner to connect the plugin. Use **build-and-open**:
-  run `rojo build -o build/game.rbxl`, then ask the owner to reopen that
-  file in Studio (close the old copy without saving, then File > Open from
-  File). Studio is **stale after every rebuild** until the owner confirms the
-  reopen. Never verify against a place you haven't been told is the latest
-  build, and never expect edits made in Studio to persist (`build/` is
-  generated).
-- **Studio gate (hard rule).** Do not call **any** Studio MCP tool, not even
-  read-only ones, until the owner has confirmed, **after your most recent
-  `rojo build`**, that the latest `build/game.rbxl` is open in Studio. Any
-  rebuild cancels that confirmation. If you need Studio and don't have a
-  current confirmation: finish all other work first, batch every Studio check
-  into one list, then **stop and end your turn** with the request template in
-  the `studio-mcp-usage` skill, and wait. If a task doesn't need Studio, don't
-  ask.
-- Ignore `[Rojo-...]` lines in Studio's console; they come from the plugin,
-  not from the game.
+- **Rojo live sync works (D-031).** The owner runs `rojo serve` in a separate
+  terminal and keeps the Studio plugin connected. Don't start `rojo serve`
+  yourself and don't ask the owner to reopen `build/game.rbxl`. After you edit
+  files, Studio updates automatically (the edit-mode place); verify that
+  before testing (see the `studio-mcp-usage` skill). Fallback if sync breaks:
+  build-and-open (`rojo build -o build/game.rbxl`, then the owner reopens it).
+- **Studio gate (hard rule).** Do not call **any** Studio MCP tool until the
+  owner has confirmed, in this session, that Studio is open with the project
+  and Rojo is connected. If you need Studio and don't have that confirmation:
+  finish all other work first, batch every Studio check into one list, then
+  **stop and end your turn** with the request template in `studio-mcp-usage`,
+  and wait. If sync looks stale (Studio's content doesn't match the files),
+  stop testing and ask the owner to check Rojo. If a task doesn't need Studio,
+  don't ask.
+- Vinegar is a Flatpak. It needed
+  `flatpak override --user --filesystem=home org.vinegarhq.Vinegar` before
+  Studio could open project files and Rojo could connect. If either breaks,
+  suspect that first.
+- Messages from the Rojo plugin in Studio's console are not game errors.
 - If you start any long-running process, run it in the background and stop it
   when done so your shell isn't blocked.
 - **Roblox Player does not run under Wine** (Roblox blocked it), so playtests
@@ -111,7 +111,8 @@ per-player UI panels. Rounds are simultaneous and phase-based, but must
 ```bash
 rokit install                # install pinned tools
 wally install                # install packages
-rojo build -o build/game.rbxl   # then the owner reopens it in Studio (D-030)
+rojo serve                   # live sync (run by the owner in another terminal)
+rojo build -o build/game.rbxl
 stylua src                   # format
 selene src                   # lint
 ```

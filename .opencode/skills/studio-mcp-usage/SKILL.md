@@ -10,31 +10,36 @@ changes go through files and Rojo, never through MCP script-editing tools.
 
 ## Studio gate (hard rule)
 
-The Studio MCP only sees whatever place is open, and on this machine code
-reaches Studio only by build-and-open (D-030). So:
+The Studio MCP only sees whatever place is open in Studio, and code reaches it
+through Rojo live sync (D-031).
 
-1. **Confirmed** means: the owner said the latest `build/game.rbxl` is open,
-   and that was **after your most recent `rojo build`**.
-2. **Not confirmed -> make no MCP calls at all**, not even read-only ones; they
-   would inspect stale content and give false results.
-3. Do all non-Studio work first (code, tests, lint, build). Then batch **every**
-   Studio check for this step into one list, and **end your turn** with:
+1. **Confirmed** means the owner said, in this session, that Studio is open
+   with the project and Rojo is connected. One confirmation per session is
+   enough unless something suggests sync dropped (see 5).
+2. **Not confirmed -> make no MCP calls at all**, not even read-only ones. Do
+   all non-Studio work first, batch every Studio check into one list, then
+   **end your turn** with:
 
    ```
-   Ready for a Studio check. I rebuilt build/game.rbxl.
-   Please close the current place without saving, then
-   File > Open from File > build/game.rbxl, and tell me when it's open.
+   Ready for a Studio check. Please make sure Studio is open with the project
+   and Rojo is connected (rojo serve running, plugin shows Connected), and tell
+   me when it is.
    After that I will check:
    - <check 1>
    - <check 2>
    ```
 
-4. When the owner says it's open, start with `list_roblox_studios` and
+3. When the owner confirms, start with `list_roblox_studios` and
    `get_studio_state`, then confirm the Explorer tree matches the expected
-   structure. If it doesn't, say so: the wrong or an old file may be open. Ask
-   rather than guessing.
-5. Any rebuild voids the confirmation. If verification shows a bug, fix it,
-   rebuild, and request a new reopen. Don't keep inspecting the old place.
+   structure.
+4. After you edit files, wait a few seconds, then confirm Studio has the new
+   content (for example `script_read` on a changed script and compare it with
+   the file) **before** testing. Changes apply to the edit-mode place; stop and
+   restart a playtest to see them.
+5. If Studio's tree or script content doesn't match the files after a few
+   seconds, sync has probably dropped. Stop testing, ask the owner to check
+   `rojo serve` and the plugin, and don't report results from stale content.
+   Fallback: build-and-open (see the `rojo-workflow` skill).
 6. If the task doesn't need Studio (pure logic, tests, docs), don't ask.
 
 ## Environment note
@@ -53,12 +58,9 @@ tools as best-effort, and say so in your report if they fail or look wrong.
   available, do those **first**.
 - Only connect to places the owner intends. The MCP can read and modify the open
   place; stay read-only unless the task explicitly needs more.
-- Code reaches Studio only through **build-and-open** (D-030): after any
-  change, rebuild with `rojo build`, ask the owner to reopen
-  `build/game.rbxl`, and wait for confirmation. Before testing, confirm the
-  Explorer tree matches the project. If you haven't been told the latest build
-  is open, ask instead of assuming.
-- Ignore `[Rojo-...]` lines in console output.
+- Code reaches Studio through Rojo live sync (D-031); see the Studio gate
+  below for when you may call the MCP.
+- Rojo plugin messages in the console are not game errors.
 
 ## Tools you will use (names as documented by Roblox)
 

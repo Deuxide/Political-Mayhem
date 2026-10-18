@@ -8,19 +8,19 @@ Last updated: 2026-10-18
 ## Snapshot
 
 - **Current milestone:** M0 (Scaffold and tooling)
-- **Current task:** M0-T6 (in progress - MCP verification)
-- **Project phase:** All scaffold tasks complete; ready for Studio verification.
+- **Current task:** M0-T6 (completed - MCP verification)
+- **Project phase:** All scaffold tasks complete; M0 done.
 - **Current branch:** M0-dev1
 - **Stable branch:** linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** none
 - **Last green check:** All checks pass (stylua, selene --allow-warnings, rojo build, lune tests)
 - **How to run checks:** `./scripts/check` (created in M0-T5)
-- **How to get code into Studio:** build-and-open (D-030): `rojo build -o build/game.rbxl`, then the owner reopens it in Studio (live sync fails on this machine)
+- **How to get code into Studio:** Rojo live sync (D-031): owner runs `rojo serve` in a separate terminal; Studio updates automatically. Fallback: build-and-open (`rojo build -o build/game.rbxl`, then owner reopens).
 
 ## Done
 
 - [x] Design documented: GAME_DESIGN, ARCHITECTURE, NETWORKING, UI_SPEC
-- [x] Decisions logged: DECISIONS.md (D-001 to D-025)
+- [x] Decisions logged: DECISIONS.md (D-001 to D-031)
 - [x] Roadmap with task-level acceptance criteria: ROADMAP.md
 - [x] Agent rules and handoff protocol: AGENTS.md
 - [x] Hybrid architecture (D-029, supersedes D-026) and visual design system (D-027, D-028, docs/UI_STYLE.md)
@@ -29,15 +29,11 @@ Last updated: 2026-10-18
 - [x] M0-T3: Full folder skeleton and stubs; server and client boot; placeholder UI with four corner panels (Lobby, MatchHUD, EndScreen, Gallery)
 - [x] M0-T4: Test-strategy spike (D-014) - chose Lune with inlined test harness; command: `lune run tests/run.luau`
 - [x] M0-T5: `scripts/check` executable bash script runs stylua, selene, rojo build, tests
-
-## In progress
-
-M0-T6: MCP verification using build-and-open
+- [x] M0-T6: MCP verification - confirmed Explorer matches project structure, playtest ran, server booted, client loaded (UI error on Screens module fixed with init.luau files)
 
 ## Next up (in order)
 
-1. M0-T6: MCP verification (build, owner reopens build/game.rbxl, verify Explorer, playtest)
-2. M1-T0: Code-model foundation (class template, Signal, abstract-method helper, assertSerializable)
+1. M1-T0: Code-model foundation (class template, Signal, abstract-method helper, assertSerializable)
 
 ## Open questions for the owner
 
@@ -56,8 +52,11 @@ None.
 ## Environment notes
 
 - Machine: Arch Linux (CachyOS) + Hyprland. Roblox Studio runs under Wine via
-  Vinegar; the Studio MCP is configured by the owner. The owner handles Studio
-  UI actions (reopening the built place; the MCP enables itself when Studio opens). Roblox Player can't run under Wine.
+  Vinegar (Flatpak); the Studio MCP is configured by the owner.
+  **Rojo live sync works (D-031):** owner runs `rojo serve` in a separate terminal.
+  Vinegar needed `flatpak override --user --filesystem=home org.vinegarhq.Vinegar`
+  before Studio could open project files and Rojo could connect.
+  Roblox Player can't run under Wine.
 - On other devices Studio or the MCP may be unavailable; fall back to manual
   verification and record it.
 - Tooling: opencode agent, Rojo, Rokit.
@@ -73,6 +72,7 @@ Newest first. One line per session: date, what was done, what's next.
 
 | Date | Summary |
 |---|---|
+| 2026-10-18 | M0 complete: scaffold, tooling, folder structure, boot code, placeholder UI, test harness, check script. Live sync restored via Flatpak override (D-031). MCP verification: Explorer matches, server boots, client loads (fixed Screens module). Next: M1-T0. |
 | 2026-10-16 | Switched architecture to hybrid (D-029): plain-data state, strategy classes, function modules. Updated ARCHITECTURE, AGENTS, ROADMAP, GAME_DESIGN, FIRST_PROMPT. Next: M0-T1. |
 | 2026-10-16 | Added OOP architecture and UI_STYLE (modular, flat, gradient-driven design system). Still no code. Next: M0-T1. |
 | 2026-10-16 | Planning docs created (no code). Next: M0-T1. |
