@@ -36,16 +36,16 @@ Last updated: 2026-10-18
 - [x] M1-T0: Code-model foundation (class template, Signal, abstract-method helper, assertSerializable test helper)
 - [x] M1-T1: Types.luau - all types from GAME_DESIGN section 4
 - [x] M1-T2: Config/* - all data tables (Classes, Resources, Lines, Policies, Market, Objectives, Events, Difficulty)
+- [x] M1-T3: Rng.luau - seedable PRNG with next, int, shuffle, clone; deterministic
 
 ## In progress
 
-M1-T3: Rng.luau - seedable PRNG
+M1-T4: StateFactory.create, RuleSet, Match facade
 
 ## Next up (in order)
 
-1. M1-T3: Rng.luau - seedable PRNG
-2. M1-T4: StateFactory.create, RuleSet, Match facade
-3. M1-T5: StateOps, StateHash, Match:snapshot/hash
+1. M1-T4: StateFactory.create, RuleSet, Match facade
+2. M1-T5: StateOps, StateHash, Match:snapshot/hash
 
 ## Open questions for the owner
 
@@ -84,6 +84,7 @@ Newest first. One line per session: date, what was done, what's next.
 
 | Date | Summary |
 |---|---|
+| 2026-10-18 | M1-T3 complete: Rng.luau already implemented with xorshift32 PRNG (next, int, shuffle, clone). Deterministic, all tests pass. Next: M1-T4. |
 | 2026-10-18 | M1-T2 complete: Config/* with all 8 data tables (Classes, Resources, Lines, Policies, Market, Objectives, Events, Difficulty) matching GAME_DESIGN. Config validator test passes. All checks pass. Next: M1-T3. |
 | 2026-10-18 | M1-T1 complete: Types.luau with all types from GAME_DESIGN section 4 (MatchState, ClassState, Line, Bill, TradeOffer, Promise, Alliance, Reputation, ActionDraft, LogEntry, PlayerView, VictoryResult, Event, Seat, DifficultyConfig, plus utility functions). All checks pass. Next: M1-T2. |
 | 2026-10-18 | M1-T0 complete: Code-model foundation (abstract helper, Signal, ClassTemplate, assertSerializable tests). All checks pass. Next: M1-T1. |
