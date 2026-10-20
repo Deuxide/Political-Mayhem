@@ -8,9 +8,9 @@ local UiRules = require("./ui_rules")
 
 local suites = {
 	require("./loader.test"),
+	require("./shared_smoke.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
-	-- add project suites here, e.g. require("./economy.test")
 }
 
 for _, suite in suites do
