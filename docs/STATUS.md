@@ -3,18 +3,23 @@
 **This file is the handoff.** Update it after every task (even if the session
 may end abruptly), including the Verification log.
 
-Last updated: (set on first update)
+Last updated: 2026-10-20
 
 ## Snapshot
 
 - **Project:** Political Mayhem
 - **Current milestone:** M0 (Scaffold and tooling)
-- **Current task:** M0-T1 (not started)
-- **Project phase:** Planning complete; starter assets and docs in place; no game code yet.
-- **Current branch:** M0-dev1
-- **Stable branch:** linux-stable (rules: `docs/GIT_WORKFLOW.md`)
+- **Current task:** M0-T2 (minimal skeleton)
+- **Project phase:** Toolchain installed and verified (M0-T1 done); no game code yet.
+- **Current branch:** M0-dev2 (owner confirmed 2026-10-20; the "M0-dev1" previously
+  listed here was stale — M0-dev1 is the abandoned first attempt. M0-dev2 holds
+  the fresh-restart commit with the current docs and starter assets)
+- **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** none
-- **Last `scripts/check` result:** not run yet
+- **Last `scripts/check` result:** fails only on `rojo sourcemap` + `rojo build`
+  because `src/shared` and `src/server` do not exist yet (they arrive in M0-T2).
+  Every other step passes: stylua, selene (0 warnings), type check, pasted-copies
+  guard, and 20/20 Lune tests.
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
 
@@ -22,6 +27,7 @@ Last updated: (set on first update)
 
 - [x] Design, architecture, networking, UI, roadmap, verification, environment docs
 - [x] Starter assets tested outside this repo: loader, test lib/runner, UI rules lint, ChildrenGuard, `scripts/check`
+- [x] M0-T1: toolchain installed and verified; StyLua/Selene conflict fixed (D-037)
 
 ## In progress
 
@@ -29,12 +35,11 @@ Nothing.
 
 ## Next up (in order)
 
-1. M0-T1: install and verify toolchain
-2. M0-T2: minimal skeleton
-3. M0-T3: wire ChildrenGuard
-4. M0-T4: real-module smoke test
-5. M0-T5: gate self-test
-6. M0-T6: Studio verification (agent-led)
+1. M0-T2: minimal skeleton
+2. M0-T3: wire ChildrenGuard
+3. M0-T4: real-module smoke test
+4. M0-T5: gate self-test
+5. M0-T6: Studio verification (agent-led)
 
 ## Verification log
 
@@ -42,6 +47,7 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 
 | Date | Task / milestone | L1 | L2 | L3 | Notes |
 |---|---|---|---|---|---|
+| 2026-10-20 | M0-T1 | partial: all steps pass except `rojo sourcemap`+`rojo build`, which need the M0-T2 skeleton (`src/shared`, `src/server` don't exist yet). T1's own done-when fully met | N/A (no runtime change) | none | `rokit install` OK (needed `rokit trust` for the six pinned tools first). Versions printed: Rojo 7.7.1, wally 0.3.2, stylua 2.6.0, selene 0.32.0, lune 0.11.0, luau-lsp 1.70.1 — all match `rokit.toml` pins, none needed re-lookup. `wally install` resolved `roblox/react@17.3.13` and `roblox/react-roblox@17.3.13` (+ deps); `Packages/` exists; `wally.lock` committed. Toolchain defect found and fixed (D-037): starter `stylua.toml` had `collapse_simple_statement = "Always"`, which makes StyLua require one-line bodies that Selene's `multiple_statements` rejects (4 warnings in `ChildrenGuard.luau`); verified no formatting passes both; owner approved switching to `"Never"` + mechanical reformat of 7 starter files by StyLua itself. After: selene 0 warnings, 20/20 tests pass (real files, behavior identical) |
 
 ## Open questions for the owner
 
@@ -69,4 +75,5 @@ Newest first. One line per session.
 
 | Date | Summary |
 |---|---|
+| 2026-10-20 | M0-T1 done on M0-dev2 (owner confirmed branch after STATUS/git mismatch). Toolchain verified; StyLua/Selene collapse conflict fixed via D-037. Next: M0-T2 skeleton (which turns `scripts/check` fully green). |
 | (first session) | Fresh restart: docs, starter assets, verification gate in place. Next: M0-T1. |

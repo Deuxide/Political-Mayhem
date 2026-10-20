@@ -24,12 +24,18 @@ local function describeType(elementType: any): string
 	if kind == "string" then
 		return elementType
 	elseif kind == "function" then
-		local ok, name = pcall(function(): any return debug.info(elementType :: any, "n") end)
-		if ok and type(name) == "string" and name ~= "" then return name end
+		local ok, name = pcall(function(): any
+			return debug.info(elementType :: any, "n")
+		end)
+		if ok and type(name) == "string" and name ~= "" then
+			return name
+		end
 		return "<anonymous component>"
 	elseif kind == "table" then
 		local named = (elementType :: any).name or (elementType :: any).displayName
-		if type(named) == "string" then return named end
+		if type(named) == "string" then
+			return named
+		end
 	end
 	return tostring(elementType)
 end
@@ -61,7 +67,9 @@ function ChildrenGuard.check(elementType: any, props: any, ...: any): { string }
 
 	if type(props) == "table" and type((props :: any).children) == "table" then
 		local propChildren = (props :: any).children
-		if not isElement(propChildren) then checkContainer(propChildren, owner, problems) end
+		if not isElement(propChildren) then
+			checkContainer(propChildren, owner, problems)
+		end
 	end
 
 	local count = select("#", ...)
@@ -103,7 +111,9 @@ local installedOn: any = nil
 
 -- Wrap React.createElement. Returns false when React is read-only.
 function ChildrenGuard.install(React: any, sink: Sink?): boolean
-	if original ~= nil then return true end
+	if original ~= nil then
+		return true
+	end
 	local seen: { [string]: boolean } = {}
 	local report: Sink = sink
 		or function(message: string, traceback: string)
@@ -126,7 +136,9 @@ function ChildrenGuard.install(React: any, sink: Sink?): boolean
 		return base(elementType, props, ...)
 	end
 
-	local ok = pcall(function() React.createElement = guarded end)
+	local ok = pcall(function()
+		React.createElement = guarded
+	end)
 	if not ok then
 		warn("[ChildrenGuard] React.createElement is read-only; guard not installed.")
 		return false
@@ -138,7 +150,9 @@ end
 
 function ChildrenGuard.uninstall()
 	if original ~= nil and installedOn ~= nil then
-		pcall(function() installedOn.createElement = original end)
+		pcall(function()
+			installedOn.createElement = original
+		end)
 	end
 	original = nil
 	installedOn = nil

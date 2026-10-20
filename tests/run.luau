@@ -21,7 +21,11 @@ end
 print("ui rules on src/client")
 local findings = UiRules.scan("src/client")
 Lib.test("src/client has no UI rule violations", function()
-	if #findings > 0 then error("\n" .. UiRules.format(findings), 0) end
+	if #findings > 0 then
+		error("\n" .. UiRules.format(findings), 0)
+	end
 end)
 
-if Lib.summary() > 0 then process.exit(1) end
+if Lib.summary() > 0 then
+	process.exit(1)
+end

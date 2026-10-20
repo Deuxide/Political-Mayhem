@@ -8,13 +8,17 @@ local UiRules = {}
 
 export type Finding = { path: string, line: number, rule: string, text: string }
 
-local function inTheme(path: string): boolean return string.find(path, "/Theme/", 1, true) ~= nil end
+local function inTheme(path: string): boolean
+	return string.find(path, "/Theme/", 1, true) ~= nil
+end
 
 local function isSurface(path: string): boolean
 	return string.find(path, "/Primitives/Surface", 1, true) ~= nil
 end
 
-local function stripComment(line: string): string return (string.gsub(line, "%-%-.*$", "")) end
+local function stripComment(line: string): string
+	return (string.gsub(line, "%-%-.*$", ""))
+end
 
 local RAW_STYLE = {
 	"Color3%.fromRGB",
@@ -29,7 +33,9 @@ local RAW_STYLE = {
 
 local function check(path: string, lineNumber: number, line: string, findings: { Finding })
 	local code = stripComment(line)
-	if code == "" then return end
+	if code == "" then
+		return
+	end
 	local function add(rule: string)
 		table.insert(findings, { path = path, line = lineNumber, rule = rule, text = line })
 	end
@@ -69,7 +75,9 @@ local function walk(dir: string, findings: { Finding })
 	for _, entry in ipairs(fs.readDir(dir)) do
 		local full = `{dir}/{entry}`
 		if fs.isDir(full) then
-			if entry ~= "Packages" then walk(full, findings) end
+			if entry ~= "Packages" then
+				walk(full, findings)
+			end
 		elseif string.match(entry, "%.luau$") or string.match(entry, "%.fixture$") then
 			local number = 0
 			for line in string.gmatch(fs.readFile(full) .. "\n", "(.-)\n") do
@@ -82,7 +90,9 @@ end
 
 function UiRules.scan(root: string): { Finding }
 	local findings: { Finding } = {}
-	if fs.isDir(root) then walk(root, findings) end
+	if fs.isDir(root) then
+		walk(root, findings)
+	end
 	return findings
 end
 

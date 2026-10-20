@@ -25,7 +25,9 @@ function Lib.eq(actual: any, expected: any, message: string?)
 end
 
 function Lib.truthy(value: any, message: string?)
-	if not value then error(message or "expected a truthy value", 2) end
+	if not value then
+		error(message or "expected a truthy value", 2)
+	end
 end
 
 function Lib.contains(haystack: string, needle: string, message: string?)
@@ -34,7 +36,9 @@ function Lib.contains(haystack: string, needle: string, message: string?)
 	end
 end
 
-function Lib.failures(): number return failed end
+function Lib.failures(): number
+	return failed
+end
 
 function Lib.summary(): number
 	print(`\nResults: {passed} passed, {failed} failed`)
