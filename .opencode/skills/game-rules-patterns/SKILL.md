@@ -45,7 +45,7 @@ design is wrong or ambiguous, fix the doc and log a decision in
 ## Step contract
 
 ```lua
--- Sketch only; follow the project's require convention (D-014).
+-- Sketch only; Roblox-style requires, tested via tests/loader.luau.
 local MyStep = setmetatable({}, { __index = Step })
 MyStep.__index = MyStep
 

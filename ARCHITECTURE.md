@@ -355,13 +355,22 @@ randomness). Bots must not get information a human in that seat wouldn't.
 - Profile library chosen in M14 (D-015).
 - Keep strictly separate from match logic; matches should run without it.
 
-## 14. Testing strategy
+## 14. Testing and verification strategy
 
+- **Local (L1):** `scripts/check` = stylua, selene, strict type check, build, and
+  Lune tests. Details and rules: `docs/VERIFICATION.md`.
+- **Headless tests run the real code.** `tests/loader.luau` mounts `src/` as a
+  virtual instance tree so Roblox-style requires (`script.Parent.X`) work under
+  Lune; tests never contain copies of game code. Everything in
+  `shared/Game` and `Config` must be testable this way (hence no Roblox services
+  there). Test files are registered in `tests/run.luau`.
 - **Unit tests** for everything in `shared/Game` and `Config` validation.
-- **Scenario tests**: scripted multi-round matches with fixed RNG seeds that
-  assert end states (including betrayal and shared victory).
-- **Manual playtests** via Studio (and MCP for inspection) for UI and
-  networking.
+- **Scenario tests**: scripted multi-day matches with fixed RNG seeds that assert
+  end states (including betrayal and shared victory).
+- **UI rules lint** (`tests/ui_rules.luau`) and the dev-time `ChildrenGuard`.
+- **Studio checks (L2)** by the agent through the MCP for anything that runs in
+  Roblox (server, client, UI, networking); **owner checks (L3)** only for
+  appearance and feel.
 
 ## 15. Build order (summary; authoritative version is `docs/ROADMAP.md`)
 

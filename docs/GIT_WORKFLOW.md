@@ -56,8 +56,10 @@ Then update `docs/STATUS.md` (current branch, current milestone).
 
 ### Finish a milestone (owner does this)
 
-1. All "Done when" boxes for the milestone are true; `scripts/check` passes;
-   `STATUS.md` is current; deferred verifications are listed honestly.
+1. The agent has reported "Milestone M# ready" and every milestone-completion
+   criterion in `docs/VERIFICATION.md` is met (clean `scripts/check`, clean full
+   playtest, works as intended, [OWNER] items confirmed, evidence in
+   `STATUS.md`). A milestone with NOT VERIFIED items is not merged.
 2. Merge into stable and tag:
 
 ```bash

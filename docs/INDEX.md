@@ -9,8 +9,10 @@ here, assume the next agent will not know it.
 1. `/AGENTS.md` : rules you must follow
 2. `docs/STATUS.md` : where the project is right now and what to do next
 3. `docs/ROADMAP.md` : find your current task and its "Done when" criteria
-4. Only the docs relevant to that task (see ownership table below)
-5. `docs/DECISIONS.md` : before changing anything that looks like a design choice
+4. `docs/VERIFICATION.md` : what "done" means (three levels, milestone gate)
+5. `docs/ENVIRONMENT.md` : the owner's machine, Vinegar, how code reaches Studio
+6. Only the other docs relevant to that task (see ownership table below)
+7. `docs/DECISIONS.md` : before changing anything that looks like a design choice
 
 ## Document ownership (single source of truth)
 
@@ -25,6 +27,8 @@ here, assume the next agent will not know it.
 | What to build, in what order, how to verify | `docs/ROADMAP.md` | |
 | Current progress and next step | `docs/STATUS.md` | |
 | Git branches, merging, tags, pushing | `docs/GIT_WORKFLOW.md` | |
+| What "done" means; Studio checks; evidence | `docs/VERIFICATION.md` | `AGENTS.md` keeps only a summary |
+| Owner's machine, Vinegar, Rojo/Studio workflow, allowed Output messages | `docs/ENVIRONMENT.md` | skills (they link here) |
 | Rules for agents | `/AGENTS.md` | |
 | Prompt to resume in a new session | `docs/HANDOFF_PROMPT.md` | |
 | Machine/tool setup, new-device checklist | `docs/SETUP.md` | |

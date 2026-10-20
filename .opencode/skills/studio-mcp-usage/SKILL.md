@@ -1,88 +1,112 @@
 ---
 name: studio-mcp-usage
-description: Use when the Roblox Studio MCP tools are available and you need to inspect the place, run a playtest, read console output, capture the viewport, or verify that UI or networking works in Studio. Covers safe usage, the verification loop, and what to do when Studio or the MCP is unavailable.
+description: Use when you need to verify anything in Roblox Studio through the MCP tools: running a playtest, reading Output, inspecting instances, exercising a feature, or deciding whether to ask the owner. Covers the Studio gate, the agent-led L2 verification loop, what only the owner should verify, and failure handling.
 ---
 
-# Studio MCP usage
+# Studio MCP usage (agent-led verification)
 
-Decision D-020: the MCP is for **inspection and verification only**. All code
-changes go through files and Rojo, never through MCP script-editing tools.
+Why this exists: the agent runs Studio checks itself. The owner's manual
+playtests can crash Studio under Vinegar, so don't ask the owner to press Play.
+Rules: `AGENTS.md` (Studio gate), `docs/VERIFICATION.md` (L2/L3, what counts as
+passing), `docs/ENVIRONMENT.md` (machine, Rojo workflow, allowed Output
+messages). MCP is for **inspection and verification only**; all code changes go
+through files (D-020).
 
-## Environment note
+## Studio gate (hard rule)
 
-Studio runs under Wine (Vinegar) on Linux. Screenshots and simulated input may
-behave differently than on Windows or macOS. Prefer `get_console_output` and
-`inspect_instance` as the source of truth, treat `screen_capture` and input
-tools as best-effort, and say so in your report if they fail or look wrong.
+1. **Confirmed** means the owner said, in this session, that Studio has the
+   latest `build/game.rbxl` open and Rojo is connected. One confirmation per
+   session is enough unless sync seems to have dropped.
+2. **Not confirmed -> make no MCP calls at all**, not even read-only ones.
+   Finish all non-Studio work, batch every Studio check into one list, build,
+   then **end your turn** with:
 
-## Before you start
+   ```
+   Ready for a Studio check. I rebuilt build/game.rbxl.
+   Please close the current place without saving, open build/game.rbxl, start
+   `rojo serve` in your terminal, click Connect in the Rojo plugin, and tell me
+   when it is connected. I'll run the playtest myself; you don't need to press Play.
+   After that I will check:
+   - <check 1>
+   - <check 2>
+   ```
 
-- If Studio or the MCP tools are not available, **say so**. Don't pretend to
-  verify. Record the missing check under "Deferred verifications" in
-  `docs/STATUS.md` and continue with what can be done without Studio.
-- If `docs/STATUS.md` already lists deferred verifications and Studio is now
-  available, do those **first**.
-- Only connect to places the owner intends. The MCP can read and modify the open
-  place; stay read-only unless the task explicitly needs more.
-- Code reaches Studio only through **build-and-open** (D-030): after any
-  change, rebuild with `rojo build`, ask the owner to reopen
-  `build/game.rbxl`, and wait for confirmation. Before testing, confirm the
-  Explorer tree matches the project. If you haven't been told the latest build
-  is open, ask instead of assuming.
-- Ignore `[Rojo-...]` lines in console output.
+3. If Studio's content doesn't match your files after a few seconds, sync has
+   dropped or too much changed: stop, ask for a rebuild and reopen, and don't
+   report results from stale content.
+4. If the task doesn't need Studio (pure logic, tests, docs), don't ask.
 
-## Tools you will use (names as documented by Roblox)
+## Tools (names as documented by Roblox; check each tool's schema)
 
 | Purpose | Tool |
 |---|---|
-| Which Studio windows exist | `list_roblox_studios` (gives each `studio_id`) |
-| State of Studio and play mode | `get_studio_state` |
+| Studio windows and `studio_id` | `list_roblox_studios` |
+| Studio and play state | `get_studio_state` |
 | Explore the DataModel | `search_game_tree`, `inspect_instance` |
-| Read scripts (read-only use) | `script_read`, `script_search`, `script_grep` |
-| Run a playtest | `start_stop_play` |
-| Read output and errors | `get_console_output` |
+| Read scripts (read-only) | `script_read`, `script_search`, `script_grep` |
+| Start/stop a playtest | `start_stop_play` |
+| Output and errors | `get_console_output` |
 | See the screen | `screen_capture` |
 | Drive the UI | `user_mouse_input`, `user_keyboard_input` |
-| Run Luau for inspection | `execute_luau` (requires choosing a datamodel: Edit, Client, or Server) |
+| Run Luau for inspection | `execute_luau` (choose Edit, Client, or Server DataModel) |
 
-Every call takes a `studio_id`. Get it from `list_roblox_studios` and pass it
-explicitly. If several Studio windows are open, confirm which place you are
-targeting by name or place id before doing anything.
+Every call takes a `studio_id`. If several Studio windows are open, confirm which
+place you are targeting before doing anything.
 
-## Do not use for code changes
+Don't use script-editing tools (for example `multi_edit`): Rojo-managed scripts are
+overwritten by sync, and edits never reach the repo. Use `execute_luau` for
+reading state or exercising features, not for creating content that belongs in
+the repo. Never put keys in `execute_luau` calls.
 
-Avoid `multi_edit` and any tool that writes scripts. Rojo-managed scripts are
-overwritten on the next sync, and edits made this way never reach the
-repository. If you find a bug, fix it in the files.
+## L2 verification loop (do it yourself)
 
-`execute_luau` is for read-only inspection (printing an instance's properties,
-checking that a module loads). Don't use it to create or change content that
-belongs in the repo.
+1. `list_roblox_studios`, `get_studio_state`: right place, edit mode.
+2. `search_game_tree` / `inspect_instance`: the tree matches the project
+   (`ReplicatedStorage.Shared`, `ServerScriptService.Server`, `StarterPlayerScripts.Client`).
+3. Read one script you just changed (`script_read`) and compare it with the file:
+   proves Studio has your latest code.
+4. `start_stop_play`. Wait for boot. `get_console_output`: note what was
+   already in the Output before the playtest so you judge only new lines.
+5. **Pass criteria:** zero errors and zero warnings, other than the allowlist
+   in `docs/ENVIRONMENT.md` (only `[Rojo-` lines by default). Look at **server and
+   client** output. Quote the exact text of any failure.
+6. Confirm the expected things exist. For UI: `execute_luau` in the **Client**
+   DataModel (or `inspect_instance`) to check the ScreenGui, the specific
+   instances, and their key properties under `PlayerGui`.
+7. Exercise the feature, not only boot: call the function, trigger the action,
+   or simulate the input, then read the state back and compare it to the
+   expected result from the docs. "No error" is not "works".
+8. For UI, trigger a re-render (change tab, toggle state, open a modal) and
+   re-read the Output. Some errors appear only on update (react-lua issue #42).
+9. `screen_capture` is best-effort under Wine/Wayland. Use it for evidence if it
+   works; never rely on it alone.
+10. **Stop the playtest** (`start_stop_play`). Always stop what you start.
+11. Record the evidence in `docs/STATUS.md` (Verification log) and in the task
+    report.
 
-## Verification loop
+## What you may ask the owner (L3)
 
-1. `list_roblox_studios`, then `get_studio_state`. Confirm the right place is
-   open and Studio is in edit mode.
-2. `search_game_tree` to confirm expected services and folders exist
-   (ReplicatedStorage.Shared, ServerScriptService.Server, and so on).
-3. `start_stop_play`, wait a few seconds, `get_console_output`.
-4. For UI work: `screen_capture`; interact with `user_mouse_input` or
-   `user_keyboard_input` if the task needs it; capture again.
-5. `start_stop_play` to stop. Always stop playtests you started.
-6. Report: what you checked, exact errors from the console (quote them), and
-   what you did not check.
+Only **[OWNER]** items from the roadmap: things you can't judge, such as how a
+UI looks or feels. Do all inspection first. Ask once, batched, precisely: what
+to look at and what counts as a pass. Don't ask the owner to press Play, to
+read the Output for you, or to confirm something you can inspect.
 
-## Reporting rules
+## When something fails
 
-- Report observed facts, not assumptions. If the screenshot doesn't show what
-  the task requires, say so.
-- Record results in `docs/STATUS.md` (session log) and clear the matching
-  entry from "Deferred verifications" only when it was truly verified.
-- Never mark a task done on the basis of "it should work". If the playtest
-  didn't run, the task is not verified.
+- Studio or the MCP unavailable, or the gate not satisfied: do file-based work,
+  run `scripts/check`, write **NOT VERIFIED** for the Studio check in
+  `docs/STATUS.md`, and leave the task in progress. Don't close the task or
+  milestone.
+- An error appears: fix it in the files, rebuild, ask for a reopen (steps in the
+  gate), and re-run the whole loop. Don't keep inspecting the old place.
+- A UI error mentioning `createTextInstance`: use the
+  `fix-react-unimplemented-error` skill.
+- Three failed attempts at one problem: stop, write findings in
+  `docs/STATUS.md`, ask the owner.
 
-## Security
+## Environment note
 
-- Treat the MCP as powerful: don't run code you don't understand, don't
-  upload or publish anything through it, and never put API keys in the repo
-  or in `execute_luau` calls.
+Studio runs under Wine (Vinegar). Screenshots and simulated input can behave
+differently than on Windows or macOS. Prefer `get_console_output` and instance
+inspection as the source of truth, and say so in your report if the screenshot
+or input tools fail.

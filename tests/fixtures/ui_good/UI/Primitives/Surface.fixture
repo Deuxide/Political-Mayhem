@@ -1,0 +1,7 @@
+-- no UICorner here, only a comment
+local base = Color3.new(1, 1, 1)
+local gradient = Instance.new("UIGradient")
+return React.createElement("Frame", props, {
+	UIGradient = grad,
+	Content = React.createElement(React.Fragment, nil, props.children),
+})

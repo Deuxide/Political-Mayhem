@@ -1,0 +1,9 @@
+local corner = Instance.new("UICorner")
+local color = Color3.fromRGB(10, 20, 30)
+local font = Enum.Font.GothamBold
+local shadow = "DropShadow"
+local gradient = Instance.new("UIGradient")
+return React.createElement("Frame", props, {
+	UIGradient = grad,
+	Children = props.children,
+})

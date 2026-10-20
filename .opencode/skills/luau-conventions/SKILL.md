@@ -52,8 +52,8 @@ return Thing
 
 Abstract methods: `error("not implemented: Thing:method")`.
 Private fields start with `_` and are never touched from outside the class.
-Follow the `require` convention recorded by task M0-T4 / decision D-014; don't
-invent a new one.
+Use Roblox-style requires (`require(script.Parent.X)`); tests load the same files
+unchanged through `tests/loader.luau` (see the `luau-testing` skill).
 
 ## Determinism rules for `src/shared/Game`
 

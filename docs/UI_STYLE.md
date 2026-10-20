@@ -181,18 +181,35 @@ src/client/UI/
   using instant transitions.
 - The Closing Bell and Evening Report use slide/fade only.
 
-## 6. Enforcement (automated where possible)
+## 6. Enforcement (automated)
 
-Add a lint-style test (`tests/ui_rules`) that fails if, under `src/client/UI`
-outside `Theme/`:
+`tests/ui_rules.luau` (already in the starter, run by `scripts/check`) fails the
+build if, anywhere under `src/client`:
 
-- `UICorner` appears anywhere in `src/client`,
-- `Color3.fromRGB`, `Color3.new`, `Color3.fromHSV`, `Enum.Font`, `Font.new`, or
-  `Font.fromEnum` appears,
-- `UIGradient` appears outside `Primitives/Surface`,
-- any shadow-related asset or name (`Shadow`, `DropShadow`, `Glow`) appears.
+- `UICorner` appears,
+- `Color3.fromRGB/new/fromHSV/fromHex`, `Enum.Font`, `Font.new/fromEnum/fromName`
+  appear outside `UI/Theme/` (the single exception is `Color3.new(1, 1, 1)`
+  inside `Primitives/Surface`, the white base a gradient needs),
+- `UIGradient` appears outside `Primitives/Surface` and `UI/Theme/`,
+- a shadow or glow name (`Shadow`, `Glow`) appears,
+- a raw children table is nested in a children table (`X = props.children,`;
+  react-lua issue #42).
 
-Run it from `scripts/check`.
+At runtime in Studio, `UI/Dev/ChildrenGuard` wraps `React.createElement` and
+warns, with the call site, about string/number children, nested raw children
+tables, and a falsy child followed by a table of children. Any such warning
+fails the Studio check.
+
+## 6.1 React-Lua rules
+
+- Forward children as `Content = React.createElement(React.Fragment, nil,
+  props.children)`; never as a bare table value.
+- Put a table of children alone (or first), conditional children after it.
+- Text only goes in a `TextLabel`'s `Text` prop. Never render strings or
+  numbers as children (including `0` from `cond and #list`).
+- Build lists as one keyed table passed as the only children argument; to nest
+  a list, wrap it in a Fragment.
+- Runbook for `createTextInstance` errors: `fix-react-unimplemented-error` skill.
 
 ## 7. Acceptance checklist (UI work)
 

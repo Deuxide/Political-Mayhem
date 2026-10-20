@@ -4,31 +4,48 @@ The complete build plan. Work **in order**. Each task has an ID, dependencies,
 and a **Done when** checklist. A task is not done until every item is true and
 `STATUS.md` is updated.
 
-Global definition of done (applies to every task, from AGENTS.md):
-`stylua` + `selene` clean; `rojo build` succeeds; tests for touched logic
-pass; no server-trust violations; docs updated if behavior or structure
-changed; `STATUS.md` updated.
+**Definition of done: `docs/VERIFICATION.md`.** Every task needs L1 (`scripts/check`
+passes, nothing weakened). Tasks that change anything running in Roblox also need
+L2 (a Studio playtest you run yourself through the MCP: zero errors, zero
+warnings, feature exercised). Appearance and feel are L3, marked **[OWNER]** and
+batched once per milestone. A **milestone** is complete only under the
+milestone rules in `docs/VERIFICATION.md` (clean check, clean full playtest,
+everything working as intended, evidence recorded). Then report "Milestone M#
+ready" and stop; the owner merges.
 
 Commit message format: `M2-T3: short description`. Work happens on the
 milestone's `M#-dev#` branch; only the owner merges a finished milestone into
 the stable branch (`docs/GIT_WORKFLOW.md`).
 
-Legend: **[L]** = needs Lune or equivalent headless run (depends on D-014).
+**Scope rule:** build only what a task's "Done when" requires. Don't pull later
+milestones forward.
 
 ---
 
 ## M0: Scaffold and tooling
 
-Goal: an empty but fully wired project that builds, lints, tests, and syncs.
+Goal: a minimal but fully wired and **verified** project. Starter assets already
+exist and were tested: `rokit.toml`, `wally.toml`, `default.project.json`,
+`stylua.toml`, `selene.toml`, `.luaurc`, `.gitignore`, `scripts/check`, `tests/`
+(loader, lib, runner, loader / UI-rules / children-guard tests), and
+`src/client/UI/Dev/ChildrenGuard.luau`. M0 **verifies and wires** them; it does
+not rebuild them.
+
+**M0 scope limit:** no design system, no Gallery, no screens, no game logic, no
+`Behaviors/` or `Steps/`. Minimal stubs only.
 
 | Task | Description | Depends | Done when |
 |---|---|---|---|
-| M0-T1 | Toolchain files: `rokit.toml` (Rojo, Wally, StyLua, Selene, **Lune**), `stylua.toml`, `selene.toml`, `.gitignore` | none | `rokit install` works; versions looked up, not guessed; `lune --version` runs |
-| M0-T2 | `default.project.json` per ARCHITECTURE section 4; `wally.toml` with React-Lua deps; `wally install` | T1 | Packages resolve; `rojo build` produces `build/game.rbxl` |
-| M0-T3 | Full folder skeleton and stubs; server and client boot; placeholder UI with four corner panels | T2 | After the owner opens the built place (build-and-open, D-030), playtest shows "Hegemony: scaffold OK" and four labeled corners; no errors in output |
-| M0-T4 | **Spike: test strategy (D-014).** Determine how to run `shared/Game` modules under **Lune** while they still work unchanged in Studio via Rojo. Evaluate the options listed in D-014 (relative string requires, a Rojo-aware bundler such as Wax, or in-Studio fallback). Build `tests/harness` and one passing test (`lune run tests/run` or equivalent). Record outcome in DECISIONS.md | T3 | D-014 status updated with chosen approach and the exact command to run tests |
-| M0-T5 | `scripts/check` (executable bash script; the dev machine is Linux) that runs: stylua check, selene, rojo build, tests | T4 | One command prints PASS/FAIL |
-| M0-T6 | MCP verification using build-and-open (D-030): build, owner reopens `build/game.rbxl` in Studio, then via MCP confirm Explorer matches project, run playtest, read output | T3 | Result recorded in STATUS.md; if MCP unavailable, manual steps recorded |
+| M0-T1 | Install and verify the toolchain | none | `rokit install` succeeds; `rojo`, `wally`, `stylua`, `selene`, `lune`, `luau-lsp` all print versions; `wally install` resolves `react` and `react-roblox`; `Packages/` exists. If a pinned version can't be resolved, look up the real current one (don't guess) and note it in STATUS |
+| M0-T2 | Minimal skeleton: `src/shared/Game/Types.luau` (enums only: `ClassId`, `ResourceId`, `Phase`, `Difficulty`); `src/server/init.server.luau` (logs "Server booted"); `src/client/init.client.luau` mounting a React root that shows one TextLabel "Political Mayhem: scaffold OK" and four plain TextLabel corner labels named for the classes | T1 | `scripts/check` prints `CHECK PASSED`; every file is `--!strict` |
+| M0-T3 | Wire `ChildrenGuard` into the client boot, only when `RunService:IsStudio()` | T2 | Guard test still passes; `scripts/check` passes |
+| M0-T4 | Real-module smoke test: `tests/shared_smoke.test.luau` loads `src/shared/Game/Types` through `tests/loader.luau` and asserts what it exports; register it in `tests/run.luau`. Confirm D-014/D-034 hold (no pasted copies) | T2 | Test present and passing; `scripts/check` passes |
+| M0-T5 | **Gate self-test.** On a throwaway change (reverted afterwards), prove `scripts/check` exits non-zero for: (a) a wrong `require` path, (b) a function called with the wrong number of arguments, (c) a value that doesn't match its declared type, (d) `Children = props.children` in a UI file. Then `git clone` the repo into a temp folder, run `rokit install`, `wally install`, `scripts/check` | T2-T4 | Each of (a)-(d) makes the check fail (paste the last lines of each; if one is NOT caught, say so and report it to the owner); the clean clone passes |
+| M0-T6 | **Studio verification** (agent-led, `docs/VERIFICATION.md` L2). Follow the Studio gate: build, ask the owner once to open the build, run `rojo serve` and connect. Then yourself: confirm the tree, playtest, read server and client Output, confirm the placeholder ScreenGui and its labels exist (inspect PlayerGui), trigger a re-render if possible. **[OWNER]**: one question, "is the placeholder visible with four class labels?" | T5 | Playtest has zero errors and zero warnings (allowlist in ENVIRONMENT.md); instances confirmed by inspection; owner confirmed the visual; evidence in the STATUS Verification log |
+
+**Milestone M0 gate:** all tasks done, `scripts/check` clean on the final commit,
+a clean full playtest from a fresh build, owner confirmation recorded. Then
+report "Milestone M0 ready" and stop.
 
 ## M1: Core types, config, match creation
 
@@ -109,7 +126,7 @@ victory result. Record the command in STATUS.md.
 
 | Task | Description | Depends | Done when |
 |---|---|---|---|
-| M7-T0 | **Design system foundation (D-027, D-028):** `Tokens`, `Gradients`, `Skins/Default`, `ThemeContext`; primitives (`Surface`, `Text`, `Button`, `Icon`, `Divider`); composites (`Card`, `ResourceChip`, `SegmentedTrack`, `Stepper`, `Tabs`, `Modal`, `Toast`); `Gallery` screen; `tests/ui_rules` lint test wired into `scripts/check` | M0 | Gallery shows every component in every state; swapping two tokens or a second skin restyles everything; UI rules test passes (no `UICorner`, no raw colors/fonts outside Theme, `UIGradient` only in `Surface`) |
+| M7-T0 | **Design system foundation (D-027, D-028):** `Tokens`, `Gradients`, `Skins/Default`, `ThemeContext`; primitives (`Surface`, `Text`, `Button`, `Icon`, `Divider`); composites (`Card`, `ResourceChip`, `SegmentedTrack`, `Stepper`, `Tabs`, `Modal`, `Toast`); `Gallery` screen; `tests/ui_rules.luau` already exists in the starter and runs in `scripts/check` (extend it if a new rule is needed); `ChildrenGuard` stays installed in Studio | M0 | Gallery shows every component in every state; swapping two tokens or a second skin restyles everything; UI rules test passes (no `UICorner`, no raw colors/fonts outside Theme, `UIGradient` only in `Surface`) |
 | M7-T1 | `Net` client wrapper and `Store` | M6 | Store updates from snapshot and patch; unit-tested reducers |
 | M7-T2 | `App` shell, layout with four corners, top bar, countdown, built from design-system components only | T0, T1 | Matches UI_SPEC section 2; phase names themed |
 | M7-T3 | `OwnClassPanel` and `ClassCard` (detailed own panel; simplified others per `View`) | T2 | Shows live data; hidden fields render `?` per view |
@@ -196,7 +213,7 @@ match in Studio through the UI. Record a short playtest note in STATUS.md.
 |---|---|
 | Rules too complex for casual players | Easy mode as tutorial; hints; M13 |
 | Balance impossible by hand | M10 headless sims before human playtesting |
-| Domain code can't run outside Studio | M0-T4 spike decides early; fallback is in-Studio test runner |
+| Real code can't be tested outside Studio | Solved: `tests/loader.luau` runs the real `src/shared` files under Lune. Code that needs Roblox services is verified by L2 Studio checks |
 | Over-engineering or deep hierarchies | Hybrid model (D-029): plain-data state, max inheritance depth 1, registries for behaviors |
 | Restyle forces many edits | Layered design system, UI rules test, Gallery |
 | Agent drift across sessions | Docs-as-truth, STATUS.md protocol, tests as guardrail |
