@@ -43,7 +43,9 @@ end
 
 local function isInit(fileName: string): boolean
 	for _, name in ipairs(INIT_NAMES) do
-		if fileName == name then return true end
+		if fileName == name then
+			return true
+		end
 	end
 	return false
 end
@@ -78,12 +80,18 @@ local function scan(dirPath: string, name: string, parent: any)
 end
 
 -- Mount a source folder as a virtual Folder instance.
-function Loader.mount(path: string) return scan(path, path, nil) end
+function Loader.mount(path: string)
+	return scan(path, path, nil)
+end
 
 function Loader.require(node)
 	local file = rawget(node, "_file")
-	if not file then error(`{rawget(node, "Name")} is a Folder, not a ModuleScript`, 2) end
-	if cache[file] ~= nil then return cache[file] end
+	if not file then
+		error(`{rawget(node, "Name")} is a Folder, not a ModuleScript`, 2)
+	end
+	if cache[file] ~= nil then
+		return cache[file]
+	end
 
 	local env = setmetatable({
 		script = node,
@@ -101,6 +109,8 @@ function Loader.require(node)
 	return result
 end
 
-function Loader.clearCache() table.clear(cache) end
+function Loader.clearCache()
+	table.clear(cache)
+end
 
 return Loader

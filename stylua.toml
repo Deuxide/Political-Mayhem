@@ -6,4 +6,7 @@ indent_type = "Tabs"
 column_width = 100
 quote_style = "AutoPreferDouble"
 call_parentheses = "Always"
-collapse_simple_statement = "Always"
+# "Never" (StyLua's default) is required: "Always" collapses single-statement
+# function/if bodies onto one line, which Selene's multiple_statements rule
+# rejects, so no formatting could pass both tools (D-037).
+collapse_simple_statement = "Never"

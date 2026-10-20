@@ -69,9 +69,15 @@ Only these messages may appear in the Output during a playtest without counting
 as a failure. Add to this list only with the owner's approval.
 
 - Lines starting with `[Rojo-` (plugin messages)
+- Plain `print` output from the game itself — never `warn` or errors — is
+  allowed, expected output (e.g. the `Server booted` boot line). Owner ruling
+  2026-10-20: "A plain print should be counted as allowed expected output,
+  except for error and warnings fail."
 
-Everything else, including warnings, counts as a failure
-(see `docs/VERIFICATION.md`).
+Everything else — including `warn` and errors — still counts as a failure
+(see `docs/VERIFICATION.md`). Warnings that trace to Roblox's own CorePackages
+internals (not our code) are recorded under STATUS "Known issues" after being
+attributed; our game code itself is held to zero errors and zero warnings.
 
 ## Other devices
 
