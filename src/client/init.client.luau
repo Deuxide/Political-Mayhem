@@ -6,6 +6,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 -- Required through the Wally shims (Packages/react, Packages/react-roblox):
 -- their values are fully typed, but the react module's `export type` names
@@ -15,6 +16,17 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local React = require(ReplicatedStorage.Packages.react)
 local ReactRoblox = require(ReplicatedStorage.Packages["react-roblox"])
 local Types = require(ReplicatedStorage.Shared.Game.Types)
+-- Lives under this LocalScript (src/client/UI/Dev) because it is a dev tool;
+-- the config/game modules live in ReplicatedStorage.
+local ChildrenGuard = require(script.UI.Dev.ChildrenGuard)
+
+-- Dev-time guard for react-lua issue #42 (D-031): wraps createElement and
+-- warns, with the call site, about forbidden children patterns. Studio only —
+-- it must never reach a live client. Installed before the first createElement
+-- so every call site in this file is covered.
+if RunService:IsStudio() then
+	ChildrenGuard.install(React)
+end
 
 -- React-Lua names a host instance from its children-table key, not from a
 -- `Name` prop (ReactRobloxHostConfig sets domElement.Name = key; selene
