@@ -9,17 +9,14 @@ Last updated: 2026-10-20
 
 - **Project:** Political Mayhem
 - **Current milestone:** M0 (Scaffold and tooling)
-- **Current task:** M0-T2 (minimal skeleton)
-- **Project phase:** Toolchain installed and verified (M0-T1 done); no game code yet.
+- **Current task:** M0-T3 (wire ChildrenGuard)
+- **Project phase:** Toolchain verified (M0-T1); M0 skeleton in place; `scripts/check` fully green. No game logic yet.
 - **Current branch:** M0-dev2 (owner confirmed 2026-10-20; the "M0-dev1" previously
   listed here was stale — M0-dev1 is the abandoned first attempt. M0-dev2 holds
   the fresh-restart commit with the current docs and starter assets)
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** none
-- **Last `scripts/check` result:** fails only on `rojo sourcemap` + `rojo build`
-  because `src/shared` and `src/server` do not exist yet (they arrive in M0-T2).
-  Every other step passes: stylua, selene (0 warnings), type check, pasted-copies
-  guard, and 20/20 Lune tests.
+- **Last `scripts/check` result:** CHECK PASSED (first full pass of the gate)
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
 
@@ -28,6 +25,7 @@ Last updated: 2026-10-20
 - [x] Design, architecture, networking, UI, roadmap, verification, environment docs
 - [x] Starter assets tested outside this repo: loader, test lib/runner, UI rules lint, ChildrenGuard, `scripts/check`
 - [x] M0-T1: toolchain installed and verified; StyLua/Selene conflict fixed (D-037)
+- [x] M0-T2: minimal skeleton (Types enums, server boot log, client React scaffold)
 
 ## In progress
 
@@ -35,11 +33,10 @@ Nothing.
 
 ## Next up (in order)
 
-1. M0-T2: minimal skeleton
-2. M0-T3: wire ChildrenGuard
-3. M0-T4: real-module smoke test
-4. M0-T5: gate self-test
-5. M0-T6: Studio verification (agent-led)
+1. M0-T3: wire ChildrenGuard
+2. M0-T4: real-module smoke test
+3. M0-T5: gate self-test
+4. M0-T6: Studio verification (agent-led)
 
 ## Verification log
 
@@ -47,7 +44,8 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 
 | Date | Task / milestone | L1 | L2 | L3 | Notes |
 |---|---|---|---|---|---|
-| 2026-10-20 | M0-T1 | partial: all steps pass except `rojo sourcemap`+`rojo build`, which need the M0-T2 skeleton (`src/shared`, `src/server` don't exist yet). T1's own done-when fully met | N/A (no runtime change) | none | `rokit install` OK (needed `rokit trust` for the six pinned tools first). Versions printed: Rojo 7.7.1, wally 0.3.2, stylua 2.6.0, selene 0.32.0, lune 0.11.0, luau-lsp 1.70.1 — all match `rokit.toml` pins, none needed re-lookup. `wally install` resolved `roblox/react@17.3.13` and `roblox/react-roblox@17.3.13` (+ deps); `Packages/` exists; `wally.lock` committed. Toolchain defect found and fixed (D-037): starter `stylua.toml` had `collapse_simple_statement = "Always"`, which makes StyLua require one-line bodies that Selene's `multiple_statements` rejects (4 warnings in `ChildrenGuard.luau`); verified no formatting passes both; owner approved switching to `"Never"` + mechanical reformat of 7 starter files by StyLua itself. After: selene 0 warnings, 20/20 tests pass (real files, behavior identical) |
+| 2026-10-20 | M0-T1 | partial: all steps pass except `rojo sourcemap`+`rojo build`, which needed the M0-T2 skeleton (`src/shared`, `src/server` didn't exist yet). T1's own done-when fully met | N/A (no runtime change) | none | `rokit install` OK (needed `rokit trust` for the six pinned tools first). Versions printed: Rojo 7.7.1, wally 0.3.2, stylua 2.6.0, selene 0.32.0, lune 0.11.0, luau-lsp 1.70.1 — all match `rokit.toml` pins, none needed re-lookup. `wally install` resolved `roblox/react@17.3.13` and `roblox/react-roblox@17.3.13` (+ deps); `Packages/` exists; `wally.lock` committed. Toolchain defect found and fixed (D-037): starter `stylua.toml` had `collapse_simple_statement = "Always"`, which makes StyLua require one-line bodies that Selene's `multiple_statements` rejects (4 warnings in `ChildrenGuard.luau`); verified no formatting passes both; owner approved switching to `"Never"` + mechanical reformat of 7 starter files by StyLua itself. After: selene 0 warnings, 20/20 tests pass (real files, behavior identical) |
+| 2026-10-20 | M0-T2 | CHECK PASSED (first full pass: stylua, selene 0 warnings, `rojo sourcemap`, type check 0 errors, pasted-copies guard, `rojo build`, 20/20 tests) | pending: skeleton boot is exercised in the M0-T6 batched Studio playtest (Studio gate not satisfied yet this session) | queued for the single [OWNER] question in M0-T6 | Skeleton exactly per roadmap: `Types.luau` (4 enums as type unions + frozen runtime mirrors of their values, nothing else), `src/server/init.server.luau` prints `Server booted`, `src/client/init.client.luau` mounts a React root (`ReactRoblox.createRoot`) showing `ScaffoldLabel` ("Political Mayhem: scaffold OK") + the four class corner labels, named for the classes (key-named per selene's Roact rule; React-Lua sets `domElement.Name` from the children key). Sourcemap verified: `ReplicatedStorage.Shared.Game.Types`, `ServerScriptService.Server`, `StarterPlayerScripts.Client`. All 3 files `--!strict`. Tooling note: react `export type` names (e.g. `React.Element`) are invisible to luau-lsp through the Wally shims (values are fully typed) — shim requires + inference used; typed re-export module deferred to M7-T0 (Suggestions) |
 
 ## Open questions for the owner
 
@@ -60,6 +58,13 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 ## Suggestions
 
 (Ideas outside the current task's scope. Don't build them without asking.)
+
+- **M7-T0:** one project-local re-export module for React/react-roblox that
+  requires the `Packages/_Index/<pkg>@<version>/<name>` paths directly, so
+  `React.Element` and the other react `export type` names become usable outside
+  `Packages/` (luau-lsp cannot see type exports through Wally's shims —
+  verified by probe during M0-T2; shim requires give fully typed *values*).
+  Keep the version-pinned paths in that one file only.
 
 ## Blockers
 
