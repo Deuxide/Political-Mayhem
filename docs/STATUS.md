@@ -9,8 +9,8 @@ Last updated: 2026-10-21
 
 - **Project:** Political Mayhem
 - **Current milestone:** M3 (Politics)
-- **Current task:** M3-T1 in progress: `Steps/LobbyStep` (R2) + `Steps/InfluenceStep` (R10) — L1 gate green (178/178).
-- **Project phase:** M2 merged to stable (aee2075 "Merge M2", 2026-10-21); M3 (Politics) started.
+- **Current task:** M3 milestone (T1–T5) — **code complete**, `scripts/check` CHECK PASSED 221/221 on `3f57193`; waiting for the Studio to be reopened for the batched M3 L2 check.
+- **Project phase:** M2 merged to stable (aee2075 "Merge M2", 2026-10-21); M3 (Politics) implemented on `M3-dev2` (5 commits, T1…T5). The Studio L2 check for the milestone is pending: the Studio instance that was open for the M2 check is no longer connected, and `build/game.rbxl` was rebuilt from `3f57193` for the reopen.
 - **Current branch:** M3-dev2 — created 2026-10-21 off merged stable (aee2075). Old `M3-dev1` / `M2-dev1` / `M1-dev1` on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push -u origin M3-dev2` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** M2 (aee2075)
@@ -52,11 +52,12 @@ Last updated: 2026-10-21
 
 ## In progress
 
-M3 milestone — the batched **Studio L2 check** is next (the owner gate from this session still holds, and Rojo syncs the M3 files into the open place).
+M3 milestone — the batched **Studio L2 check** is pending a reopen of the Studio (see Next up). `build/game.rbxl` was rebuilt from `3f57193` (M3-T5) for that check.
 
 ## Next up
 
-- Studio L2 for M3: the tree holds the M3 modules, `script_read` is byte-identical with the repo, an in-engine smoke of the lobby/bill/influence rules, and a playtest with zero project-code errors and warnings (the playtest stopped afterwards).
+- Owner gate for the M3 Studio check (one request, then I run everything myself): reopen `build/game.rbxl`, `rojo serve` + Rojo plugin connected, and the MCP reachable again.
+- Then, batched in one Studio session, the M3 L2 check: (1) the tree holds the M3 modules (`Game/Ops/Bills`, `Steps/LobbyStep`, `Steps/BillsStep`, `Steps/InfluenceStep`) and matches the repo; (2) `script_read` on `Game.Ops.Bills`, `Game.Steps.LobbyStep`, `Game.Steps.BillsStep` is byte-identical with the files; (3) an Edit-mode `execute_luau` smoke of the M3 rules in the Roblox engine (a lobby buys Influence with Money, a bill is proposed and tallied, the Influence income arrives, the passed bill's level changes and the new tariff bites in the same Day); (4) a playtest with zero project-code errors and zero warnings in the server and client Output; (5) the playtest stopped again.
 - After the L2 check passes: report "Milestone M3 ready" and stop for the owner's merge (`M3-dev2` → `Linux-stable`).
 - Verify after each task from here: `scripts/check` CHECK PASSED; commit `M#-T#: ...`; push; update this file.
 
