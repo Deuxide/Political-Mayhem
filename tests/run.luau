@@ -28,6 +28,8 @@ local suites = {
 	require("./step_influence.test"),
 	require("./bills_ops.test"),
 	require("./step_bills.test"),
+	require("./scenario_s2.test"),
+	require("./scenario_s3.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }
