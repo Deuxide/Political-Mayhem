@@ -88,11 +88,15 @@ function M.run()
 		local match = newMatch()
 		match:resolveDay(match:rng())
 		local state = match:state()
-		-- no Influence income yet (R10 is a stub), no VP (R12), no victory
-		Lib.eq(state.classes.Working.influence, 3, "Working influence untouched")
-		Lib.eq(state.classes.Middle.influence, 2, "Middle influence untouched")
-		Lib.eq(state.classes.Capitalist.influence, 1, "Capitalist influence untouched")
-		Lib.eq(state.classes.State.influence, 2, "State influence untouched")
+		-- R10 is real now (M3-T1): the per-Day Influence income
+		Lib.eq(state.classes.Working.influence, 6, "Working income")
+		Lib.eq(state.classes.Middle.influence, 4, "Middle income")
+		Lib.eq(state.classes.Capitalist.influence, 2, "Capitalist income")
+		Lib.eq(state.classes.State.influence, 4, "State income")
+		-- the still-placeholder steps: no bills, no VP, no promises yet
+		Lib.eq(#state.bills, 0, "no bills")
+		Lib.eq(state.classes.Working.vp, 0, "no VP yet")
+		Lib.eq(#state.promises, 0, "no promises")
 	end)
 end
 

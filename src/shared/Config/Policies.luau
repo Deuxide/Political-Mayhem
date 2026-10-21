@@ -22,9 +22,18 @@ export type BillsConfig = {
 	quorum: number, -- passing needs yesWeight >= quorum
 }
 
+-- The penalty of an outlawed strike (GAME_DESIGN 6.5): the StrikeRights
+-- track is a mode, so its effect numbers live here instead of in
+-- levelValues.
+export type StrikeRightsConfig = {
+	workingInfluenceLoss: number, -- Working loses this Influence per strike Day
+	stateInfluenceGain: number, -- the State gains this Influence per strike Day
+}
+
 export type PoliciesConfig = {
 	unpaidWagePenalty: number, -- Stability cost per unpaid slot (6.4)
 	bills: BillsConfig,
+	strikeRights: StrikeRightsConfig,
 	tracks: {
 		[PolicyId]: PolicyTrack,
 	},
@@ -39,6 +48,12 @@ return table.freeze({
 		cutoffSeconds = 20,
 		quorum = 5,
 	} :: BillsConfig,
+
+	-- The outlawed strike's penalty (6.5)
+	strikeRights = {
+		workingInfluenceLoss = 2,
+		stateInfluenceGain = 1,
+	} :: StrikeRightsConfig,
 
 	tracks = {
 		-- Low/Medium/High wage per staffed slot (6.4)
