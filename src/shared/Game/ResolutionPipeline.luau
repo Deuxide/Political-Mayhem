@@ -13,6 +13,7 @@ local Types = require(script.Parent.Types)
 local Step = require(script.Parent.Steps.Step)
 local LockDraftsStep = require(script.Parent.Steps.LockDraftsStep)
 local LobbyStep = require(script.Parent.Steps.LobbyStep)
+local BillsStep = require(script.Parent.Steps.BillsStep)
 local StubStep = require(script.Parent.Steps.StubStep)
 local BuildStep = require(script.Parent.Steps.BuildStep)
 local ProductionStep = require(script.Parent.Steps.ProductionStep)
@@ -48,7 +49,7 @@ local function defaultSteps(): { Runner }
 	return {
 		runner(LockDraftsStep.new()), -- R1
 		runner(LobbyStep.new()), -- R2
-		runner(StubStep.new("Bills")), -- R3 (M3-T2/T3)
+		runner(BillsStep.new()), -- R3
 		runner(BuildStep.new()), -- R4
 		runner(ProductionStep.new()), -- R5
 		runner(MarketStep.new()), -- R6
