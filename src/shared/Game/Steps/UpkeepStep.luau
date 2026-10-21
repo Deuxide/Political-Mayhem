@@ -8,6 +8,10 @@
 -- clamped to 0..100. When Stability ends the Day at 0 the collapse counter
 -- advances, otherwise it resets to 0.
 --
+-- The rest of the outlawed strike's penalty (Working loses 2 Influence, the
+-- State gains 1, 6.5) is applied here too, so the whole penalty lands in
+-- one step and is never charged twice (D-059).
+--
 -- The needs come from Game/Needs.luau, the same numbers R8 distributed
 -- against, so the State's free stock counts as covered here (D-051).
 
@@ -16,6 +20,7 @@ local Step = require(script.Parent.Step)
 local StateOps = require(script.Parent.Parent.State.StateOps)
 local Needs = require(script.Parent.Parent.Needs)
 local StockMap = require(script.Parent.Parent.StockMap)
+local ConfigClasses = require(script.Parent.Parent.Parent.Config.Classes)
 local ConfigPolicies = require(script.Parent.Parent.Parent.Config.Policies)
 local ConfigResources = require(script.Parent.Parent.Parent.Config.Resources)
 
@@ -126,6 +131,38 @@ function UpkeepStep.run(_self: UpkeepStep, state: MatchState, ctx: StepContext)
 	if strikes > 0 then
 		delta -= strikes
 		table.insert(parts, `{strikes} outlawed strike(s)`)
+
+		-- 6.5: the rest of the outlawed strike's penalty — Working loses
+		-- Influence (not below 0), the State gains some (never past the
+		-- Influence cap). The whole penalty lives here, next to its
+		-- Stability term, so it is never charged twice (D-059).
+		local workingId: ClassId = "Working"
+		local lost = math.min(
+			ConfigPolicies.strikeRights.workingInfluenceLoss,
+			state.classes[workingId].influence
+		)
+		if lost > 0 then
+			StateOps.subtractResource(state, workingId, "Influence", lost)
+			log(state, {
+				day = state.day,
+				text = `{workingId} lost {lost} Influence to the outlawed strike`,
+				actor = workingId,
+			})
+		end
+
+		local stateId: ClassId = "State"
+		local gained = math.min(
+			ConfigPolicies.strikeRights.stateInfluenceGain,
+			ConfigClasses.influenceCap - state.classes[stateId].influence
+		)
+		if gained > 0 then
+			StateOps.addResource(state, stateId, "Influence", gained)
+			log(state, {
+				day = state.day,
+				text = `{stateId} gained {gained} Influence from the outlawed strike`,
+				actor = stateId,
+			})
+		end
 	end
 
 	local before = state.stability

@@ -332,6 +332,12 @@ function M.run()
 		Lib.eq(Policies.unpaidWagePenalty, 1, "unpaid wage penalty")
 	end)
 
+	Lib.test("Policies: the outlawed strike penalty (6.5)", function()
+		local strikeRights = Policies.strikeRights :: any
+		Lib.eq(strikeRights.workingInfluenceLoss, 2, "Working loses 2 Influence")
+		Lib.eq(strikeRights.stateInfluenceGain, 1, "State gains 1 Influence")
+	end)
+
 	Lib.test("Market: prices for every stock resource, exact values, cap (6.6)", function()
 		local EXPECTED = {
 			food = { sell = 2, buy = 4 },

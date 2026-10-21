@@ -26,6 +26,7 @@ function M.run()
 	local assertSerializable = Loader.require(shared.Game.State.assertSerializable)
 	local RuleSet = Loader.require(shared.Game.RuleSet)
 	local Rng = Loader.require(shared.Game.Rng)
+	local Match = Loader.require(shared.Game.Match)
 	local UpkeepStep = Loader.require(shared.Game.Steps.UpkeepStep)
 
 	local function fresh(): any
@@ -164,6 +165,81 @@ function M.run()
 		upkeep(state)
 		Lib.eq(state.stability, 62, "60 + 2")
 		Lib.truthy(not hasLog(state, "outlawed"), "no strike penalty")
+	end)
+
+	Lib.test("an outlawed strike costs Working Influence and pays the State (6.5)", function()
+		local state = allNeedsMet(fresh())
+		state.policies.StrikeRights = 0 -- Outlawed
+		state.drafts.Working.strike = { target = "Capitalist" }
+		upkeep(state)
+		-- Working 3 - 2, the State 2 + 1
+		Lib.eq(state.classes.Working.influence, 1, "Working lost 2 Influence")
+		Lib.eq(state.classes.State.influence, 3, "State gained 1 Influence")
+		-- +2 bonus - 1 outlawed strike
+		Lib.eq(state.stability, 61, "60 + 2 - 1")
+		Lib.truthy(hasLog(state, "Working lost 2 Influence to the outlawed strike"), "loss log")
+		Lib.truthy(hasLog(state, "State gained 1 Influence from the outlawed strike"), "gain log")
+	end)
+
+	Lib.test("the Working's Influence never falls below 0 (6.5)", function()
+		local state = allNeedsMet(fresh())
+		state.policies.StrikeRights = 0
+		state.classes.Working.influence = 1 -- fixture
+		state.drafts.Working.strike = { target = "Capitalist" }
+		upkeep(state)
+		Lib.eq(state.classes.Working.influence, 0, "only what it had")
+		Lib.truthy(hasLog(state, "Working lost 1 Influence to the outlawed strike"), "loss log")
+	end)
+
+	Lib.test("the State never gains past the Influence cap (7.1)", function()
+		local state = allNeedsMet(fresh())
+		state.policies.StrikeRights = 0
+		state.classes.State.influence = 20 -- fixture: at the cap
+		state.drafts.Working.strike = { target = "Capitalist" }
+		upkeep(state)
+		Lib.eq(state.classes.State.influence, 20, "still at the cap")
+		Lib.truthy(not hasLog(state, "State gained"), "no gain, so no entry")
+	end)
+
+	Lib.test("no strike means no penalty (6.5)", function()
+		local state = allNeedsMet(fresh())
+		state.policies.StrikeRights = 0
+		upkeep(state)
+		Lib.eq(state.classes.Working.influence, 3, "Working untouched")
+		Lib.eq(state.classes.State.influence, 2, "State untouched")
+		Lib.eq(state.stability, 62, "60 + 2")
+	end)
+
+	Lib.test("the penalty lands before the Day's Influence income (6.5, 7.1)", function()
+		-- Working at 19: the penalty first gives 17 + 3 income = 20; the
+		-- other order would cap the income at 20 and then take 2 -> 18
+		local state = allNeedsMet(fresh())
+		state.policies.StrikeRights = 0
+		state.classes.Working.influence = 19 -- fixture
+		state.drafts.Working.strike = { target = "Capitalist" }
+		upkeep(state)
+		Lib.eq(state.classes.Working.influence, 17, "the penalty first")
+		local after = allNeedsMet(fresh())
+		after.policies.StrikeRights = 0
+		after.classes.Working.influence = 19
+		after.drafts.Working.strike = { target = "Capitalist" }
+		local InfluenceStep = Loader.require(shared.Game.Steps.InfluenceStep)
+		InfluenceStep.new():run(after, makeCtx())
+		Lib.eq(after.classes.Working.influence, 20, "the income caps at 20")
+	end)
+
+	Lib.test("the penalty applies on every strike Day (6.5)", function()
+		local match =
+			Match.new(StateFactory.create("Normal", SEATS, 41), RuleSet.new("Normal"), Rng.new(41))
+		local state = match:state()
+		state.policies.StrikeRights = 0
+		state.drafts.Working.strike = { target = "Capitalist" }
+		match:resolveDay(match:rng())
+		-- 3 - 2 + 3 income = 4
+		Lib.eq(match:state().classes.Working.influence, 4, "after Day 1")
+		match:resolveDay(match:rng())
+		-- 4 - 2 + 3 income = 5
+		Lib.eq(match:state().classes.Working.influence, 5, "after Day 2")
 	end)
 
 	Lib.test("upkeep states stay serializable and deterministic (no RNG used)", function()
