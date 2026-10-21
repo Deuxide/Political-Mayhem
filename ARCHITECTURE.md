@@ -49,6 +49,11 @@
 │  │  │  ├─ RuleSet.luau     # class: difficulty/config answers
 │  │  │  ├─ Match.luau       # facade class: state + RuleSet + Rng;
 │  │  │  │                   #   resolveDay(), live actions, snapshot(), hash()
+│  │  │  ├─ Signal.luau      # class: minimal events (runtime-only, no
+│  │  │  │                   #   Instances); store/services wiring (M4+)
+│  │  │  ├─ Abstract.luau    # helper raising `not implemented: Class:method`
+│  │  │  ├─ Examples/        # behavior-template reference (M1-T0): example
+│  │  │  │                   #   base + subclass kept compiling by the gate
 │  │  │  ├─ State/           # StateFactory (initial state), StateOps (safe
 │  │  │  │                   #   resource math, CLASS_ORDER, deepCopy),
 │  │  │  │                   #   StateHash, assertSerializable
