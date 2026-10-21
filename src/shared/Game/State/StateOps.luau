@@ -16,6 +16,7 @@ type MatchState = Types.MatchState
 type ClassId = Types.ClassId
 type ClassState = Types.ClassState
 type ResourceId = Types.ResourceId
+type Line = Types.Line
 
 export type ResourceTransfer = {
 	classId: ClassId,
@@ -135,6 +136,17 @@ end
 -- and roll back its working copy atomically.
 function StateOps.deepCopy(state: MatchState): MatchState
 	return deepCopy(state) :: MatchState
+end
+
+-- Registers one newly built line (R4 Build ids are unique across the match,
+-- so replacing an existing id would be corruption, not an overwrite). The
+-- line itself is plain data already shaped by the caller; this is the single
+-- mutation point for growing state.lines during resolution.
+function StateOps.addLine(state: MatchState, line: Line)
+	if state.lines[line.id] ~= nil then
+		error(`StateOps: line id '{line.id}' already exists`, 0)
+	end
+	state.lines[line.id] = line
 end
 
 return table.freeze(StateOps)

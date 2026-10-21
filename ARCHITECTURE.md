@@ -52,6 +52,10 @@
 │  │  │  ├─ Signal.luau      # class: minimal events (runtime-only, no
 │  │  │  │                   #   Instances); store/services wiring (M4+)
 │  │  │  ├─ Abstract.luau    # helper raising `not implemented: Class:method`
+│  │  │  ├─ Needs.luau       # per-class daily needs (§5.3) scaled by the
+│  │  │  │                   #   difficulty; shared by R8 and R9
+│  │  │  ├─ StockMap.luau    # derived stock-key -> resource-id map (D-008
+│  │  │  │                   #   keeps the forward mapping in Config)
 │  │  │  ├─ Examples/        # behavior-template reference (M1-T0): example
 │  │  │  │                   #   base + subclass kept compiling by the gate
 │  │  │  ├─ State/           # StateFactory (initial state), StateOps (safe
