@@ -9,12 +9,12 @@ Last updated: 2026-10-21
 
 - **Project:** Political Mayhem
 - **Current milestone:** M4 (Diplomacy)
-- **Current task:** M4-T1 in progress: `Ops/Transfers` + `Ops/Trade` — L1 gate green (238/238).
-- **Project phase:** M3 merged to stable (d02e0dd "Merge M3", 2026-10-21); M4 (Diplomacy) started.
+- **Current task:** M4 milestone (T1–T5) — **code complete**, `scripts/check` CHECK PASSED 274/274 on `e0dfa01`; waiting for the Studio to be reopened for the batched M4 L2 check.
+- **Project phase:** M3 merged to stable (d02e0dd "Merge M3", 2026-10-21); M4 (Diplomacy) implemented on `M4-dev2` (5 commits, T1…T5). The Studio L2 check for the milestone is pending: no Studio instance is connected any more, and `build/game.rbxl` was rebuilt from `e0dfa01` for the reopen.
 - **Current branch:** M4-dev2 — created 2026-10-21 off merged stable (d02e0dd). The old `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push -u origin M4-dev2` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** M3 (d02e0dd)
-- **Last `scripts/check` result:** CHECK PASSED (238/238 tests)
+- **Last `scripts/check` result:** CHECK PASSED (274/274 tests)
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
 
@@ -59,11 +59,12 @@ Last updated: 2026-10-21
 
 ## In progress
 
-M4 milestone — the batched **Studio L2 check** is next.
+M4 milestone — the batched **Studio L2 check** is pending a reopen of the Studio (see Next up). `build/game.rbxl` was rebuilt from `e0dfa01` (M4-T5) for that check.
 
 ## Next up
 
-- Studio L2 for M4: the tree holds the M4 modules, `script_read` is byte-identical with the repo, an in-engine smoke of the diplomacy rules (a transfer, a trade, a promise that breaks), and a playtest with zero project-code errors and warnings (the playtest stopped afterwards).
+- Owner gate for the M4 Studio check (one request, then I run everything myself): reopen `build/game.rbxl`, `rojo serve` + Rojo plugin connected, and the MCP reachable again.
+- Then, batched in one Studio session, the M4 L2 check: (1) the tree holds the M4 modules (`Game/Ops/Transfers`, `Game/Ops/Trade`, `Game/Ops/Promises`, `Game/Ops/Alliances`, `Game/Ops/Reputation`, `Game/Behaviors/Promises/`, `Game/Steps/PromisesStep`); (2) `script_read` on those modules is byte-identical with the files; (3) an Edit-mode `execute_luau` smoke of the diplomacy rules in the Roblox engine (a transfer, a trade with a promise, the promise broken at the Closing Bell with its reputation); (4) a playtest with zero project-code errors and zero warnings; (5) the playtest stopped again.
 - After the L2 check passes: report "Milestone M4 ready" and stop for the owner's merge (`M4-dev2` → `Linux-stable`).
 - Verify after each task from here: `scripts/check` CHECK PASSED; commit `M#-T#: ...`; push; update this file.
 
