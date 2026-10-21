@@ -21,6 +21,9 @@ local suites = {
 	require("./step_taxes.test"),
 	require("./step_public_services.test"),
 	require("./step_upkeep.test"),
+	require("./step_lock_drafts.test"),
+	require("./scenario_s1.test"),
+	require("./pipeline.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }

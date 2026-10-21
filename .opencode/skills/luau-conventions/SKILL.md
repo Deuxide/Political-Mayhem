@@ -118,6 +118,17 @@ Quirks verified by probe during M2-T2 (same version):
   local is explicitly annotated. Annotate the read result through the
   annotation+`any` idiom as well:
   `local resourceId: ResourceId = (STOCK_TO_RESOURCE :: any)[stockId]`.
+- **`for-in` keys degrade to `string`** — over a local array and over a
+  local map alike. When the key is used as a map index (or to delete an
+  entry), loop by index over a fixed mirror and re-narrow with the
+  annotation+`any` idiom, or collect the keys and re-narrow them before
+  using them.
+- **Sibling class types are not assignable to their base class.** Each
+  `typeof(setmetatable(...))` class is its own type, so a list of mixed
+  step classes cannot be typed as the base class ("Expected this to be
+  'Step', but got 'BuildStep'"). Hold plain runner functions
+  (`(state, ctx) -> ()`) in such a list instead — one uniform type, and
+  the call site stays checked.
 
 ## Review checklist
 
