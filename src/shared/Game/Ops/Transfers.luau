@@ -7,6 +7,7 @@
 -- refused transfer comes back with a reason the caller can show.
 local Types = require(script.Parent.Parent.Types)
 local StateOps = require(script.Parent.Parent.State.StateOps)
+local Promises = require(script.Parent.Parent.Ops.Promises)
 
 type ClassId = Types.ClassId
 type MatchState = Types.MatchState
@@ -83,6 +84,15 @@ function Transfers.execute(
 	end
 	for _, entry in bagEntries(bag) do
 		StateOps.addResource(state, to, entry.resourceId, entry.amount)
+		-- the transfer counts towards the open Deliver promises between
+		-- these two classes (8.3)
+		Promises.deliver(state, {
+			kind = "Transfer",
+			from = from,
+			to = to,
+			resource = entry.resourceId,
+			amount = entry.amount,
+		})
 	end
 
 	return true, ""

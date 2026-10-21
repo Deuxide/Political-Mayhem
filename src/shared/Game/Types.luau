@@ -149,6 +149,15 @@ export type PromiseSpec =
 	| { kind: "NoBreakAlliance", untilDay: number }
 
 -- A promise record. Not enforced by the game; audited for Reputation (8.3).
+-- `progress` holds what the promise has collected so far, so the audit can
+-- look at the events that happened instead of the drafts that are gone.
+export type PromiseProgress = {
+	delivered: number?, -- Deliver: the amount transferred so far
+	yesVoted: boolean?, -- VoteYes: a matching yes vote was cast
+	struck: boolean?, -- NoStrike: the promisor struck the promisee
+	broken: boolean?, -- NoBreakAlliance: the alliance was broken
+}
+
 export type Promise = {
 	id: PromiseId,
 	kind: PromiseKind,
@@ -157,6 +166,7 @@ export type Promise = {
 	to: ClassId, -- promisee
 	createdDay: number,
 	status: "open" | "kept" | "broken",
+	progress: PromiseProgress,
 }
 
 -- A live trade offer during the Window (GAME_DESIGN 8.2); expires with the
