@@ -19,6 +19,7 @@
 local Types = require(script.Parent.Parent.Types)
 local Step = require(script.Parent.Step)
 local StateOps = require(script.Parent.Parent.State.StateOps)
+local StockMap = require(script.Parent.Parent.StockMap)
 local ConfigLines = require(script.Parent.Parent.Parent.Config.Lines)
 local ConfigPolicies = require(script.Parent.Parent.Parent.Config.Policies)
 local ConfigResources = require(script.Parent.Parent.Parent.Config.Resources)
@@ -34,17 +35,10 @@ type ResourceId = Types.ResourceId
 type StockId = Types.StockId
 type StepContext = Step.StepContext
 
--- Reverse of Config/Resources stockKey (D-008 keys live there, not here).
--- Reads go through `any` + annotation: luau-lsp 1.70.1 degrades map reads
--- against cross-module mirrors (see luau-conventions).
-local STOCK_TO_RESOURCE: { [StockId]: ResourceId } = {}
-for i = 1, #Types.RESOURCE_IDS do
-	local resourceId: ResourceId = Types.RESOURCE_IDS[i] :: any
-	local stockKey = (ConfigResources :: any)[resourceId].stockKey
-	if stockKey ~= nil then
-		STOCK_TO_RESOURCE[stockKey] = resourceId
-	end
-end
+-- The stock-key to resource-id lookup lives in Game/StockMap (the forward
+-- mapping stays in Config/Resources, D-008). Reads go through `any` +
+-- annotation: luau-lsp 1.70.1 degrades map reads against cross-module
+-- mirrors (see luau-conventions).
 
 -- "Lines in ascending id order" (GAME_DESIGN 10) must stay true for
 -- double-digit ids: "Farm-10" was built after "Farm-4" but sorts before it
@@ -211,7 +205,7 @@ function ProductionStep.run(_self: ProductionStep, state: MatchState, ctx: StepC
 					local stockId: StockId = Types.STOCK_IDS[si] :: any
 					local need = (inputs :: { [any]: any })[stockId]
 					if need ~= nil and need > 0 then
-						local resourceId: ResourceId = (STOCK_TO_RESOURCE :: any)[stockId]
+						local resourceId: ResourceId = (StockMap :: any)[stockId]
 						local have = StateOps.resourceValue(state, classId, resourceId)
 						if have >= need then
 							StateOps.subtractResource(state, classId, resourceId, need)
@@ -229,7 +223,7 @@ function ProductionStep.run(_self: ProductionStep, state: MatchState, ctx: StepC
 				local stockId: StockId = Types.STOCK_IDS[si] :: any
 				local perSlot = outputs[stockId]
 				if perSlot ~= nil and perSlot > 0 then
-					local resourceId: ResourceId = (STOCK_TO_RESOURCE :: any)[stockId]
+					local resourceId: ResourceId = (StockMap :: any)[stockId]
 					local perLine = perSlot * affordable
 					if halved then
 						perLine = perLine // 2
