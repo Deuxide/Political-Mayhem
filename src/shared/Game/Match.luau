@@ -8,6 +8,8 @@
 local Types = require(script.Parent.Types)
 local RuleSet = require(script.Parent.RuleSet)
 local Rng = require(script.Parent.Rng)
+local StateOps = require(script.Parent.State.StateOps)
+local StateHash = require(script.Parent.State.StateHash)
 
 type MatchState = Types.MatchState
 type RuleSetType = RuleSet.RuleSet
@@ -51,6 +53,18 @@ end
 
 function Match.rng(self: Match): RngType
 	return self._rng
+end
+
+-- Full-content copy, per ARCHITECTURE ("Snapshot = StateOps.deepCopy(state)"):
+-- callers may read any part of it without touching the live state.
+function Match.snapshot(self: Match): MatchState
+	return StateOps.deepCopy(self._state)
+end
+
+-- Deterministic content hash of the live state (duplicates-free — the same
+-- content hashes identically), per ARCHITECTURE ("hash = StateHash.compute").
+function Match.hash(self: Match): string
+	return StateHash.compute(self._state)
 end
 
 return Match
