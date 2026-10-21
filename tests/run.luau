@@ -26,6 +26,7 @@ local suites = {
 	require("./pipeline.test"),
 	require("./step_lobby.test"),
 	require("./step_influence.test"),
+	require("./bills_ops.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }
