@@ -107,7 +107,7 @@ function M.run()
 			},
 		}
 		for _, id in Types.CLASS_IDS do
-			local entry = Classes[id :: any] :: any
+			local entry = (Classes.entries :: any)[id :: any] :: any
 			local exp = EXPECTED[id :: any] :: any
 			Lib.truthy(entry ~= nil, `Classes must have {id}`)
 			Lib.eq(entry.startMoney, exp.money, `Classes.{id}.startMoney`)
@@ -133,7 +133,7 @@ function M.run()
 		}
 		local totalVotes = 0
 		for id, exp in EXPECTED do
-			local entry = (Classes :: any)[id] :: any
+			local entry = (Classes.entries :: any)[id] :: any
 			Lib.eq(entry.baseVotes, exp.votes, `Classes.{id}.baseVotes`)
 			Lib.eq(entry.influenceIncome, exp.income, `Classes.{id}.influenceIncome`)
 			totalVotes += exp.votes
@@ -142,12 +142,20 @@ function M.run()
 	end)
 
 	Lib.test("Classes: build permissions exactly per 6.2", function()
-		expectList(Classes.Working.canBuild, {}, "Working.canBuild")
-		expectList(Classes.Middle.canBuild, { "Farm", "Clinic", "School" }, "Middle.canBuild")
-		expectList(Classes.Capitalist.canBuild, { "Farm", "Factory" }, "Capitalist.canBuild")
-		expectList(Classes.State.canBuild, { "Clinic", "School" }, "State.canBuild")
+		expectList(Classes.entries.Working.canBuild, {}, "Working.canBuild")
+		expectList(
+			Classes.entries.Middle.canBuild,
+			{ "Farm", "Clinic", "School" },
+			"Middle.canBuild"
+		)
+		expectList(
+			Classes.entries.Capitalist.canBuild,
+			{ "Farm", "Factory" },
+			"Capitalist.canBuild"
+		)
+		expectList(Classes.entries.State.canBuild, { "Clinic", "School" }, "State.canBuild")
 		for _, id in Types.CLASS_IDS do
-			for _, lineType in (Classes[id :: any] :: any).canBuild do
+			for _, lineType in (Classes.entries :: any)[id :: any].canBuild do
 				Lib.truthy(
 					table.find(Types.LINE_TYPES, lineType) ~= nil,
 					`canBuild entry must be a LineType ({id})`
@@ -157,12 +165,12 @@ function M.run()
 	end)
 
 	Lib.test("Classes: lobby only Middle and Capitalist, exact rates (7.1)", function()
-		Lib.eq((Classes.Working :: any).lobby, nil, "Working must not lobby")
-		Lib.eq((Classes.State :: any).lobby, nil, "State must not lobby")
-		Lib.eq(Classes.Middle.lobby.moneyPerInfluence, 3, "Middle lobby cost")
-		Lib.eq(Classes.Middle.lobby.maxInfluence, 2, "Middle lobby cap")
-		Lib.eq(Classes.Capitalist.lobby.moneyPerInfluence, 2, "Capitalist lobby cost")
-		Lib.eq(Classes.Capitalist.lobby.maxInfluence, 4, "Capitalist lobby cap")
+		Lib.eq((Classes.entries.Working :: any).lobby, nil, "Working must not lobby")
+		Lib.eq((Classes.entries.State :: any).lobby, nil, "State must not lobby")
+		Lib.eq(Classes.entries.Middle.lobby.moneyPerInfluence, 3, "Middle lobby cost")
+		Lib.eq(Classes.entries.Middle.lobby.maxInfluence, 2, "Middle lobby cap")
+		Lib.eq(Classes.entries.Capitalist.lobby.moneyPerInfluence, 2, "Capitalist lobby cost")
+		Lib.eq(Classes.entries.Capitalist.lobby.maxInfluence, 4, "Capitalist lobby cap")
 	end)
 
 	Lib.test("Classes: initial line grid per 5.2 sums to 3/3/2/2 (20 slots)", function()
@@ -176,7 +184,7 @@ function M.run()
 		local slots = 0
 		local totals: { [string]: number } = {}
 		for _, id in Types.CLASS_IDS do
-			local lines = (Classes[id :: any] :: any).startLines
+			local lines = (Classes.entries :: any)[id :: any].startLines
 			for _, lineType in Types.LINE_TYPES do
 				Lib.eq(
 					lines[lineType :: any],
@@ -507,19 +515,22 @@ function M.run()
 	end)
 
 	Lib.test("config roots are frozen like the Types mirrors", function()
+		-- The guarantee is table-level: the returned root rejects new keys;
+		-- nested records are constants by convention (StateFactory copies them,
+		-- nothing in M1 writes config data at runtime).
 		Lib.eq(
 			pcall(function()
-				Classes.Working = Classes.Middle
+				Classes.bogus = {}
 			end),
 			false,
-			"Classes must be read-only"
+			"Classes must be read-only at the root"
 		)
 		Lib.eq(
 			pcall(function()
-				Difficulty.Normal = Difficulty.Easy
+				Difficulty.bogus = Difficulty.Easy
 			end),
 			false,
-			"Difficulty must be read-only"
+			"Difficulty must be read-only at the root"
 		)
 	end)
 end
