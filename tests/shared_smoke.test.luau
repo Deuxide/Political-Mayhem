@@ -29,8 +29,11 @@ function M.run()
 	local EXPECTED = {
 		CLASS_IDS = "Working,Middle,Capitalist,State",
 		RESOURCE_IDS = "Money,Influence,Food,Goods,Health,Education",
+		STOCK_IDS = "food,goods,health,education",
 		PHASES = "Window,Resolve,Reveal",
 		DIFFICULTIES = "Easy,Normal,Hard,Extreme",
+		POLICY_IDS = "Wage,TaxWorking,TaxMiddle,TaxCapitalist,PublicServices,Tariff,StrikeRights",
+		LINE_TYPES = "Farm,Factory,Clinic,School",
 	}
 
 	for field, expected in EXPECTED do
