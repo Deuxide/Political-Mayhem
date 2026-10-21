@@ -33,6 +33,7 @@ local suites = {
 	require("./transfers.test"),
 	require("./trade_ops.test"),
 	require("./promises_ops.test"),
+	require("./step_promises.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }
