@@ -30,6 +30,8 @@ local suites = {
 	require("./step_bills.test"),
 	require("./scenario_s2.test"),
 	require("./scenario_s3.test"),
+	require("./transfers.test"),
+	require("./trade_ops.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }
