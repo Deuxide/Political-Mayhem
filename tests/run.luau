@@ -15,6 +15,7 @@ local suites = {
 	require("./rng.test"),
 	require("./state_factory.test"),
 	require("./state_ops.test"),
+	require("./step_build.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }
