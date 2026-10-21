@@ -9,6 +9,12 @@ local UiRules = require("./ui_rules")
 local suites = {
 	require("./loader.test"),
 	require("./shared_smoke.test"),
+	require("./code_model.test"),
+	require("./serialization.test"),
+	require("./config.test"),
+	require("./rng.test"),
+	require("./state_factory.test"),
+	require("./state_ops.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }

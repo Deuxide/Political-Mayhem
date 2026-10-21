@@ -49,6 +49,11 @@
 │  │  │  ├─ RuleSet.luau     # class: difficulty/config answers
 │  │  │  ├─ Match.luau       # facade class: state + RuleSet + Rng;
 │  │  │  │                   #   resolveDay(), live actions, snapshot(), hash()
+│  │  │  ├─ Signal.luau      # class: minimal events (runtime-only, no
+│  │  │  │                   #   Instances); store/services wiring (M4+)
+│  │  │  ├─ Abstract.luau    # helper raising `not implemented: Class:method`
+│  │  │  ├─ Examples/        # behavior-template reference (M1-T0): example
+│  │  │  │                   #   base + subclass kept compiling by the gate
 │  │  │  ├─ State/           # StateFactory (initial state), StateOps (safe
 │  │  │  │                   #   resource math, CLASS_ORDER, deepCopy),
 │  │  │  │                   #   StateHash, assertSerializable
@@ -69,14 +74,15 @@
 │  │  │  ├─ Steps/           # Step + the 13 steps R1..R14; run(state, ctx)
 │  │  │  └─ ResolutionPipeline.luau
 │  │  ├─ Config/             # data only
-│  │  │  ├─ Classes.luau     # starting values, needs
-│  │  │  ├─ Resources.luau
-│  │  │  ├─ Lines.luau
-│  │  │  ├─ Policies.luau
-│  │  │  ├─ Market.luau
+│  │  │  ├─ Classes.luau     # starting values, votes, influence, build perms
+│  │  │  ├─ Resources.luau   # resource metadata (stock-key mapping)
+│  │  │  ├─ Needs.luau       # per-class daily needs as rates
+│  │  │  ├─ Lines.luau       # line-type production data
+│  │  │  ├─ Policies.luau    # policy tracks + bill numbers
+│  │  │  ├─ Market.luau      # export/import prices, volume cap
 │  │  │  ├─ Objectives.luau  # VP criteria per class
-│  │  │  ├─ Events.luau
-│  │  │  └─ Difficulty.luau
+│  │  │  ├─ Events.luau      # V2 event registry (schedule + specs)
+│  │  │  └─ Difficulty.luau  # 4x12 matrix: rounds, timers, flags, multipliers
 │  │  └─ Net/
 │  │     ├─ Remotes.luau     # remote names + payload types
 │  │     └─ Validate.luau
