@@ -19,6 +19,7 @@ local suites = {
 	require("./step_production.test"),
 	require("./step_market.test"),
 	require("./step_taxes.test"),
+	require("./step_public_services.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }
