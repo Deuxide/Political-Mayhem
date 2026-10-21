@@ -49,6 +49,11 @@ export type VoteSide = "yes" | "no"
 -- breakpoints are Config data). Hidden info = omitted keys, never sentinels.
 export type PowerTier = "Low" | "Mid" | "High"
 
+-- Info-mode selector (GAME_DESIGN 13); Config/Difficulty carries one per
+-- difficulty and Wealth picks the strategy class. Never name-compare
+-- difficulties: read this selector instead.
+export type InfoMode = "open" | "partial" | "fog"
+
 -- How a match ended (GAME_DESIGN 11.2): solo, shared alliance, final-Day
 -- comparison, or collapse (no winner).
 export type VictoryKind = "solo" | "shared" | "final" | "collapse"

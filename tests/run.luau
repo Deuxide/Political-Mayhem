@@ -11,6 +11,7 @@ local suites = {
 	require("./shared_smoke.test"),
 	require("./code_model.test"),
 	require("./serialization.test"),
+	require("./config.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }

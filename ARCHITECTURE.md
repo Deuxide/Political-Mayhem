@@ -74,14 +74,15 @@
 │  │  │  ├─ Steps/           # Step + the 13 steps R1..R14; run(state, ctx)
 │  │  │  └─ ResolutionPipeline.luau
 │  │  ├─ Config/             # data only
-│  │  │  ├─ Classes.luau     # starting values, needs
-│  │  │  ├─ Resources.luau
-│  │  │  ├─ Lines.luau
-│  │  │  ├─ Policies.luau
-│  │  │  ├─ Market.luau
+│  │  │  ├─ Classes.luau     # starting values, votes, influence, build perms
+│  │  │  ├─ Resources.luau   # resource metadata (stock-key mapping)
+│  │  │  ├─ Needs.luau       # per-class daily needs as rates
+│  │  │  ├─ Lines.luau       # line-type production data
+│  │  │  ├─ Policies.luau    # policy tracks + bill numbers
+│  │  │  ├─ Market.luau      # export/import prices, volume cap
 │  │  │  ├─ Objectives.luau  # VP criteria per class
-│  │  │  ├─ Events.luau
-│  │  │  └─ Difficulty.luau
+│  │  │  ├─ Events.luau      # V2 event registry (schedule + specs)
+│  │  │  └─ Difficulty.luau  # 4x12 matrix: rounds, timers, flags, multipliers
 │  │  └─ Net/
 │  │     ├─ Remotes.luau     # remote names + payload types
 │  │     └─ Validate.luau
