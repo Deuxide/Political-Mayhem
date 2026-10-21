@@ -9,8 +9,8 @@ Last updated: 2026-10-21
 
 - **Project:** Political Mayhem
 - **Current milestone:** M2 (Economy resolution)
-- **Current task:** M2-T7 in progress: `ResolutionPipeline` + `Match:resolveDay` — L1 gate green (166/166); Studio L2 batched at the end of M2.
-- **Project phase:** M1 merged to stable (ffa6f11 "Merge M1", 2026-10-21); M2 shared-logic work started. Studio L2 batched at the M2 end.
+- **Current task:** M2 milestone (T1–T7) — **code complete**, `scripts/check` CHECK PASSED 166/166 on `640276c`; waiting for the owner's Studio gate, then the batched Studio L2 check.
+- **Project phase:** M1 merged to stable (ffa6f11 "Merge M1", 2026-10-21); M2 (economy resolution) implemented on `M2-dev2` (7 commits, T1…T7). The Studio L2 check for the whole milestone is pending the owner's gate.
 - **Current branch:** M2-dev2 — created 2026-10-21 off merged stable (ffa6f11). Old `M2-dev1` / `M1-dev1` on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push -u origin M2-dev2` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** M1 (ffa6f11)
@@ -45,11 +45,13 @@ Last updated: 2026-10-21
 
 ## In progress
 
-M2-T7 implemented and green — committing.
+M2 milestone — the batched **Studio L2 check** is pending the owner's Studio gate (see Next up). `build/game.rbxl` was rebuilt from `640276c` (M2-T7) for that check.
 
 ## Next up
 
-- After the M2-T7 commit: the batched Studio L2 check for the whole milestone (owner gate: Studio open on the latest `build/game.rbxl`, Rojo + MCP connected), then "Milestone M2 ready" and stop for the owner's merge.
+- Owner gate for the M2 Studio check (one request, then I run everything myself): open the rebuilt `build/game.rbxl`, `rojo serve` + Rojo plugin connected.
+- Then, batched in one Studio session, the M2 L2 check: (1) the tree matches the repo (`ReplicatedStorage.Shared.Game` holds `Steps/` with the 9 step modules, `ResolutionPipeline`, `Needs`, `StockMap`); (2) `script_read` on `Game.ResolutionPipeline` and `Game.Match` is byte-identical with the files; (3) an Edit-mode `execute_luau` smoke that resolves a real Day through the real modules in the Roblox engine (stability 53 → day 2, 3 log entries, money unmoved) and checks the §10 step order; (4) a playtest with zero project-code errors and zero warnings in the server and client Output; (5) the playtest stopped again.
+- After the L2 check passes: report "Milestone M2 ready" and stop for the owner's merge (`M2-dev2` → `Linux-stable`).
 - Verify after each task from here: `scripts/check` CHECK PASSED; commit `M#-T#: ...`; push; update this file.
 
 ## Verification log
