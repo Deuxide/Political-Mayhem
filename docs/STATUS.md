@@ -111,6 +111,7 @@ Newest first. One line per session.
 | Date | Summary |
 |---|---|
 | 2026-10-21 | M1-T5 done: StateOps (safe resource math, CLASS_ORDER, deepCopy), StateHash (canonical serialize + hex fold), Match snapshot/hash; M1 code-complete, Studio L2 pending the owner gate. CHECK PASSED 89/89.
+| 2026-10-21 | M1 milestone: final `scripts/check` CHECK PASSED (89/89) run on the pushed `d27bb34` tree; `rojo build -o build/game.rbxl` rebuilt. Batched Studio L2 requested from the owner below — agent runs it as soon as the gate is confirmed. |
 | 2026-10-21 | M1-T4 done: StateFactory/RuleSet/Match skeleton with exact per-difficulty initial states, deterministic ids, multiplier semantics (D-038..D-043). The analyzer hunt (casts don't narrow → annotation+any idiom) is recorded in luau-conventions. CHECK PASSED 79/79. Next: M1-T5 StateOps/StateHash.
 | 2026-10-21 | M1-T3 done: seedable xorshift32 Rng (next/int/shuffle/clone) with 10 tests; math.random prohibition enforced by a comment-stripped source scan (Lune math is readonly — monkeypatch impossible). CHECK PASSED 70/70. Next: M1-T4 StateFactory/RuleSet/Match.
 | 2026-10-21 | M1-T2 done: all 9 Config data tables from GAME_DESIGN (incl. Needs split from Classes per ROADMAP/GAME_DESIGN), InfoMode added to Types, 16-test validator suite pinned to exact numbers. Two test bugs fixed pre-commit (loop-scoped variable + missing expectList labels). CHECK PASSED 60/60. Next: M1-T3 Rng.
