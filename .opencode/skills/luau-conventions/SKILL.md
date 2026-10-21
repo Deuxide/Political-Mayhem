@@ -105,6 +105,20 @@ them by weakening types.
   sourcemap`, so a `_probe.luau` gets fake require errors; use a normal name
   (e.g. `ProbeTemp.luau`) and delete it before committing.
 
+Quirks verified by probe during M2-T2 (same version):
+
+- **Literal keys on union-keyed maps are rejected.** Both dot syntax
+  (`policies.Wage`) and string-literal index (`tracks["Wage"]`) on a
+  `{ [SomeUnion]: T }` map fail ("Key 'Wage' not found" / "Expected the
+  union, got string"). Read through an annotated literal local + dynamic
+  key instead: `local wageId: PolicyId = "Wage"` then `tracks[wageId]`.
+- **Assigned map reads degrade through a write loop.** A module-local
+  `{ [StockId]: ResourceId }` map built at load from an `any`-typed config
+  read yields degraded `'string | string…'` values on read, even though the
+  local is explicitly annotated. Annotate the read result through the
+  annotation+`any` idiom as well:
+  `local resourceId: ResourceId = (STOCK_TO_RESOURCE :: any)[stockId]`.
+
 ## Review checklist
 
 - [ ] `--!strict`, typed signatures, no `any` unless justified in a comment

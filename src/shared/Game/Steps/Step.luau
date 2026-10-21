@@ -16,11 +16,25 @@ Step.__index = Step
 
 -- Everything handed to every step of one resolution. rng = the injected
 -- randomness (D-018); ruleSet = difficulty flags as typed answers (never
--- difficulty-name comparisons). Both exist from M1; passing the pair keeps
--- the ctx contract stable while the pipeline grows the real steps.
+-- difficulty-name comparisons); scratch = the per-Day channel for
+-- cross-step intermediates (D-046), fresh-created by the pipeline each
+-- resolution and never part of MatchState.
 export type StepContext = {
 	rng: Rng.Rng,
 	ruleSet: RuleSet.RuleSet,
+	scratch: DayScratch,
+}
+
+-- Intermediate values one resolution passes downward (D-046): R5 Production
+-- tracks wages received (R7 Taxes income) and unpaid slots (R9 Stability);
+-- R6 Market tracks sales revenue (R7 Taxes income); employed workers feed
+-- the R12 Scoring employment criterion. Not state, not serialized, not
+-- hashed: it exists only while the pipeline runs.
+export type DayScratch = {
+	wagesReceived: { [Types.ClassId]: number },
+	salesRevenue: { [Types.ClassId]: number },
+	unpaidSlots: number,
+	employedWorkers: number,
 }
 
 -- Abstract hook every concrete step implements (R1..R14). Methods are
