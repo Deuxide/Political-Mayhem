@@ -9,11 +9,15 @@
 -- part lives in the Promise module (M4-T2).
 local Types = require(script.Parent.Parent.Types)
 local Transfers = require(script.Parent.Transfers)
+local Promises = require(script.Parent.Parent.Ops.Promises)
+local ConfigResources = require(script.Parent.Parent.Parent.Config.Resources)
 
 type ClassId = Types.ClassId
+type LogEntry = Types.LogEntry
 type MatchState = Types.MatchState
 type PromiseSpec = Types.PromiseSpec
 type ResourceBag = Types.ResourceBag
+type ResourceId = Types.ResourceId
 type TradeId = Types.TradeId
 type TradeOffer = Types.TradeOffer
 
@@ -21,6 +25,24 @@ type TradeOffer = Types.TradeOffer
 local MAX_PENDING = 5
 
 local Trade = {}
+
+-- The resources of a bag, as text for the Evening Report.
+local function describe(bag: ResourceBag): string
+	local parts: { string } = {}
+	for si = 1, #Types.RESOURCE_IDS do
+		local resourceId: ResourceId = Types.RESOURCE_IDS[si] :: any
+		local amount = bag[resourceId]
+		if amount ~= nil and amount > 0 then
+			local name = (ConfigResources :: any)[resourceId].name
+			table.insert(parts, `{amount} {name}`)
+		end
+	end
+	return table.concat(parts, " and ")
+end
+
+local function log(state: MatchState, entry: LogEntry)
+	table.insert(state.eventLog, entry)
+end
 
 -- The offer with that id, or nil.
 function Trade.find(state: MatchState, tradeId: TradeId): TradeOffer?
@@ -136,6 +158,21 @@ function Trade.respond(
 	Transfers.execute(state, offer.from, offer.to, offer.give)
 	Transfers.execute(state, offer.to, offer.from, offer.want)
 	remove(state, offer)
+
+	-- the Evening Report explains the change (GAME_DESIGN 1.3)
+	local gave = describe(offer.give)
+	local got = describe(offer.want)
+	log(state, {
+		day = state.day,
+		text = `{offer.from} gave {offer.to} {gave} and received {got}`,
+		actor = offer.from,
+	})
+
+	-- the attached promise specs become Promise records (8.3)
+	for _, spec in offer.promises do
+		Promises.create(state, offer.from, offer.to, spec)
+	end
+
 	return true, ""
 end
 

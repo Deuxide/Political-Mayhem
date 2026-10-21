@@ -190,6 +190,15 @@ export type Alliance = {
 	formedOnDay: number,
 }
 
+-- A pending alliance proposal: one class proposes, the other accepts
+-- (GAME_DESIGN 8.4). Live during the Window, like the trade offers.
+export type AllianceProposal = {
+	id: string,
+	from: ClassId,
+	to: ClassId,
+	proposedDay: number,
+}
+
 -- Promise-keeping tally for one class: display value and bot trust input (8.3).
 export type Reputation = {
 	kept: number,
@@ -305,6 +314,7 @@ export type MatchState = {
 	trades: { TradeOffer }, -- live this Window
 	promises: { Promise },
 	alliances: { Alliance },
+	allianceProposals: { AllianceProposal }, -- live this Window
 	reputation: { [ClassId]: Reputation },
 	drafts: { [ClassId]: ActionDraft },
 	eventLog: { LogEntry },

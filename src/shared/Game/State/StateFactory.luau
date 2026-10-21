@@ -159,6 +159,7 @@ function StateFactory.create(difficulty: Types.Difficulty, seats: SeatMap, seed:
 		trades = {},
 		promises = {},
 		alliances = {},
+		allianceProposals = {},
 		reputation = reputation,
 		drafts = drafts,
 		eventLog = {},

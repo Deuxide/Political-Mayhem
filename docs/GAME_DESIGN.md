@@ -80,6 +80,7 @@ MatchState
   trades: { TradeOffer }       -- live offers this Day
   promises: { Promise }
   alliances: { Alliance }      -- at most one active per class
+  allianceProposals: { AllianceProposal }  -- live proposals this Window
   reputation: { [ClassId]: { kept: number, broken: number } }
   drafts: { [ClassId]: ActionDraft }      -- sticky action sets
   eventLog: { LogEntry }       -- append-only, for the Evening Report
