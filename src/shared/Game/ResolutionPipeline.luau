@@ -12,6 +12,7 @@
 local Types = require(script.Parent.Types)
 local Step = require(script.Parent.Steps.Step)
 local LockDraftsStep = require(script.Parent.Steps.LockDraftsStep)
+local LobbyStep = require(script.Parent.Steps.LobbyStep)
 local StubStep = require(script.Parent.Steps.StubStep)
 local BuildStep = require(script.Parent.Steps.BuildStep)
 local ProductionStep = require(script.Parent.Steps.ProductionStep)
@@ -19,6 +20,7 @@ local MarketStep = require(script.Parent.Steps.MarketStep)
 local TaxesStep = require(script.Parent.Steps.TaxesStep)
 local PublicServicesStep = require(script.Parent.Steps.PublicServicesStep)
 local UpkeepStep = require(script.Parent.Steps.UpkeepStep)
+local InfluenceStep = require(script.Parent.Steps.InfluenceStep)
 local DayEndStep = require(script.Parent.Steps.DayEndStep)
 
 type MatchState = Types.MatchState
@@ -45,15 +47,15 @@ ResolutionPipeline.__index = ResolutionPipeline
 local function defaultSteps(): { Runner }
 	return {
 		runner(LockDraftsStep.new()), -- R1
-		runner(StubStep.new("Lobby")), -- R2 (M3-T1)
-		runner(StubStep.new("Bills")), -- R3 (M3-T2)
+		runner(LobbyStep.new()), -- R2
+		runner(StubStep.new("Bills")), -- R3 (M3-T2/T3)
 		runner(BuildStep.new()), -- R4
 		runner(ProductionStep.new()), -- R5
 		runner(MarketStep.new()), -- R6
 		runner(TaxesStep.new()), -- R7
 		runner(PublicServicesStep.new()), -- R8
 		runner(UpkeepStep.new()), -- R9
-		runner(StubStep.new("Influence")), -- R10 (M3-T1)
+		runner(InfluenceStep.new()), -- R10
 		runner(StubStep.new("Promises")), -- R11 (M4)
 		runner(StubStep.new("Scoring")), -- R12 (M5)
 		runner(StubStep.new("VictoryCheck")), -- R13 (M5)

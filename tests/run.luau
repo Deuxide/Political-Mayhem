@@ -24,6 +24,8 @@ local suites = {
 	require("./step_lock_drafts.test"),
 	require("./scenario_s1.test"),
 	require("./pipeline.test"),
+	require("./step_lobby.test"),
+	require("./step_influence.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }
