@@ -87,20 +87,31 @@
 │  │  │  ├─ Objectives.luau  # VP criteria per class
 │  │  │  ├─ Events.luau      # V2 event registry (schedule + specs)
 │  │  │  ├─ Difficulty.luau  # 4x12 matrix: rounds, timers, flags, multipliers
-│  │  │  └─ Network.luau     # net payload caps (chat length, table size)
+│  │  │  ├─ Lobby.luau       # the takeover grace period
+│  │  │  └─ Network.luau     # net payload caps and rate limits
 │  │  └─ Net/
 │  │     ├─ Remotes.luau     # remote names + payload types
+│  │     ├─ Seats.luau       # the seat record + the role split (GAME_DESIGN 14)
 │  │     └─ Validate.luau
 │  ├─ server/                # -> ServerScriptService.Server
 │  │  ├─ init.server.luau
 │  │  ├─ Net/
-│  │  │  └─ RemoteFactory.luau  # creates the RemoteEvents at boot
+│  │  │  ├─ RemoteFactory.luau  # creates the RemoteEvents at boot
+│  │  │  └─ RateLimiter.luau    # one sliding window per remote and sender
 │  │  ├─ Services/
 │  │  │  ├─ LobbyService.luau
 │  │  │  ├─ TeamService.luau
 │  │  │  ├─ MatchService.luau
 │  │  │  ├─ BotService.luau      # + Bots/: BotStrategy (abstract) + 4 subclasses
 │  │  │  └─ ProfileService.luau   # ranks, cosmetics (later)
+│  │  ├─ Handlers/
+│  │  │  ├─ Support.luau          # the shared parts of every handler
+│  │  │  ├─ LobbyHandlers.luau
+│  │  │  ├─ DraftHandlers.luau
+│  │  │  ├─ TradeHandlers.luau
+│  │  │  ├─ AllianceHandlers.luau
+│  │  │  ├─ BillHandlers.luau
+│  │  │  └─ ChatHandlers.luau
 │  │  └─ Replication.luau
 │  └─ client/                # -> StarterPlayerScripts.Client
 │     ├─ init.client.luau

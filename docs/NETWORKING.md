@@ -85,6 +85,8 @@ When in doubt, send a full `View_Snapshot`; correctness beats bandwidth.
 - At window close, the server resolves from its stored draft, never from
   anything sent later.
 - Sticky fields are copied to the next Day's draft by the server at Reveal.
+- The draft carries a `locked` flag: the class may lock its draft in early,
+  and the window still ends on the timer.
 
 ## 5. Time
 
@@ -100,13 +102,18 @@ When in doubt, send a full `View_Snapshot`; correctness beats bandwidth.
 ## 6. Seats and roles
 
 ```
-Seat { id, kind: "Human"|"Bot", userId?, class, roles: {Role}, connected }
+Seat { id, kind: "Human"|"Bot", userId?, class, roles: {Role}, connected,
+       ready, botControlled }
 Role = "Economy" | "Politics" | "Diplomacy" | "Advisor"
 ```
 
+`class` is empty until the player picks one; `botControlled` is true while a
+bot plays the class of a player who left.
+
 - Assignment rules: GAME_DESIGN section 14.
-- Disconnect: after 20 s the seat's roles are controlled by a bot. Reconnect
-  returns control and sends a `View_Snapshot`.
+- Disconnect: after 20 s (`Config/Lobby.takeoverSeconds`) the seat's roles
+  are controlled by a bot. Reconnect returns control and sends a
+  `View_Snapshot`.
 
 ## 7. Validation toolkit (`shared/Net/Validate.luau`)
 
