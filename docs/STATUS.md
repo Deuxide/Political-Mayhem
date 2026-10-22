@@ -9,7 +9,7 @@ Last updated: 2026-10-22
 
 - **Project:** Political Mayhem
 - **Current milestone:** M6 (Server runtime and networking)
-- **Current task:** M7-T2 — the `App` shell: the four-corner layout, the top bar and the countdown (UI_SPEC section 2).
+- **Current task:** M7-T3 — `OwnClassPanel` and `ClassCard` (the detailed own panel; the others' cards show `?` for the hidden fields).
 - **Project phase:** M5 merged to stable (`56f9420 "Merge M5"`, 2026-10-22); M6 started on `M6-dev1` off that merge.
 - **Current branch:** M7-dev1 — created 2026-10-22 off merged stable (0f3d4e5 "Merge M6"). The old `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push -u origin M6-dev1` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
@@ -59,6 +59,7 @@ Last updated: 2026-10-22
 - [x] M4 milestone: agent-led Studio verification passed (2026-10-22) — tree + byte-identical modules, in-engine transfer/trade/promise/alliance, in-play server probe, clean playtest; owner merges `M4-dev2` → `Linux-stable`
 - [x] M4 milestone: owner merged (`014de5c "Merge M4"`, 2026-10-22)
 - [x] M5 milestone: agent-led Studio verification passed (2026-10-22) — tree + eight byte-identical modules, in-engine gate G1 (final victory Day 12), scenarios S5 (shared victory) and S6 (collapse), in-play partial/fog/allied visibility; **milestone ready, awaiting the owner's merge**
+- [x] M7-T2: the app shell — `UI/App` (the top bar, the four corners with the viewer's own class bottom-left, the city viewport in the middle and the action dock at the bottom), `UI/Panels/TopBar` (the Day, the themed phase name, the countdown, the Stability track and the policy ticker) and `UI/Composites/Countdown` (the server-driven clock with the warning and urgent states); the client now creates the store, connects the net client and mounts the app, and the Gallery stays available as a dev screen
 - [x] M7-T1: the client net layer and the store — `client/Net/Client` (waits for the server's remotes, sends the intents, feeds the store) and `client/State/Store` (the shape of UI_SPEC section 7 with pure reducers: the snapshot replaces the view and the draft, a phase change sets the phase and the server offset, the patches set the draft and append the bills and the alliances, the local draft is pending until the server echoes it and a refusal shows the server's copy again); 7 new tests
 - [x] M7-T0: the design system — `UI/Theme/Tokens` (the only file with raw colors, fonts and numbers), `UI/Theme/Gradients` (the typed GradientSpec and its builders), `UI/Theme/Skins/Default` and `UI/Theme/Skins/Contrast` (two skins, the semantic roles), `UI/Theme/ThemeContext` (the React context and `useTheme`), the primitives (`Surface` — the only component that creates a `UIGradient` —, `Text`, `Button`, `Icon`, `Divider`) and the composites (`Card`, `ResourceChip`, `SegmentedTrack`, `Stepper`, `Tabs`, `Modal`, `Toast`), and the `Gallery` screen that shows every component in every state with a skin switcher; the client now mounts the Gallery instead of the M0 scaffold
 - [x] M6 milestone: batched Studio L2 passed (2026-10-22) — the tree and the boot script match the repo, 24 remotes under `ReplicatedStorage.Shared.Net`, one human plus three bots in the match, the phases advancing on the server's timer with `Phase_Changed`, the fog snapshot showing only the allowed fields, the handlers refusing bad payloads and accepting good ones, and the disconnect logging the 20 s takeover; **milestone ready, awaiting the owner's merge**
@@ -76,12 +77,12 @@ Last updated: 2026-10-22
 
 ## In progress
 
-M7-T2 — the `App` shell: the four-corner layout, the top bar and the
-countdown, built from the design system only (UI_SPEC section 2).
+M7-T3 — `OwnClassPanel` and `ClassCard`: the detailed own panel and the
+simplified cards of the other three classes, with the hidden fields shown as
+`?` per the view (UI_SPEC section 4.2).
 
 ## Next up
 
-- M7-T2: the `App` shell — the four-corner layout, the top bar, the countdown (UI_SPEC section 2).
 - M7-T3: `OwnClassPanel` and `ClassCard` (hidden fields render `?`).
 - M7-T4: the `EconomyTab` (debounced `Draft_Update` + a sync indicator).
 - After M7-T4: the batched Studio L2 for M7, then "Milestone M7 ready".

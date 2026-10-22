@@ -1,8 +1,8 @@
 --!strict
--- Client entry point. The M0 scaffold is gone: the client now mounts the
--- design-system Gallery, the dev screen that shows every component in every
--- state (UI_STYLE section 4.1). The game screens (the lobby, the match HUD)
--- arrive with M7-T2 and the client networking with M7-T1.
+-- Client entry point. It creates the store, connects the net client, and
+-- mounts the app shell (M7-T2). The design-system Gallery stays available as
+-- a dev screen (M7-T0): it is mounted in its own ScreenGui, which is off by
+-- default and can be switched on while the game runs.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,6 +18,11 @@ local ReactRoblox = require(ReplicatedStorage.Packages["react-roblox"])
 -- Lives under this LocalScript (src/client/UI/Dev) because it is a dev tool;
 -- the config/game modules live in ReplicatedStorage.
 local ChildrenGuard = require(script.UI.Dev.ChildrenGuard)
+local Store = require(script.State.Store)
+local Client = require(script.Net.Client)
+local App = require(script.UI.App)
+local ThemeContext = require(script.UI.Theme.ThemeContext)
+local DefaultSkin = require(script.UI.Theme.Skins.Default)
 local Gallery = require(script.UI.Gallery.Gallery)
 
 -- Dev-time guard for react-lua issue #42 (D-031): wraps createElement and
@@ -28,10 +33,27 @@ if RunService:IsStudio() then
 	ChildrenGuard.install(React)
 end
 
+local store = Store.new()
+local client = Client.new(store)
+Client.connect(client)
+
+-- The game screen.
+local appGui = Instance.new("ScreenGui")
+appGui.Name = "AppScreenGui"
+appGui.ResetOnSpawn = false
+appGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local appRoot = ReactRoblox.createRoot(appGui)
+appRoot:render(React.createElement(ThemeContext.provider, {
+	value = DefaultSkin,
+}, React.createElement(App.render, { store = store })))
+
+-- The dev Gallery (M7-T0): off by default, so it never covers the game.
 local galleryGui = Instance.new("ScreenGui")
 galleryGui.Name = "GalleryScreenGui"
 galleryGui.ResetOnSpawn = false
+galleryGui.Enabled = false
 galleryGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
-local root = ReactRoblox.createRoot(galleryGui)
-root:render(React.createElement(Gallery.render))
+local galleryRoot = ReactRoblox.createRoot(galleryGui)
+galleryRoot:render(React.createElement(Gallery.render))
