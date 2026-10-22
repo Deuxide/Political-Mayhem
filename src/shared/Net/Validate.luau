@@ -119,6 +119,10 @@ function Validate.isDifficulty(value: any): boolean
 	return type(value) == "string" and DIFFICULTIES[value] == true
 end
 
+function Validate.isResourceId(value: any): boolean
+	return type(value) == "string" and RESOURCE_IDS[value] == true
+end
+
 -- A line that exists in this match (ids are per match, so the state decides).
 function Validate.isLineId(state: MatchState, id: any): boolean
 	return type(id) == "string" and state.lines[id] ~= nil
@@ -293,6 +297,7 @@ end
 function Validate.clampDraft(draft: any, state: MatchState): ActionDraft
 	local safe: ActionDraft = {
 		sequence = 0,
+		locked = false,
 		openSlots = {},
 		assign = {},
 		strike = nil,

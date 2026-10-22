@@ -16,7 +16,7 @@ export type Seat = {
 	kind: "Human" | "Bot",
 	userId: number?, -- humans only (a UserId)
 	name: string,
-	classId: ClassId?, -- nil until a human chooses
+	classId: Types.ClassId?, -- nil until a human chooses
 	roles: { Role },
 	connected: boolean,
 	ready: boolean,

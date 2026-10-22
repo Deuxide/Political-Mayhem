@@ -1,7 +1,12 @@
 --!strict
--- Network payload caps (NETWORKING section 7): how large an untrusted payload
--- may be before the server rejects it instead of coercing it. Pure data — the
--- per-remote rate limits arrive with the handlers (M6-T4).
+-- Network payload caps and rate limits (NETWORKING section 3.1 and 7): how
+-- large an untrusted payload may be, and how often a client may send each
+-- remote. Pure data — the limiter itself lives in the server runtime.
+
+export type RateLimit = {
+	limit: number, -- sends per period
+	periodSeconds: number, -- the length of the period, in seconds
+}
 
 export type NetworkConfig = {
 	maxChatLength: number, -- characters in one chat message (NETWORKING 3.1)
@@ -12,6 +17,7 @@ export type NetworkConfig = {
 	maxSequence: number, -- highest draft sequence number accepted
 	maxSlotCount: number, -- highest slot/worker count in one draft field
 	maxResourceAmount: number, -- highest amount in one bag or lobby order
+	rateLimits: { [string]: RateLimit },
 }
 
 return table.freeze({
@@ -23,4 +29,24 @@ return table.freeze({
 	maxSequence = 1000000000,
 	maxSlotCount = 1000,
 	maxResourceAmount = 1000000,
+	-- The limits of NETWORKING section 3.1: "n/s" is n sends per second,
+	-- except the chat, which gets one message per 0.7 s. The period is in
+	-- seconds, the unit the server clock uses.
+	rateLimits = {
+		Lobby_SetClass = { limit = 2, periodSeconds = 1 },
+		Lobby_SetReady = { limit = 2, periodSeconds = 1 },
+		Lobby_Configure = { limit = 1, periodSeconds = 1 },
+		Lobby_Start = { limit = 1, periodSeconds = 1 },
+		Draft_Update = { limit = 5, periodSeconds = 1 },
+		Draft_LockIn = { limit = 2, periodSeconds = 1 },
+		Trade_Propose = { limit = 2, periodSeconds = 1 },
+		Trade_Respond = { limit = 4, periodSeconds = 1 },
+		Trade_Cancel = { limit = 4, periodSeconds = 1 },
+		Alliance_Propose = { limit = 1, periodSeconds = 1 },
+		Alliance_Respond = { limit = 2, periodSeconds = 1 },
+		Alliance_Break = { limit = 1, periodSeconds = 1 },
+		Bill_Propose = { limit = 1, periodSeconds = 1 },
+		Chat_Send = { limit = 1, periodSeconds = 0.7 },
+		Team_SetRole = { limit = 1, periodSeconds = 1 },
+	},
 } :: NetworkConfig)

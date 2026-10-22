@@ -232,6 +232,7 @@ export type StrikeSpec = { target: ClassId }
 -- chat) are separate immediates and have no draft fields here.
 export type ActionDraft = {
 	sequence: number, -- bumped on each accepted client update
+	locked: boolean, -- the class locked its draft in early (NETWORKING 3.1)
 	openSlots: { [LineId]: number }, -- line owners
 	assign: { [LineId]: number }, -- Working only
 	strike: StrikeSpec?, -- Working only
@@ -292,6 +293,7 @@ export type PlayerView = {
 	stability: number,
 	policies: { [PolicyId]: number },
 	own: ClassState,
+	draft: ActionDraft, -- the viewer's class draft (NETWORKING 4)
 	others: { [ClassId]: ClassView },
 	bills: { Bill }, -- live proposals; ballots stay secret in the drafts
 	promises: { Promise }, -- public in every mode
@@ -312,7 +314,7 @@ export type MatchState = {
 	difficulty: Difficulty,
 	day: number,
 	phase: Phase,
-	phaseEndsAt: number, -- epoch ms when the current phase ends; 0 = unscheduled
+	phaseEndsAt: number, -- epoch seconds when the current phase ends; 0 = unscheduled
 	stability: number, -- 0..100
 	collapseCounter: number, -- consecutive Days at stability 0
 	policies: { [PolicyId]: number },
