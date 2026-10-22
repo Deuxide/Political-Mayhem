@@ -37,6 +37,7 @@ local suites = {
 	require("./scoring.test"),
 	require("./victory_check.test"),
 	require("./difficulty_flags.test"),
+	require("./player_view.test"),
 	require("./alliances_ops.test"),
 	require("./scenario_s4.test"),
 	require("./children_guard.test"),

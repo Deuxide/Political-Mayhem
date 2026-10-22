@@ -444,11 +444,15 @@ Shared victories count as a win for both classes' players.
 Game logic must read these flags, never compare difficulty names (enforced by
 `tests/difficulty_flags.test.luau`).
 
-## 13. Information visibility (`Game/Visibility/`)
+## 13. Information visibility (`Game/Behaviors/InfoModes/`)
 
-`PlayerViewBuilder:build(match, viewerClass) -> PlayerView`, delegating to the
-`InfoMode` strategy (`OpenInfo`, `PartialInfo`, `FogInfo`) chosen by the
-`RuleSet`.
+`PlayerViewBuilder.build(state, ruleSet, viewerClass) -> PlayerView`,
+delegating to the `InfoMode` strategy (`OpenInfo`, `PartialInfo`, `FogInfo`)
+chosen by `RuleSet:infoMode()`. The builder owns everything that is the same
+in every mode and asks the strategy only for another class's Money, stocks and
+Influence. The view is built from a deep copy of the state, and a hidden field
+is **absent** from the table — never a nil-valued or sentinel value — so
+nothing secret can travel to a client.
 
 | Data | open | partial | fog |
 |---|---|---|---|
@@ -463,7 +467,9 @@ Game logic must read these flags, never compare difficulty names (enforced by
 | Promises and Reputation | public | public | public |
 | Allied class: full stocks | full | full | full (alliance benefit) |
 
-Tiers for Money: Low < 15, Mid 15 to 39, High >= 40 (config).
+Tiers for Money: Low < 15, Mid 15 to 39, High >= 40. Stocks are single-digit
+counts, so they tier on their own cutoffs (Low < 2, Mid 2 to 3, High >= 4,
+D-071). Both live in `Config/Visibility.luau`.
 
 ## 14. Teams and seats
 
