@@ -4,8 +4,10 @@
 -- lives in a service; this file only wires things together.
 
 local Players = game:GetService("Players")
+local workspace = game:GetService("Workspace")
 local RemoteFactory = require(script.Net.RemoteFactory)
 local LobbyService = require(script.Services.LobbyService)
+local MatchService = require(script.Services.MatchService)
 local LobbyHandlers = require(script.Handlers.LobbyHandlers)
 
 print("Server booted")
@@ -27,6 +29,26 @@ local lobby = LobbyService.new(seed)
 LobbyHandlers.connect(remotes, lobby, function(match)
 	local state = match:state()
 	print(`[Lobby] match {state.id} started ({state.difficulty}, seed {state.seed})`)
+
+	-- The phase scheduler: the server owns the clock, and no client can move
+	-- a phase (NETWORKING 5 and 8).
+	MatchService.new({
+		match = match,
+		onPhaseChanged = function(payload)
+			for _, player in Players:GetPlayers() do
+				remotes.Phase_Changed:FireClient(player, payload)
+			end
+		end,
+		onMatchEnded = function(result)
+			print(`[Match] the match ended: {result.kind}`)
+		end,
+		clock = function()
+			return workspace:GetServerTimeNow()
+		end,
+		schedule = function(delaySeconds, callback)
+			task.delay(delaySeconds, callback)
+		end,
+	}):start()
 end)
 
 local function onPlayerAdded(player: any)
