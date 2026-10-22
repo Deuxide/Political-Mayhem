@@ -10,6 +10,7 @@ local Validate = require(ReplicatedStorage.Shared.Net.Validate)
 local ConfigNetwork = require(ReplicatedStorage.Shared.Config.Network)
 local Bills = require(ReplicatedStorage.Shared.Game.Ops.Bills)
 local Support = require(script.Parent.Support)
+local Replication = require(script.Parent.Parent.Replication)
 
 type ClassId = Types.ClassId
 type SupportType = Support.Support
@@ -80,12 +81,7 @@ function BillHandlers.connect(support: SupportType)
 		end
 
 		-- everybody hears about the bill (it is public, GAME_DESIGN 7.2)
-		for _, player2 in support.players() do
-			support.remotes.View_Patch:FireClient(player2, {
-				ops = { { op = "append", path = "bills", value = bill } },
-				serverTime = support.clock(),
-			})
-		end
+		Replication.patchAll(support, "bills", bill)
 	end)
 end
 

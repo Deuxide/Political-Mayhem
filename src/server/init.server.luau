@@ -10,6 +10,7 @@ local RemoteFactory = require(script.Net.RemoteFactory)
 local LobbyService = require(script.Services.LobbyService)
 local MatchService = require(script.Services.MatchService)
 local LobbyHandlers = require(script.Handlers.LobbyHandlers)
+local Replication = require(script.Replication)
 local Support = require(script.Handlers.Support)
 local DraftHandlers = require(script.Handlers.DraftHandlers)
 local TradeHandlers = require(script.Handlers.TradeHandlers)
@@ -66,9 +67,22 @@ LobbyHandlers.connect(remotes, lobby, function(match)
 			for _, player in Players:GetPlayers() do
 				remotes.Phase_Changed:FireClient(player, payload)
 			end
+			-- every phase change sends a fresh view (NETWORKING 3.2)
+			Replication.snapshotAll(support)
+		end,
+		onReveal = function(report)
+			-- the report of the Day, filtered for every viewer
+			for _, player in Players:GetPlayers() do
+				Replication.reveal(support, player, report)
+			end
 		end,
 		onMatchEnded = function(result)
 			print(`[Match] the match ended: {result.kind}`)
+			Replication.ended(
+				support,
+				result,
+				`The match ended on Day {result.day} ({result.kind})`
+			)
 		end,
 		clock = function()
 			return workspace:GetServerTimeNow()
@@ -91,6 +105,8 @@ local function onPlayerAdded(player: any)
 	end
 	local seat = lobby:join(player.UserId, player.Name)
 	print(`[Lobby] {seat.name} joined the lobby`)
+	-- a player that joins gets the view of its own class (NETWORKING 3.2)
+	Replication.snapshot(support, player)
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)

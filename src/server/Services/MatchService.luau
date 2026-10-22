@@ -14,17 +14,31 @@ local Types = require(ReplicatedStorage.Shared.Game.Types)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Match = require(ReplicatedStorage.Shared.Game.Match)
 
+type ClassId = Types.ClassId
+type MatchState = Types.MatchState
 type MatchType = Match.Match
 type Phase = Types.Phase
 type PhaseChangedPayload = Remotes.PhaseChangedPayload
+type ReplayDelta = Remotes.RevealDelta
+type RevealDeltas = Remotes.RevealDeltas
+type StockId = Types.StockId
 type VictoryResult = Types.VictoryResult
 
 export type MatchServiceOptions = {
 	match: MatchType,
 	onPhaseChanged: (PhaseChangedPayload) -> (),
+	onReveal: ((RevealReport) -> ())?,
 	onMatchEnded: ((VictoryResult) -> ())?,
-	clock: () -> number, -- epoch milliseconds
+	clock: () -> number, -- epoch seconds
 	schedule: (delaySeconds: number, callback: () -> ()) -> (),
+}
+
+-- What a resolved Day changed (NETWORKING 3.2): the day's events and what
+-- every class gained or lost.
+export type RevealReport = {
+	day: number,
+	events: { Types.LogEntry },
+	deltas: RevealDeltas,
 }
 
 local MatchService = {}
@@ -34,6 +48,7 @@ export type MatchService = typeof(setmetatable(
 	{} :: {
 		_match: MatchType,
 		_onPhaseChanged: (PhaseChangedPayload) -> (),
+		_onReveal: ((RevealReport) -> ())?,
 		_onMatchEnded: ((VictoryResult) -> ())?,
 		_clock: () -> number,
 		_schedule: (number, () -> ()) -> (),
@@ -48,6 +63,7 @@ function MatchService.new(options: MatchServiceOptions): MatchService
 	return setmetatable({
 		_match = options.match,
 		_onPhaseChanged = options.onPhaseChanged,
+		_onReveal = options.onReveal,
 		_onMatchEnded = options.onMatchEnded,
 		_clock = options.clock,
 		_schedule = options.schedule,
@@ -100,6 +116,50 @@ function MatchService._announce(self: MatchService)
 	})
 end
 
+-- The values of every class before the Day is resolved, so the report can
+-- say what the Day changed.
+local function captureValues(state: MatchState): { [ClassId]: ReplayDelta }
+	local values: { [ClassId]: ReplayDelta } = {}
+	for index = 1, #Types.CLASS_IDS do
+		local classId: ClassId = Types.CLASS_IDS[index] :: any
+		local class = state.classes[classId]
+		local stock: { [StockId]: number } = {}
+		for si = 1, #Types.STOCK_IDS do
+			local stockId: StockId = Types.STOCK_IDS[si] :: any
+			stock[stockId] = class.stock[stockId] or 0
+		end
+		values[classId] = {
+			money = class.money,
+			influence = class.influence,
+			stock = stock,
+			vp = class.vp,
+		}
+	end
+	return values
+end
+
+-- What every class gained or lost over the Day.
+local function diffValues(before: { [ClassId]: ReplayDelta }, after: MatchState): RevealDeltas
+	local deltas: RevealDeltas = {}
+	for index = 1, #Types.CLASS_IDS do
+		local classId: ClassId = Types.CLASS_IDS[index] :: any
+		local was = before[classId]
+		local now = after.classes[classId]
+		local stock: { [StockId]: number } = {}
+		for si = 1, #Types.STOCK_IDS do
+			local stockId: StockId = Types.STOCK_IDS[si] :: any
+			stock[stockId] = (now.stock[stockId] or 0) - (was.stock[stockId] or 0)
+		end
+		deltas[classId] = {
+			money = now.money - was.money,
+			influence = now.influence - was.influence,
+			stock = stock,
+			vp = now.vp - was.vp,
+		}
+	end
+	return deltas
+end
+
 -- The Window: the players plan, trade, chat and vote until the timer ends.
 function MatchService._openWindow(self: MatchService)
 	local state = self._match:state()
@@ -124,8 +184,24 @@ function MatchService._resolve(self: MatchService)
 	state.phaseEndsAt = self._clock()
 	self:_announce()
 
+	local before = captureValues(state)
+	local logLength = #state.eventLog
 	local resolved = match:resolveDay(match:rng())
 	print(`[Match] {resolved.id} day {resolved.day} hash {match:hash()}`)
+
+	-- the report of the Day: the new log entries and what every class
+	-- gained or lost (NETWORKING 3.2)
+	local events: { Types.LogEntry } = {}
+	for index = logLength + 1, #resolved.eventLog do
+		table.insert(events, resolved.eventLog[index])
+	end
+	if self._onReveal ~= nil then
+		self._onReveal({
+			day = resolved.day,
+			events = events,
+			deltas = diffValues(before, resolved),
+		})
+	end
 
 	if resolved.victory ~= nil then
 		self._running = false

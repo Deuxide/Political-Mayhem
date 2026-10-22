@@ -186,16 +186,6 @@ function Support.sameValue(a: any, b: any): boolean
 	return true
 end
 
--- Sends a patch to every member of a class (NETWORKING 3.2).
-function Support.patch(support: Support, classId: ClassId, path: string, value: any)
-	for _, member in Support.membersOf(support, classId) do
-		support.remotes.View_Patch:FireClient(member, {
-			ops = { { op = "set", path = path, value = value } },
-			serverTime = support.clock(),
-		})
-	end
-end
-
 -- The members of a class (the team), for the messages a class hears.
 function Support.membersOf(support: Support, classId: ClassId): { any }
 	local members: { any } = {}

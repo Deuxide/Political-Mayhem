@@ -9,6 +9,7 @@ local Types = require(ReplicatedStorage.Shared.Game.Types)
 local Validate = require(ReplicatedStorage.Shared.Net.Validate)
 local Alliances = require(ReplicatedStorage.Shared.Game.Ops.Alliances)
 local Support = require(script.Parent.Support)
+local Replication = require(script.Parent.Parent.Replication)
 
 type ClassId = Types.ClassId
 type SupportType = Support.Support
@@ -65,8 +66,8 @@ function AllianceHandlers.connect(support: SupportType)
 			return
 		end
 		-- both classes hear about the proposal
-		Support.patch(support, classId, "alliances", proposal)
-		Support.patch(support, to, "alliances", proposal)
+		Replication.patch(support, classId, "alliances", proposal)
+		Replication.patch(support, to, "alliances", proposal)
 	end)
 
 	support.remotes.Alliance_Respond.OnServerEvent:Connect(function(player: any, payload: any)
@@ -116,8 +117,8 @@ function AllianceHandlers.connect(support: SupportType)
 			end
 			return
 		end
-		Support.patch(support, alliance.members[1] :: any, "alliances", alliance)
-		Support.patch(support, alliance.members[2] :: any, "alliances", alliance)
+		Replication.patch(support, alliance.members[1] :: any, "alliances", alliance)
+		Replication.patch(support, alliance.members[2] :: any, "alliances", alliance)
 	end)
 
 	support.remotes.Alliance_Break.OnServerEvent:Connect(function(player: any, payload: any)

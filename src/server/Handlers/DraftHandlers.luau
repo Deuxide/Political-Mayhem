@@ -9,6 +9,7 @@ local Types = require(ReplicatedStorage.Shared.Game.Types)
 local Validate = require(ReplicatedStorage.Shared.Net.Validate)
 local ConfigNetwork = require(ReplicatedStorage.Shared.Config.Network)
 local Support = require(script.Parent.Support)
+local Replication = require(script.Parent.Parent.Replication)
 
 type ClassId = Types.ClassId
 type SupportType = Support.Support
@@ -116,12 +117,7 @@ function DraftHandlers.connect(support: SupportType)
 		state.drafts[classId] = safe
 
 		-- The team sees the accepted draft (NETWORKING 4).
-		for _, member in Support.membersOf(support, classId) do
-			support.remotes.View_Patch:FireClient(member, {
-				ops = { { op = "set", path = "draft", value = safe } },
-				serverTime = support.clock(),
-			})
-		end
+		Replication.patch(support, classId, "draft", safe)
 	end)
 
 	support.remotes.Draft_LockIn.OnServerEvent:Connect(function(player: any, payload: any)
