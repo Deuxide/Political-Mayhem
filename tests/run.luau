@@ -40,6 +40,9 @@ local suites = {
 	require("./player_view.test"),
 	require("./alliances_ops.test"),
 	require("./scenario_s4.test"),
+	require("./scenario_s5.test"),
+	require("./scenario_s6.test"),
+	require("./gate_g1.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }
