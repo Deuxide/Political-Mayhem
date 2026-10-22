@@ -86,12 +86,15 @@
 │  │  │  ├─ Market.luau      # export/import prices, volume cap
 │  │  │  ├─ Objectives.luau  # VP criteria per class
 │  │  │  ├─ Events.luau      # V2 event registry (schedule + specs)
-│  │  │  └─ Difficulty.luau  # 4x12 matrix: rounds, timers, flags, multipliers
+│  │  │  ├─ Difficulty.luau  # 4x12 matrix: rounds, timers, flags, multipliers
+│  │  │  └─ Network.luau     # net payload caps (chat length, table size)
 │  │  └─ Net/
 │  │     ├─ Remotes.luau     # remote names + payload types
 │  │     └─ Validate.luau
 │  ├─ server/                # -> ServerScriptService.Server
 │  │  ├─ init.server.luau
+│  │  ├─ Net/
+│  │  │  └─ RemoteFactory.luau  # creates the RemoteEvents at boot
 │  │  ├─ Services/
 │  │  │  ├─ LobbyService.luau
 │  │  │  ├─ TeamService.luau

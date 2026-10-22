@@ -64,7 +64,7 @@ that the sender may not edit are rejected as a whole):
 | `View_Snapshot` | `{ protocol, view: PlayerView, serverTime }` | on join, phase change, reconnect |
 | `View_Patch` | `{ ops: {PatchOp}, serverTime }` | live changes mid-window (trades, bills, alliances, stability ticks) |
 | `Phase_Changed` | `{ phase, day, endsAt }` | on every phase change (`endsAt` is server time) |
-| `Reveal_Report` | `{ day, events: {LogEntry}, deltas: ... }` | at start of Reveal |
+| `Reveal_Report` | `{ day, events: {LogEntry}, deltas: { [ClassId]: { money, influence, stock: { [StockId]: number }, vp } } }` | at start of Reveal |
 | `Trade_Incoming` | `{ offer: TradeOffer }` | recipient's Diplomacy role only |
 | `Trade_Result` | `{ requestId?, offerId, status: "accepted"\|"declined"\|"failed"\|"expired", reason? }` | both parties |
 | `Chat_Message` | `{ channel, fromClass, fromName, text, t }` | per channel audience |
@@ -116,6 +116,10 @@ Provide and unit-test these helpers; handlers must use them:
 - `isNonNegInt(n, max)`, `isResourceBag(t)`, `isShortString(s, max)`
 - `isDraftShape(t)` (whitelist keys; reject extra keys)
 - `clampDraft(draft, state)` returns a safe draft; never mutates input
+
+The size caps (chat length, table entries, table depth, sequence number) live
+in `src/shared/Config/Network.luau`; the per-remote rate limits live there
+too when the handlers arrive (M6-T4).
 
 Reject (don't coerce): NaN, infinity, negative, non-integers where integers are
 required, unknown keys, unexpectedly large tables (depth > 4 or > 200 entries).

@@ -58,6 +58,14 @@ export type InfoMode = "open" | "partial" | "fog"
 -- comparison, or collapse (no winner).
 export type VictoryKind = "solo" | "shared" | "final" | "collapse"
 
+-- Team roles on a class (GAME_DESIGN 14, NETWORKING 6): who may touch which
+-- part of the draft or which live action.
+export type Role = "Economy" | "Politics" | "Diplomacy" | "Advisor"
+
+-- Chat channels (NETWORKING 3.1). "Class" targets one class, "Team" the
+-- sender's own class team.
+export type ChatChannel = "Global" | "Team" | "Class"
+
 -- ===== Id aliases =====
 
 -- IDs are strings (GAME_DESIGN 4); aliases below document the intent of each.
@@ -343,6 +351,8 @@ local POLICY_IDS: { PolicyId } = {
 	"StrikeRights",
 }
 local LINE_TYPES: { LineType } = { "Farm", "Factory", "Clinic", "School" }
+local ROLES: { Role } = { "Economy", "Politics", "Diplomacy", "Advisor" }
+local CHAT_CHANNELS: { ChatChannel } = { "Global", "Team", "Class" }
 
 Types.CLASS_IDS = table.freeze(CLASS_IDS)
 Types.RESOURCE_IDS = table.freeze(RESOURCE_IDS)
@@ -351,5 +361,7 @@ Types.PHASES = table.freeze(PHASES)
 Types.DIFFICULTIES = table.freeze(DIFFICULTIES)
 Types.POLICY_IDS = table.freeze(POLICY_IDS)
 Types.LINE_TYPES = table.freeze(LINE_TYPES)
+Types.ROLES = table.freeze(ROLES)
+Types.CHAT_CHANNELS = table.freeze(CHAT_CHANNELS)
 
 return table.freeze(Types)
