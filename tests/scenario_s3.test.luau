@@ -64,7 +64,7 @@ function M.run()
 		Lib.eq(state.classes.Capitalist.influence, 6, "1 + 4 + 1")
 		Lib.eq(state.stability, 53, "7 unmet units, as in S1")
 		Lib.truthy(hasLog(state, "Capitalist bought 4 Influence for 8 Money"), "lobby entry")
-		Lib.eq(#state.eventLog, 8, "eight log entries")
+		Lib.eq(#state.eventLog, 12, "twelve log entries")
 	end)
 
 	Lib.test("S3: Day 2 — the lobbied bill passes and the Tariff bites (7.3, 6.6)", function()
@@ -100,7 +100,7 @@ function M.run()
 		)
 		-- 19 unmet units -> the penalty is capped at -10
 		Lib.eq(after.stability, 43, "stability after Day 2")
-		Lib.eq(#after.eventLog, 20, "twelve more entries")
+		Lib.eq(#after.eventLog, 27, "fifteen more entries")
 	end)
 
 	Lib.test("S3: without the lobby the same vote would not pass (7.3)", function()

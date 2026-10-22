@@ -77,7 +77,7 @@ function M.run()
 		Lib.truthy(hasLog(state, "Middle Farm-1 produced 4 Food"), "production entry")
 		Lib.truthy(hasLog(state, "Middle paid 4 Money in wages for 2 slot(s)"), "wage entry")
 		Lib.truthy(not hasLog(state, "Factory-1 produced"), "the struck line produced nothing")
-		Lib.eq(#state.eventLog, 11, "eleven log entries")
+		Lib.eq(#state.eventLog, 15, "fifteen log entries")
 	end)
 
 	Lib.test("S2: Day 2 matches the recorded state", function()
@@ -93,7 +93,7 @@ function M.run()
 		-- 19 unmet units -> the penalty is capped at -10
 		Lib.eq(state.stability, 43, "stability after Day 2")
 		Lib.eq(state.classes.Working.influence, 9, "Working influence")
-		Lib.eq(#state.eventLog, 24, "thirteen more entries")
+		Lib.eq(#state.eventLog, 31, "sixteen more entries")
 		Lib.truthy(
 			hasLog(state, "Middle could not cover 1 Goods and 1 Health and 1 Education"),
 			"middle unmet entry (its Food is covered by its own production)"
@@ -112,7 +112,7 @@ function M.run()
 		Lib.eq(state.classes.Working.money, 22, "18 + 4 wages")
 		Lib.eq(state.classes.Capitalist.money, 50, "still no wages")
 		Lib.eq(state.stability, 33, "stability after Day 3")
-		Lib.eq(#state.eventLog, 37, "thirteen more entries")
+		Lib.eq(#state.eventLog, 47, "sixteen more entries")
 	end)
 
 	Lib.test("S2: the whole scenario is deterministic", function()

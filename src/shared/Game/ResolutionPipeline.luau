@@ -23,6 +23,7 @@ local PublicServicesStep = require(script.Parent.Steps.PublicServicesStep)
 local UpkeepStep = require(script.Parent.Steps.UpkeepStep)
 local InfluenceStep = require(script.Parent.Steps.InfluenceStep)
 local PromisesStep = require(script.Parent.Steps.PromisesStep)
+local ScoringStep = require(script.Parent.Steps.Scoring)
 local DayEndStep = require(script.Parent.Steps.DayEndStep)
 
 type MatchState = Types.MatchState
@@ -59,7 +60,7 @@ local function defaultSteps(): { Runner }
 		runner(UpkeepStep.new()), -- R9
 		runner(InfluenceStep.new()), -- R10
 		runner(PromisesStep.new()), -- R11
-		runner(StubStep.new("Scoring")), -- R12 (M5)
+		runner(ScoringStep.new()), -- R12
 		runner(StubStep.new("VictoryCheck")), -- R13 (M5)
 		runner(DayEndStep.new()), -- R14
 	}

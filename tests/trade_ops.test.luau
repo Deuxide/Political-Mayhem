@@ -41,6 +41,9 @@ function M.run()
 				salesRevenue = {},
 				unpaidSlots = 0,
 				employedWorkers = 0,
+				startMoney = {},
+				unmetByClass = {},
+				passedBills = {},
 			},
 		}
 	end

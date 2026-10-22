@@ -90,6 +90,9 @@ function Match.resolveDay(self: Match, rng: RngType): MatchState
 			salesRevenue = {},
 			unpaidSlots = 0,
 			employedWorkers = 0,
+			startMoney = {},
+			unmetByClass = {},
+			passedBills = {},
 		},
 	}
 	self._pipeline:run(working, ctx)

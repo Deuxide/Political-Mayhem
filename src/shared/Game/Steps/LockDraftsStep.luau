@@ -72,12 +72,15 @@ end
 
 export type LockDraftsStep = typeof(setmetatable({} :: {}, LockDraftsStep))
 
-function LockDraftsStep.run(_self: LockDraftsStep, state: MatchState, _ctx: Step.StepContext)
+function LockDraftsStep.run(_self: LockDraftsStep, state: MatchState, ctx: Step.StepContext)
 	local workingId: ClassId = "Working"
 
 	for ci = 1, #Types.CLASS_IDS do
 		local classId: ClassId = Types.CLASS_IDS[ci] :: any
 		local draft = state.drafts[classId]
+
+		-- the wallet at the top of the Day, for R12's "money not decreasing"
+		ctx.scratch.startMoney[classId] = state.classes[classId].money
 
 		-- openSlots: only the owner of the line may set them, and only
 		-- within the line's slots.

@@ -34,6 +34,7 @@ local suites = {
 	require("./trade_ops.test"),
 	require("./promises_ops.test"),
 	require("./step_promises.test"),
+	require("./scoring.test"),
 	require("./alliances_ops.test"),
 	require("./scenario_s4.test"),
 	require("./children_guard.test"),

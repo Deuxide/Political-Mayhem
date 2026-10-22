@@ -33,7 +33,7 @@ end
 
 export type BillsStep = typeof(setmetatable({} :: {}, BillsStep))
 
-function BillsStep.run(_self: BillsStep, state: MatchState, _ctx: StepContext)
+function BillsStep.run(_self: BillsStep, state: MatchState, ctx: StepContext)
 	-- The live bills, in proposal order.
 	for _, bill in state.bills do
 		local tally = Bills.tally(state, bill.id)
@@ -57,6 +57,13 @@ function BillsStep.run(_self: BillsStep, state: MatchState, _ctx: StepContext)
 			-- through a local (luau-lsp 1.70.1 rejects a cast as a target)
 			local policies = state.policies :: any
 			policies[policyId] = bill.level
+			-- R12 scores "a bill this class proposed passed" (11.1); keep
+			-- the record here, before the Day's bills are cleared.
+			table.insert(ctx.scratch.passedBills, {
+				proposer = bill.proposer,
+				policyId = policyId,
+				level = bill.level,
+			})
 			log(state, {
 				day = state.day,
 				text = `{policyId} is now level {bill.level} ({tally.yesWeight} for, {tally.noWeight} against)`,
