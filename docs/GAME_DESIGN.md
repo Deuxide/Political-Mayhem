@@ -441,7 +441,8 @@ Shared victories count as a win for both classes' players.
 | `needsMultiplier` | 0.75 | 1.0 | 1.0 | 1.15 (round up) |
 | `botSuggestions` | yes | no | no | no |
 
-Game logic must read these flags, never compare difficulty names.
+Game logic must read these flags, never compare difficulty names (enforced by
+`tests/difficulty_flags.test.luau`).
 
 ## 13. Information visibility (`Game/Visibility/`)
 
