@@ -108,6 +108,9 @@ function UpkeepStep.run(_self: UpkeepStep, state: MatchState, ctx: StepContext)
 				actor = classId,
 			})
 		end
+
+		-- R12 scores "all needs met" per class (11.1).
+		scratch.unmetByClass[classId] = unmetCount
 	end
 
 	-- Stability change.

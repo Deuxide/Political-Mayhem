@@ -1,0 +1,11 @@
+--!nocheck
+-- Fixture for the difficulty-names lint: Hard is only a word in this comment.
+-- The code reads typed flags, never the name.
+local function target(ruleSet): number
+	if ruleSet:collapseEnabled() then
+		return ruleSet:soloTarget()
+	end
+	return ruleSet:soloTarget() * 2
+end
+
+return target

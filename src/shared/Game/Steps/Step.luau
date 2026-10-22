@@ -35,6 +35,13 @@ export type DayScratch = {
 	salesRevenue: { [Types.ClassId]: number },
 	unpaidSlots: number,
 	employedWorkers: number,
+	-- M5 additions, all written before R12 reads them (D-046):
+	-- R1 start-of-Day Money for the State's "money not decreasing" (11.1).
+	startMoney: { [Types.ClassId]: number },
+	-- R9 unmet units per class for "all needs met" (11.1).
+	unmetByClass: { [Types.ClassId]: number },
+	-- R3 bills that passed this Day for "own bill passed" (11.1).
+	passedBills: { { proposer: Types.ClassId, policyId: Types.PolicyId, level: number } },
 }
 
 -- Abstract hook every concrete step implements (R1..R14). Methods are

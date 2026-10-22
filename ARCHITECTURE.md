@@ -308,14 +308,16 @@ Rules:
 
 ## 8. Victory
 
-`Victory.check(state)` returns one of:
+R13 `Steps/VictoryCheck` decides at every Closing Bell whether the match ends.
+`VictoryCheck.check(state, ruleSet)` is the pure decision and returns a
+`VictoryResult` — `{ kind = "solo"|"shared"|"final"|"collapse",
+winners = { ClassId }, day }` — or nil while the match goes on. The step
+stores it in `state.victory` and logs the ending; an ended match is final
+(`Match:resolveDay` refuses to continue it).
 
-- `{ kind = "none" }`
-- `{ kind = "solo", class = ... }`
-- `{ kind = "shared", classes = { ..., ... } }`
-
-Shared wins require both classes' conditions to be satisfied and an active
-agreement between them. Thresholds come from `Config/Difficulty.luau`.
+Solo, shared, final-Day and collapse, with their precedence and tie-breaks,
+are written in GAME_DESIGN 11.2. Thresholds and factors come from
+`Config/Difficulty.luau` and `Config/Scoring.luau`.
 
 ## 9. Difficulty modes
 

@@ -4,17 +4,14 @@
 -- runs them over the working copy of the state; Match:resolveDay commits
 -- that copy only if every step succeeded.
 --
--- The step list follows the section 10 table: R1 LockDrafts is real, R4 to
--- R9 are the economy steps of M2, R2/R3/R10/R12/R13 are placeholders
--- for the milestones that own them, R11 audits the promises, and R14
--- closes the Day (draft roll-forward + Day counter).
+-- The step list follows the section 10 table exactly; every step R1..R14 is
+-- real as of M5 (R12 scores, R13 decides the match, R14 closes the Day).
 
 local Types = require(script.Parent.Types)
 local Step = require(script.Parent.Steps.Step)
 local LockDraftsStep = require(script.Parent.Steps.LockDraftsStep)
 local LobbyStep = require(script.Parent.Steps.LobbyStep)
 local BillsStep = require(script.Parent.Steps.BillsStep)
-local StubStep = require(script.Parent.Steps.StubStep)
 local BuildStep = require(script.Parent.Steps.BuildStep)
 local ProductionStep = require(script.Parent.Steps.ProductionStep)
 local MarketStep = require(script.Parent.Steps.MarketStep)
@@ -23,6 +20,8 @@ local PublicServicesStep = require(script.Parent.Steps.PublicServicesStep)
 local UpkeepStep = require(script.Parent.Steps.UpkeepStep)
 local InfluenceStep = require(script.Parent.Steps.InfluenceStep)
 local PromisesStep = require(script.Parent.Steps.PromisesStep)
+local ScoringStep = require(script.Parent.Steps.Scoring)
+local VictoryCheckStep = require(script.Parent.Steps.VictoryCheck)
 local DayEndStep = require(script.Parent.Steps.DayEndStep)
 
 type MatchState = Types.MatchState
@@ -59,8 +58,8 @@ local function defaultSteps(): { Runner }
 		runner(UpkeepStep.new()), -- R9
 		runner(InfluenceStep.new()), -- R10
 		runner(PromisesStep.new()), -- R11
-		runner(StubStep.new("Scoring")), -- R12 (M5)
-		runner(StubStep.new("VictoryCheck")), -- R13 (M5)
+		runner(ScoringStep.new()), -- R12
+		runner(VictoryCheckStep.new()), -- R13
 		runner(DayEndStep.new()), -- R14
 	}
 end

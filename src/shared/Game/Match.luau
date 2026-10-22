@@ -80,6 +80,13 @@ end
 -- The rng is the resolution stream; the Match's own rng serves live
 -- actions, and passing the stream in keeps a replay reproducible.
 function Match.resolveDay(self: Match, rng: RngType): MatchState
+	-- An ended match is final (11.2, D-070): the result lives in the state,
+	-- and resolving another Day past it is a server bug the scheduler must
+	-- prevent — never a player action.
+	if self._state.victory ~= nil then
+		error("Match:resolveDay: the match has ended", 0)
+	end
+
 	local working = StateOps.deepCopy(self._state)
 	local ctx: StepContext = {
 		rng = rng,
@@ -90,6 +97,9 @@ function Match.resolveDay(self: Match, rng: RngType): MatchState
 			salesRevenue = {},
 			unpaidSlots = 0,
 			employedWorkers = 0,
+			startMoney = {},
+			unmetByClass = {},
+			passedBills = {},
 		},
 	}
 	self._pipeline:run(working, ctx)

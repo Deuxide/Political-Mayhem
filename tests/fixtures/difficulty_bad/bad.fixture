@@ -1,0 +1,9 @@
+--!nocheck
+-- Fixture for the difficulty-names lint: both forbidden patterns.
+local state = { difficulty = "Normal" }
+
+local function isHard(): boolean
+	return state.difficulty == "Hard"
+end
+
+return isHard
