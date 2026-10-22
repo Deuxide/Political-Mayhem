@@ -149,6 +149,15 @@ export type PromiseSpec =
 	| { kind: "NoBreakAlliance", untilDay: number }
 
 -- A promise record. Not enforced by the game; audited for Reputation (8.3).
+-- `progress` holds what the promise has collected so far, so the audit can
+-- look at the events that happened instead of the drafts that are gone.
+export type PromiseProgress = {
+	delivered: number?, -- Deliver: the amount transferred so far
+	yesVoted: boolean?, -- VoteYes: a matching yes vote was cast
+	struck: boolean?, -- NoStrike: the promisor struck the promisee
+	broken: boolean?, -- NoBreakAlliance: the alliance was broken
+}
+
 export type Promise = {
 	id: PromiseId,
 	kind: PromiseKind,
@@ -157,6 +166,7 @@ export type Promise = {
 	to: ClassId, -- promisee
 	createdDay: number,
 	status: "open" | "kept" | "broken",
+	progress: PromiseProgress,
 }
 
 -- A live trade offer during the Window (GAME_DESIGN 8.2); expires with the
@@ -178,6 +188,15 @@ export type Alliance = {
 	id: AllianceId,
 	members: { ClassId },
 	formedOnDay: number,
+}
+
+-- A pending alliance proposal: one class proposes, the other accepts
+-- (GAME_DESIGN 8.4). Live during the Window, like the trade offers.
+export type AllianceProposal = {
+	id: string,
+	from: ClassId,
+	to: ClassId,
+	proposedDay: number,
 }
 
 -- Promise-keeping tally for one class: display value and bot trust input (8.3).
@@ -295,6 +314,7 @@ export type MatchState = {
 	trades: { TradeOffer }, -- live this Window
 	promises: { Promise },
 	alliances: { Alliance },
+	allianceProposals: { AllianceProposal }, -- live this Window
 	reputation: { [ClassId]: Reputation },
 	drafts: { [ClassId]: ActionDraft },
 	eventLog: { LogEntry },

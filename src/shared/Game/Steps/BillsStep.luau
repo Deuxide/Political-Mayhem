@@ -12,6 +12,7 @@
 local Types = require(script.Parent.Parent.Types)
 local Step = require(script.Parent.Step)
 local Bills = require(script.Parent.Parent.Ops.Bills)
+local Promises = require(script.Parent.Parent.Ops.Promises)
 
 type ClassId = Types.ClassId
 type LogEntry = Types.LogEntry
@@ -67,6 +68,20 @@ function BillsStep.run(_self: BillsStep, state: MatchState, _ctx: StepContext)
 				text = `The bill on {bill.policyId} failed ({tally.yesWeight} for, {tally.noWeight} against — {tally.reason})`,
 				actor = bill.proposer,
 			})
+		end
+
+		-- a yes vote on this bill counts towards the open VoteYes promises
+		-- of the classes that cast it (8.3)
+		for ci = 1, #Types.CLASS_IDS do
+			local classId: ClassId = Types.CLASS_IDS[ci] :: any
+			if Bills.sideOf(state, classId, bill.id) == "yes" then
+				Promises.deliver(state, {
+					kind = "VoteYes",
+					from = classId,
+					policyId = bill.policyId,
+					level = bill.level,
+				})
+			end
 		end
 	end
 
