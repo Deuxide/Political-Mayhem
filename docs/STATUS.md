@@ -9,12 +9,12 @@ Last updated: 2026-10-22
 
 - **Project:** Political Mayhem
 - **Current milestone:** M6 (Server runtime and networking)
-- **Current task:** M7-T1 — the `Net` client wrapper and the `Store` (M7-T0, the design system, is committed; its Studio check waits for the M7 batch).
+- **Current task:** M7-T2 — the `App` shell: the four-corner layout, the top bar and the countdown (UI_SPEC section 2).
 - **Project phase:** M5 merged to stable (`56f9420 "Merge M5"`, 2026-10-22); M6 started on `M6-dev1` off that merge.
 - **Current branch:** M7-dev1 — created 2026-10-22 off merged stable (0f3d4e5 "Merge M6"). The old `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push -u origin M6-dev1` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** M6 (0f3d4e5)
-- **Last `scripts/check` result:** CHECK PASSED (330/330 tests)
+- **Last `scripts/check` result:** CHECK PASSED (388/388 tests)
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
 
@@ -59,6 +59,7 @@ Last updated: 2026-10-22
 - [x] M4 milestone: agent-led Studio verification passed (2026-10-22) — tree + byte-identical modules, in-engine transfer/trade/promise/alliance, in-play server probe, clean playtest; owner merges `M4-dev2` → `Linux-stable`
 - [x] M4 milestone: owner merged (`014de5c "Merge M4"`, 2026-10-22)
 - [x] M5 milestone: agent-led Studio verification passed (2026-10-22) — tree + eight byte-identical modules, in-engine gate G1 (final victory Day 12), scenarios S5 (shared victory) and S6 (collapse), in-play partial/fog/allied visibility; **milestone ready, awaiting the owner's merge**
+- [x] M7-T1: the client net layer and the store — `client/Net/Client` (waits for the server's remotes, sends the intents, feeds the store) and `client/State/Store` (the shape of UI_SPEC section 7 with pure reducers: the snapshot replaces the view and the draft, a phase change sets the phase and the server offset, the patches set the draft and append the bills and the alliances, the local draft is pending until the server echoes it and a refusal shows the server's copy again); 7 new tests
 - [x] M7-T0: the design system — `UI/Theme/Tokens` (the only file with raw colors, fonts and numbers), `UI/Theme/Gradients` (the typed GradientSpec and its builders), `UI/Theme/Skins/Default` and `UI/Theme/Skins/Contrast` (two skins, the semantic roles), `UI/Theme/ThemeContext` (the React context and `useTheme`), the primitives (`Surface` — the only component that creates a `UIGradient` —, `Text`, `Button`, `Icon`, `Divider`) and the composites (`Card`, `ResourceChip`, `SegmentedTrack`, `Stepper`, `Tabs`, `Modal`, `Toast`), and the `Gallery` screen that shows every component in every state with a skin switcher; the client now mounts the Gallery instead of the M0 scaffold
 - [x] M6 milestone: batched Studio L2 passed (2026-10-22) — the tree and the boot script match the repo, 24 remotes under `ReplicatedStorage.Shared.Net`, one human plus three bots in the match, the phases advancing on the server's timer with `Phase_Changed`, the fog snapshot showing only the allowed fields, the handlers refusing bad payloads and accepting good ones, and the disconnect logging the 20 s takeover; **milestone ready, awaiting the owner's merge**
 - [x] M6-T3: `MatchService` — the phase scheduler (Window, Resolve, Reveal) on the server's clock, with the phase in the state, `Phase_Changed` announced, the per-Day state hash logged, and a late timer ignored; the clock and the timer are injected so the test drives the same code one timer at a time
@@ -75,12 +76,11 @@ Last updated: 2026-10-22
 
 ## In progress
 
-M7-T1 — the `Net` client wrapper and the `Store` (UI_SPEC section 7): the
-store updates from the snapshot and the patches, with unit-tested reducers.
+M7-T2 — the `App` shell: the four-corner layout, the top bar and the
+countdown, built from the design system only (UI_SPEC section 2).
 
 ## Next up
 
-- M7-T1: the `Net` client wrapper and the `Store` (snapshot + patch reducers, unit-tested).
 - M7-T2: the `App` shell — the four-corner layout, the top bar, the countdown (UI_SPEC section 2).
 - M7-T3: `OwnClassPanel` and `ClassCard` (hidden fields render `?`).
 - M7-T4: the `EconomyTab` (debounced `Draft_Update` + a sync indicator).

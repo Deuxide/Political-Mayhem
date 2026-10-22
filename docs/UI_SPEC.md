@@ -121,7 +121,7 @@ Store {
   connection: { status, protocol }
   lobby: { seats, hostUserId, difficulty }
   match: { view: PlayerView?, phase, day, endsAt, serverOffset }
-  draft: { local: ActionDraft, seq, syncState }   -- local edits
+  draft: { current: ActionDraft, seq, syncState }   -- local edits
   inbox: { offers, bills, notices }
   chat: { channels: { [name]: {Message} }, unread }
   ui: { activeTab, drawerOpen, selectedClass, modals }
