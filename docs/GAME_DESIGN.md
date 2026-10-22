@@ -85,6 +85,7 @@ MatchState
   drafts: { [ClassId]: ActionDraft }      -- sticky action sets
   eventLog: { LogEntry }       -- append-only, for the Evening Report
   scheduledEvents: { EventId }            -- V2, empty on Easy/Normal
+  victory: VictoryResult?      -- set once when the match ends (11.2)
 
 ClassState
   id: ClassId

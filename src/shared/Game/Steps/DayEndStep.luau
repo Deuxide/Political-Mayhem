@@ -35,6 +35,12 @@ function DayEndStep.run(_self: DayEndStep, state: MatchState, _ctx: StepContext)
 		text = `Day {state.day} closed`,
 	})
 
+	-- The match ended at this Closing Bell (R13): the Day just closed is the
+	-- last one, so there is no next Day to roll the drafts into (D-070).
+	if state.victory ~= nil then
+		return
+	end
+
 	for ci = 1, #Types.CLASS_IDS do
 		local classId: ClassId = Types.CLASS_IDS[ci] :: any
 		local draft = state.drafts[classId]

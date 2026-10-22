@@ -319,6 +319,7 @@ export type MatchState = {
 	drafts: { [ClassId]: ActionDraft },
 	eventLog: { LogEntry },
 	scheduledEvents: { EventId }, -- V2, empty on Easy/Normal
+	victory: VictoryResult?, -- set once when the match ends (11.2, D-070)
 }
 
 -- ===== Runtime mirrors =====
