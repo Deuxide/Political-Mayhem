@@ -6,8 +6,10 @@
 local Players = game:GetService("Players")
 local workspace = game:GetService("Workspace")
 local TextService = game:GetService("TextService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteFactory = require(script.Net.RemoteFactory)
 local LobbyService = require(script.Services.LobbyService)
+local ConfigLobby = require(ReplicatedStorage.Shared.Config.Lobby)
 local MatchService = require(script.Services.MatchService)
 local LobbyHandlers = require(script.Handlers.LobbyHandlers)
 local Replication = require(script.Replication)
@@ -101,15 +103,33 @@ ChatHandlers.connect(support)
 
 local function onPlayerAdded(player: any)
 	if lobby:seatOf(player.UserId) ~= nil then
-		return
+		-- the player came back: the seat controls its class again
+		lobby:reconnect(player.UserId)
+		print(`[Lobby] {player.Name} came back`)
+	else
+		local seat = lobby:join(player.UserId, player.Name)
+		print(`[Lobby] {seat.name} joined the lobby`)
 	end
-	local seat = lobby:join(player.UserId, player.Name)
-	print(`[Lobby] {seat.name} joined the lobby`)
 	-- a player that joins gets the view of its own class (NETWORKING 3.2)
 	Replication.snapshot(support, player)
 end
 
+-- A player who leaves keeps their seat, but nobody controls the class
+-- until they come back or a bot takes over (NETWORKING 6).
+local function onPlayerRemoving(player: any)
+	if not lobby:disconnect(player.UserId) then
+		return
+	end
+	print(`[Lobby] {player.Name} left; a bot takes over in {ConfigLobby.takeoverSeconds}s`)
+	task.delay(ConfigLobby.takeoverSeconds, function()
+		if lobby:takeover(player.UserId) then
+			print(`[Lobby] a bot took over {player.Name}'s class`)
+		end
+	end)
+end
+
 Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerRemoving:Connect(onPlayerRemoving)
 for _, player in Players:GetPlayers() do
 	onPlayerAdded(player)
 end

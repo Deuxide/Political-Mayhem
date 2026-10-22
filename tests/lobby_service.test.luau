@@ -158,6 +158,44 @@ function M.run()
 		Lib.eq(#Seats.rolesFor(4), 4, "a fourth player joins")
 		Lib.eq(Seats.rolesFor(4)[4][1], "Advisor", "as an advisor")
 	end)
+
+	Lib.test(
+		"a player who leaves keeps the seat, and a bot takes over after the grace period",
+		function()
+			local lobby = newLobby()
+			lobby:join(11, "Ana")
+			lobby:setClass(11, "Middle")
+			lobby:setReady(11, true)
+
+			Lib.truthy(lobby:disconnect(11), "the player left")
+			Lib.eq(lobby:seatOf(11).connected, false, "the seat knows the player is away")
+			Lib.eq(lobby:seatOf(11).botControlled, false, "nobody plays the class yet")
+
+			Lib.truthy(lobby:takeover(11), "the bot takes over")
+			Lib.eq(lobby:seatOf(11).botControlled, true, "the class is played by a bot")
+			Lib.eq(lobby:takeover(11), false, "the takeover happens once")
+		end
+	)
+
+	Lib.test("a player who comes back in time keeps the class", function()
+		local lobby = newLobby()
+		lobby:join(11, "Ana")
+		lobby:disconnect(11)
+		Lib.truthy(lobby:reconnect(11), "the player came back")
+		Lib.eq(lobby:seatOf(11).connected, true, "the seat is connected again")
+		Lib.eq(lobby:takeover(11), false, "no bot takes over a class that is back")
+		Lib.eq(lobby:seatOf(11).botControlled, false, "the class is the player's again")
+	end)
+
+	Lib.test("a player who comes back after the takeover gets the class back", function()
+		local lobby = newLobby()
+		lobby:join(11, "Ana")
+		lobby:disconnect(11)
+		lobby:takeover(11)
+		lobby:reconnect(11)
+		Lib.eq(lobby:seatOf(11).botControlled, false, "the class is the player's again")
+		Lib.eq(lobby:seatOf(11).connected, true, "and the seat is connected")
+	end)
 end
 
 return M

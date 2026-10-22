@@ -20,6 +20,7 @@ export type Seat = {
 	roles: { Role },
 	connected: boolean,
 	ready: boolean,
+	botControlled: boolean, -- a bot plays the class while the player is away
 }
 
 local Seats = {}

@@ -125,6 +125,16 @@ end
 -- The sender must have a seat and a class; a client that never joined gets
 -- nothing.
 function Support.authenticated(support: Support, player: any): ClassId?
+	local seat = support.lobby:seatOf(player.UserId)
+	if seat == nil then
+		Support.notice(support, player, "NotSeated", "you are not in this match")
+		return nil
+	end
+	if not seat.connected then
+		-- the player left; the class is played by a bot until they come back
+		Support.notice(support, player, "Disconnected", "you are not connected")
+		return nil
+	end
 	local classId: ClassId? = Support.classOf(support, player) :: any
 	if classId == nil then
 		Support.notice(support, player, "NotSeated", "you are not in this match")

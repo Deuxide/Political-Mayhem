@@ -25,6 +25,7 @@ function BotService.seatFor(classId: ClassId): Seat
 		roles = { "Economy", "Politics", "Diplomacy" },
 		connected = true,
 		ready = true,
+		botControlled = false,
 	}
 end
 

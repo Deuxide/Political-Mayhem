@@ -382,6 +382,23 @@ function M.run()
 		Lib.eq(game.notices()[1].code, "InvalidPayload", "the client is told why")
 	end)
 
+	Lib.test("a player who left cannot act (NETWORKING 6)", function()
+		local game = newGame()
+		game.lobby:disconnect(game.player.UserId)
+		game.remotes.Draft_Update.fire(game.player, {
+			seq = 1,
+			draft = {
+				sequence = 1,
+				openSlots = {},
+				assign = {},
+				market = { sell = {}, buy = {} },
+				votes = {},
+			},
+		})
+		Lib.eq(game.state().drafts.Middle.sequence, 0, "the state did not change")
+		Lib.eq(game.notices()[1].code, "Disconnected", "the client is told why")
+	end)
+
 	Lib.test("no client remote can move a phase (NETWORKING 8)", function()
 		for _, name in Remotes.CLIENT_TO_SERVER do
 			Lib.eq(

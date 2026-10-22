@@ -78,6 +78,7 @@ function LobbyService.join(self: LobbyService, userId: number, name: string): Se
 		roles = { "Economy", "Politics", "Diplomacy" },
 		connected = true,
 		ready = false,
+		botControlled = false,
 	}
 	self._seats[seat.id] = seat
 	table.insert(self._order, seat.id)
@@ -86,6 +87,42 @@ function LobbyService.join(self: LobbyService, userId: number, name: string): Se
 	end
 	self:_refreshRoles()
 	return seat
+end
+
+-- The player left: the seat stays, but nobody controls the class until the
+-- player comes back or a bot takes over (NETWORKING 6).
+function LobbyService.disconnect(self: LobbyService, userId: number): boolean
+	local seat = self:seatOf(userId)
+	if seat == nil then
+		return false
+	end
+	seat.connected = false
+	return true
+end
+
+-- The player came back: the seat controls its class again.
+function LobbyService.reconnect(self: LobbyService, userId: number): boolean
+	local seat = self:seatOf(userId)
+	if seat == nil then
+		return false
+	end
+	seat.connected = true
+	seat.botControlled = false
+	return true
+end
+
+-- A bot takes over the class of a player who did not come back in time.
+-- The takeover only happens once, and only while the player is away.
+function LobbyService.takeover(self: LobbyService, userId: number): boolean
+	local seat = self:seatOf(userId)
+	if seat == nil then
+		return false
+	end
+	if seat.connected or seat.botControlled then
+		return false
+	end
+	seat.botControlled = true
+	return true
 end
 
 function LobbyService.seatOf(self: LobbyService, userId: number): Seat?
