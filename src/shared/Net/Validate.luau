@@ -191,6 +191,7 @@ function Validate.isDraftShape(value: any): boolean
 	for key in value do
 		if
 			key ~= "sequence"
+			and key ~= "locked"
 			and key ~= "openSlots"
 			and key ~= "assign"
 			and key ~= "strike"
@@ -204,6 +205,9 @@ function Validate.isDraftShape(value: any): boolean
 	end
 
 	if not Validate.isNonNegInt(value.sequence, ConfigNetwork.maxSequence) then
+		return false
+	end
+	if type(value.locked) ~= "boolean" then
 		return false
 	end
 

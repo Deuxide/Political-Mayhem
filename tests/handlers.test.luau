@@ -129,6 +129,7 @@ function M.run()
 			seq = 1,
 			draft = {
 				sequence = 1,
+				locked = false,
 				openSlots = { ["Farm-1"] = 99 },
 				assign = {},
 				market = { sell = {}, buy = {} },
@@ -149,6 +150,7 @@ function M.run()
 			seq = 1,
 			draft = {
 				sequence = 1,
+				locked = false,
 				openSlots = {},
 				assign = {},
 				market = { sell = {}, buy = {} },
@@ -168,6 +170,9 @@ function M.run()
 			draft = {
 				sequence = 5,
 				openSlots = {},
+				locked = false,
+				openSlots = {},
+				openSlots = {},
 				assign = {},
 				market = { sell = {}, buy = {} },
 				votes = {},
@@ -177,6 +182,9 @@ function M.run()
 			seq = 2,
 			draft = {
 				sequence = 2,
+				openSlots = {},
+				locked = false,
+				openSlots = {},
 				openSlots = {},
 				assign = {},
 				market = { sell = {}, buy = {} },
@@ -195,6 +203,7 @@ function M.run()
 			seq = 1,
 			draft = {
 				sequence = 1,
+				locked = false,
 				openSlots = {},
 				assign = {},
 				market = { sell = {}, buy = {} },
@@ -213,6 +222,7 @@ function M.run()
 				seq = index,
 				draft = {
 					sequence = index,
+					locked = false,
 					openSlots = {},
 					assign = {},
 					market = { sell = {}, buy = {} },
@@ -225,6 +235,9 @@ function M.run()
 			seq = 6,
 			draft = {
 				sequence = 6,
+				openSlots = {},
+				locked = false,
+				openSlots = {},
 				openSlots = {},
 				assign = {},
 				market = { sell = {}, buy = {} },
@@ -242,6 +255,7 @@ function M.run()
 			seq = 1,
 			draft = {
 				sequence = 1,
+				locked = false,
 				openSlots = {},
 				assign = {},
 				market = { sell = {}, buy = {} },
@@ -389,6 +403,7 @@ function M.run()
 			seq = 1,
 			draft = {
 				sequence = 1,
+				locked = false,
 				openSlots = {},
 				assign = {},
 				market = { sell = {}, buy = {} },

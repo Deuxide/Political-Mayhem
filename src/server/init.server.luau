@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RemoteFactory = require(script.Net.RemoteFactory)
 local LobbyService = require(script.Services.LobbyService)
 local ConfigLobby = require(ReplicatedStorage.Shared.Config.Lobby)
+local Types = require(ReplicatedStorage.Shared.Game.Types)
 local MatchService = require(script.Services.MatchService)
 local LobbyHandlers = require(script.Handlers.LobbyHandlers)
 local Replication = require(script.Replication)
@@ -59,7 +60,17 @@ end, filterChat)
 
 LobbyHandlers.connect(remotes, lobby, function(match)
 	local state = match:state()
-	print(`[Lobby] match {state.id} started ({state.difficulty}, seed {state.seed})`)
+	local seats = {}
+	for index = 1, #Types.CLASS_IDS do
+		local classId: Types.ClassId = Types.CLASS_IDS[index] :: any
+		table.insert(seats, `{classId}: {table.concat(state.classes[classId].seats, ", ")}`)
+	end
+	print(
+		`[Lobby] match {state.id} started ({state.difficulty}, seed {state.seed}) - {table.concat(
+			seats,
+			" | "
+		)}`
+	)
 
 	-- The phase scheduler: the server owns the clock, and no client can move
 	-- a phase (NETWORKING 5 and 8).

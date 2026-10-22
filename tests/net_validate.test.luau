@@ -100,6 +100,7 @@ function M.run()
 	Lib.test("isDraftShape accepts a whole draft and rejects extra keys", function()
 		local draft = {
 			sequence = 3,
+			locked = false,
 			openSlots = { ["Farm-1"] = 2 },
 			assign = { ["Farm-1"] = 1 },
 			strike = { target = "Middle" },
@@ -120,6 +121,18 @@ function M.run()
 		Lib.eq(Validate.isDraftShape({}), false, "a draft without the required fields")
 		Lib.eq(
 			Validate.isDraftShape({
+				sequence = 1,
+				locked = false,
+				openSlots = {},
+				assign = {},
+				market = { sell = {}, buy = {} },
+				votes = {},
+			}),
+			true,
+			"a draft with the lock flag"
+		)
+		Lib.eq(
+			Validate.isDraftShape({
 				sequence = 1.5,
 				openSlots = {},
 				assign = {},
@@ -132,6 +145,7 @@ function M.run()
 		Lib.eq(
 			Validate.isDraftShape({
 				sequence = 1,
+				locked = false,
 				openSlots = {},
 				assign = {},
 				market = { sell = {}, buy = {} },
@@ -146,6 +160,7 @@ function M.run()
 	Lib.test("clampDraft keeps a valid draft and never mutates the input", function()
 		local draft = {
 			sequence = 4,
+			locked = false,
 			openSlots = { ["Farm-1"] = 2 },
 			assign = { ["Farm-1"] = 1 },
 			strike = nil,
@@ -173,6 +188,7 @@ function M.run()
 	Lib.test("clampDraft drops what the state does not know", function()
 		local safe = Validate.clampDraft({
 			sequence = 1,
+			locked = false,
 			openSlots = { ["Farm-1"] = 1, ["Nope-9"] = 1 },
 			assign = { ["Nope-9"] = 3 },
 			strike = { target = "Banker" },
@@ -196,6 +212,7 @@ function M.run()
 	Lib.test("clampDraft caps the values to what the game allows", function()
 		local safe = Validate.clampDraft({
 			sequence = 1,
+			locked = false,
 			openSlots = { ["Farm-1"] = 99 },
 			assign = { ["Farm-1"] = 999 },
 			market = { sell = { food = 99 }, buy = {} },
