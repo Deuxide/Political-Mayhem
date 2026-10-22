@@ -45,6 +45,7 @@ local suites = {
 	require("./gate_g1.test"),
 	require("./net_remotes.test"),
 	require("./net_validate.test"),
+	require("./lobby_service.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }

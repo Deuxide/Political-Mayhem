@@ -44,6 +44,11 @@ for i = 1, #Types.POLICY_IDS do
 	POLICY_IDS[Types.POLICY_IDS[i]] = true
 end
 
+local DIFFICULTIES: { [string]: boolean } = {}
+for i = 1, #Types.DIFFICULTIES do
+	DIFFICULTIES[Types.DIFFICULTIES[i]] = true
+end
+
 local RESOURCE_IDS: { [string]: boolean } = {}
 for i = 1, #Types.RESOURCE_IDS do
 	RESOURCE_IDS[Types.RESOURCE_IDS[i]] = true
@@ -108,6 +113,10 @@ end
 
 function Validate.isPolicyId(value: any): boolean
 	return type(value) == "string" and POLICY_IDS[value] == true
+end
+
+function Validate.isDifficulty(value: any): boolean
+	return type(value) == "string" and DIFFICULTIES[value] == true
 end
 
 -- A line that exists in this match (ids are per match, so the state decides).
