@@ -43,6 +43,12 @@ local suites = {
 	require("./scenario_s5.test"),
 	require("./scenario_s6.test"),
 	require("./gate_g1.test"),
+	require("./net_remotes.test"),
+	require("./net_validate.test"),
+	require("./lobby_service.test"),
+	require("./match_service.test"),
+	require("./handlers.test"),
+	require("./replication.test"),
 	require("./children_guard.test"),
 	require("./ui_rules.test"),
 }

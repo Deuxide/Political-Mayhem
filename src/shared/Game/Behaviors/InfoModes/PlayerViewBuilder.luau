@@ -133,6 +133,7 @@ function PlayerViewBuilder.build(
 		stability = snapshot.stability,
 		policies = snapshot.policies,
 		own = snapshot.classes[viewer],
+		draft = snapshot.drafts[viewer],
 		others = others,
 		bills = snapshot.bills,
 		promises = snapshot.promises,

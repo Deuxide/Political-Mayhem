@@ -176,6 +176,20 @@ function Trade.respond(
 	return true, ""
 end
 
+-- The sender withdraws an offer. Only the class that made the offer may
+-- cancel it, and only while it is still pending.
+function Trade.cancel(state: MatchState, tradeId: TradeId, from: ClassId): (boolean, string)
+	local offer = Trade.find(state, tradeId)
+	if offer == nil then
+		return false, "unknown trade offer"
+	end
+	if offer.from ~= from then
+		return false, "that offer is not yours to cancel"
+	end
+	remove(state, offer)
+	return true, ""
+end
+
 -- Drops the offers whose Window has ended; returns how many were dropped.
 function Trade.expireOffers(state: MatchState, nowSeconds: number): number
 	local dropped = 0

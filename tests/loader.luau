@@ -84,6 +84,20 @@ function Loader.mount(path: string)
 	return scan(path, path, nil)
 end
 
+-- Lune has no `game` and no `ReplicatedStorage`. A server module reaches the
+-- shared code the way Roblox does — `game:GetService("ReplicatedStorage")`
+-- then a path into it — so the loader hands every module a `game` whose
+-- GetService returns the mounted root's "shared" folder as
+-- `ReplicatedStorage.Shared`. Mount "src" to get it; mounting "src/shared"
+-- alone leaves the shim out (nothing there needs it).
+local function rootOf(node: any): any
+	local current = node
+	while rawget(current, "Parent") ~= nil do
+		current = rawget(current, "Parent")
+	end
+	return current
+end
+
 function Loader.require(node)
 	local file = rawget(node, "_file")
 	if not file then
@@ -92,6 +106,10 @@ function Loader.require(node)
 	if cache[file] ~= nil then
 		return cache[file]
 	end
+
+	local root = rootOf(node)
+	local rootChildren = rawget(root, "_children")
+	local sharedNode = if rootChildren ~= nil then rootChildren["shared"] else nil
 
 	local env = setmetatable({
 		script = node,
@@ -102,6 +120,16 @@ function Loader.require(node)
 			error("loader: unsupported require target (use script-relative paths)", 2)
 		end,
 	}, { __index = _G })
+	if sharedNode ~= nil then
+		env.game = {
+			GetService = function(_self: any, serviceName: string): any
+				if serviceName == "ReplicatedStorage" then
+					return { Shared = sharedNode }
+				end
+				error(`loader: no shim for the service '{serviceName}'`, 2)
+			end,
+		}
+	end
 
 	local chunk = luau.load(fs.readFile(file), { debugName = file, environment = env })
 	local result = chunk()

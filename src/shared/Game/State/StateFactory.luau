@@ -84,6 +84,7 @@ local function initialDraft(): Types.ActionDraft
 	-- alliances, bill proposals) have no draft fields at all.
 	return {
 		sequence = 0,
+		locked = false,
 		openSlots = {},
 		assign = {},
 		market = { sell = {}, buy = {} },

@@ -33,6 +33,7 @@ export type DifficultyEntry = {
 
 export type DifficultyConfig = {
 	[Difficulty]: DifficultyEntry,
+	defaultDifficulty: Difficulty, -- the lobby's starting choice (M6-T2)
 }
 
 local ALL_POLICY_IDS: { PolicyId } = table.freeze({
@@ -46,6 +47,7 @@ local ALL_POLICY_IDS: { PolicyId } = table.freeze({
 } :: { PolicyId })
 
 return table.freeze({
+	defaultDifficulty = "Normal",
 	Easy = {
 		rounds = 8,
 		windowSeconds = 90,

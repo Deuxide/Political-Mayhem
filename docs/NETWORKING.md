@@ -64,7 +64,7 @@ that the sender may not edit are rejected as a whole):
 | `View_Snapshot` | `{ protocol, view: PlayerView, serverTime }` | on join, phase change, reconnect |
 | `View_Patch` | `{ ops: {PatchOp}, serverTime }` | live changes mid-window (trades, bills, alliances, stability ticks) |
 | `Phase_Changed` | `{ phase, day, endsAt }` | on every phase change (`endsAt` is server time) |
-| `Reveal_Report` | `{ day, events: {LogEntry}, deltas: ... }` | at start of Reveal |
+| `Reveal_Report` | `{ day, events: {LogEntry}, deltas: { [ClassId]: { money, influence, stock: { [StockId]: number }, vp } } }` | at start of Reveal |
 | `Trade_Incoming` | `{ offer: TradeOffer }` | recipient's Diplomacy role only |
 | `Trade_Result` | `{ requestId?, offerId, status: "accepted"\|"declined"\|"failed"\|"expired", reason? }` | both parties |
 | `Chat_Message` | `{ channel, fromClass, fromName, text, t }` | per channel audience |
@@ -85,6 +85,8 @@ When in doubt, send a full `View_Snapshot`; correctness beats bandwidth.
 - At window close, the server resolves from its stored draft, never from
   anything sent later.
 - Sticky fields are copied to the next Day's draft by the server at Reveal.
+- The draft carries a `locked` flag: the class may lock its draft in early,
+  and the window still ends on the timer.
 
 ## 5. Time
 
@@ -100,13 +102,18 @@ When in doubt, send a full `View_Snapshot`; correctness beats bandwidth.
 ## 6. Seats and roles
 
 ```
-Seat { id, kind: "Human"|"Bot", userId?, class, roles: {Role}, connected }
+Seat { id, kind: "Human"|"Bot", userId?, class, roles: {Role}, connected,
+       ready, botControlled }
 Role = "Economy" | "Politics" | "Diplomacy" | "Advisor"
 ```
 
+`class` is empty until the player picks one; `botControlled` is true while a
+bot plays the class of a player who left.
+
 - Assignment rules: GAME_DESIGN section 14.
-- Disconnect: after 20 s the seat's roles are controlled by a bot. Reconnect
-  returns control and sends a `View_Snapshot`.
+- Disconnect: after 20 s (`Config/Lobby.takeoverSeconds`) the seat's roles
+  are controlled by a bot. Reconnect returns control and sends a
+  `View_Snapshot`.
 
 ## 7. Validation toolkit (`shared/Net/Validate.luau`)
 
@@ -116,6 +123,10 @@ Provide and unit-test these helpers; handlers must use them:
 - `isNonNegInt(n, max)`, `isResourceBag(t)`, `isShortString(s, max)`
 - `isDraftShape(t)` (whitelist keys; reject extra keys)
 - `clampDraft(draft, state)` returns a safe draft; never mutates input
+
+The size caps (chat length, table entries, table depth, sequence number) live
+in `src/shared/Config/Network.luau`; the per-remote rate limits live there
+too when the handlers arrive (M6-T4).
 
 Reject (don't coerce): NaN, infinity, negative, non-integers where integers are
 required, unknown keys, unexpectedly large tables (depth > 4 or > 200 entries).

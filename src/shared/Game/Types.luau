@@ -58,6 +58,14 @@ export type InfoMode = "open" | "partial" | "fog"
 -- comparison, or collapse (no winner).
 export type VictoryKind = "solo" | "shared" | "final" | "collapse"
 
+-- Team roles on a class (GAME_DESIGN 14, NETWORKING 6): who may touch which
+-- part of the draft or which live action.
+export type Role = "Economy" | "Politics" | "Diplomacy" | "Advisor"
+
+-- Chat channels (NETWORKING 3.1). "Class" targets one class, "Team" the
+-- sender's own class team.
+export type ChatChannel = "Global" | "Team" | "Class"
+
 -- ===== Id aliases =====
 
 -- IDs are strings (GAME_DESIGN 4); aliases below document the intent of each.
@@ -224,6 +232,7 @@ export type StrikeSpec = { target: ClassId }
 -- chat) are separate immediates and have no draft fields here.
 export type ActionDraft = {
 	sequence: number, -- bumped on each accepted client update
+	locked: boolean, -- the class locked its draft in early (NETWORKING 3.1)
 	openSlots: { [LineId]: number }, -- line owners
 	assign: { [LineId]: number }, -- Working only
 	strike: StrikeSpec?, -- Working only
@@ -284,6 +293,7 @@ export type PlayerView = {
 	stability: number,
 	policies: { [PolicyId]: number },
 	own: ClassState,
+	draft: ActionDraft, -- the viewer's class draft (NETWORKING 4)
 	others: { [ClassId]: ClassView },
 	bills: { Bill }, -- live proposals; ballots stay secret in the drafts
 	promises: { Promise }, -- public in every mode
@@ -304,7 +314,7 @@ export type MatchState = {
 	difficulty: Difficulty,
 	day: number,
 	phase: Phase,
-	phaseEndsAt: number, -- epoch ms when the current phase ends; 0 = unscheduled
+	phaseEndsAt: number, -- epoch seconds when the current phase ends; 0 = unscheduled
 	stability: number, -- 0..100
 	collapseCounter: number, -- consecutive Days at stability 0
 	policies: { [PolicyId]: number },
@@ -343,6 +353,8 @@ local POLICY_IDS: { PolicyId } = {
 	"StrikeRights",
 }
 local LINE_TYPES: { LineType } = { "Farm", "Factory", "Clinic", "School" }
+local ROLES: { Role } = { "Economy", "Politics", "Diplomacy", "Advisor" }
+local CHAT_CHANNELS: { ChatChannel } = { "Global", "Team", "Class" }
 
 Types.CLASS_IDS = table.freeze(CLASS_IDS)
 Types.RESOURCE_IDS = table.freeze(RESOURCE_IDS)
@@ -351,5 +363,7 @@ Types.PHASES = table.freeze(PHASES)
 Types.DIFFICULTIES = table.freeze(DIFFICULTIES)
 Types.POLICY_IDS = table.freeze(POLICY_IDS)
 Types.LINE_TYPES = table.freeze(LINE_TYPES)
+Types.ROLES = table.freeze(ROLES)
+Types.CHAT_CHANNELS = table.freeze(CHAT_CHANNELS)
 
 return table.freeze(Types)
