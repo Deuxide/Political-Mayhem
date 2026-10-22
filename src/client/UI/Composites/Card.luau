@@ -36,9 +36,9 @@ function Card.render(props: CardProps): any
 	table.insert(
 		header,
 		React.createElement(
-			Surface,
+			Surface.render,
 			{
-				gradient = "accent." .. tone,
+				gradient = if tone == "neutral" then "surface.header" else "accent." .. tone,
 				size = UDim2.new(1, 0, 0, 28),
 			},
 			React.createElement(Text.render, {

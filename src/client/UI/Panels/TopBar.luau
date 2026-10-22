@@ -37,7 +37,7 @@ function TopBar.render(props: TopBarProps): any
 	local left: { any } = {}
 	table.insert(
 		left,
-		React.createElement(Text, {
+		React.createElement(Text.render, {
 			text = string.format("Day %d of %d", props.day, props.rounds),
 			tone = "primary",
 			size = "m",
@@ -48,7 +48,7 @@ function TopBar.render(props: TopBarProps): any
 	local middle: { any } = {}
 	table.insert(
 		middle,
-		React.createElement(Text, {
+		React.createElement(Text.render, {
 			text = PHASE_NAMES[props.phase] or props.phase,
 			tone = "secondary",
 			size = "s",
@@ -67,7 +67,7 @@ function TopBar.render(props: TopBarProps): any
 	local right: { any } = {}
 	table.insert(
 		right,
-		React.createElement(Text, {
+		React.createElement(Text.render, {
 			text = "Stability",
 			tone = "muted",
 			size = "xs",
@@ -102,7 +102,7 @@ function TopBar.render(props: TopBarProps): any
 		if level ~= nil and level > 0 then
 			table.insert(
 				ticker,
-				React.createElement(Text, {
+				React.createElement(Text.render, {
 					text = string.format("%s %d", name, level),
 					tone = "muted",
 					size = "xs",
@@ -112,11 +112,19 @@ function TopBar.render(props: TopBarProps): any
 		end
 	end
 
+	-- one list of children: a raw table must never sit next to another child
+	local header: { any } = {}
+	for _, list in { left, middle, right, ticker } do
+		for _, element in list do
+			table.insert(header, element)
+		end
+	end
+
 	local children: { any } = {}
 	table.insert(
 		children,
 		React.createElement(
-			Surface,
+			Surface.render,
 			{
 				gradient = "surface.header",
 				size = UDim2.new(1, 0, 0, theme.layout.topBar),
@@ -125,18 +133,18 @@ function TopBar.render(props: TopBarProps): any
 				BackgroundTransparency = 1,
 				Size = UDim2.new(1, -theme.spacing.l * 2, 1, 0),
 				Position = UDim2.fromOffset(theme.spacing.l, 0),
-			}, left, middle, right, ticker)
+			}, header)
 		)
 	)
 
 	table.insert(
 		children,
-		React.createElement(Divider, {
+		React.createElement(Divider.render, {
 			size = UDim2.new(1, 0, 0, 1),
 		})
 	)
 
-	return React.createElement(Surface, {
+	return React.createElement(Surface.render, {
 		size = UDim2.new(1, 0, 0, theme.layout.topBar + 1),
 		zIndex = 10,
 	}, children)

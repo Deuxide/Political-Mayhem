@@ -82,7 +82,7 @@ function Modal.render(props: ModalProps): any
 			ZIndex = 50,
 		},
 		React.createElement(
-			Surface,
+			Surface.render,
 			{
 				gradient = "overlay.scrim",
 				size = UDim2.fromScale(1, 1),

@@ -28,7 +28,7 @@ function Tabs.render(props: TabsProps): any
 		table.insert(
 			children,
 			React.createElement(
-				Surface,
+				Surface.render,
 				{
 					gradient = if active then "surface.raised" else "surface.inset",
 					size = UDim2.fromOffset(96, 30),

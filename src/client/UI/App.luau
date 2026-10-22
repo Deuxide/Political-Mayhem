@@ -40,12 +40,12 @@ function App.render(props: AppProps): any
 	local corners = props.corners or {}
 	local own = corners[1]
 		or React.createElement(
-			Surface,
+			Surface.render,
 			{
 				gradient = "surface.card",
 				size = UDim2.fromScale(1, 1),
 			},
-			React.createElement(Text, {
+			React.createElement(Text.render, {
 				text = "Your class",
 				tone = "muted",
 				size = "s",
@@ -71,7 +71,7 @@ function App.render(props: AppProps): any
 	-- the middle: the city viewport (M11) with the panels over it
 	table.insert(
 		children,
-		React.createElement(Surface, {
+		React.createElement(Surface.render, {
 			gradient = "table.background",
 			position = UDim2.fromOffset(0, theme.layout.topBar + 1),
 			size = UDim2.new(1, 0, 1, -(theme.layout.topBar + 1)),
@@ -82,7 +82,7 @@ function App.render(props: AppProps): any
 	-- the four corners
 	table.insert(
 		children,
-		React.createElement(Surface, {
+		React.createElement(Surface.render, {
 			size = UDim2.fromOffset(theme.layout.cornerWidth, theme.layout.cornerHeight),
 			position = UDim2.fromOffset(theme.spacing.l, theme.layout.topBar + theme.spacing.l),
 			zIndex = 5,
@@ -90,7 +90,7 @@ function App.render(props: AppProps): any
 	)
 	table.insert(
 		children,
-		React.createElement(Surface, {
+		React.createElement(Surface.render, {
 			size = UDim2.fromOffset(theme.layout.cornerWidth, theme.layout.cornerHeight),
 			position = UDim2.new(
 				1,
@@ -103,7 +103,7 @@ function App.render(props: AppProps): any
 	)
 	table.insert(
 		children,
-		React.createElement(Surface, {
+		React.createElement(Surface.render, {
 			size = UDim2.fromOffset(theme.layout.cornerWidth, theme.layout.cornerHeight),
 			position = UDim2.new(
 				1,
@@ -116,7 +116,7 @@ function App.render(props: AppProps): any
 	)
 	table.insert(
 		children,
-		React.createElement(Surface, {
+		React.createElement(Surface.render, {
 			size = UDim2.fromOffset(theme.layout.cornerWidth, theme.layout.cornerHeight),
 			position = UDim2.new(
 				0,
@@ -131,7 +131,7 @@ function App.render(props: AppProps): any
 	-- the action dock at the bottom
 	table.insert(
 		children,
-		React.createElement(Surface, {
+		React.createElement(Surface.render, {
 			gradient = "surface.header",
 			position = UDim2.new(0.5, 0, 1, -(theme.layout.dock + theme.spacing.l)),
 			size = UDim2.fromOffset(420, theme.layout.dock),

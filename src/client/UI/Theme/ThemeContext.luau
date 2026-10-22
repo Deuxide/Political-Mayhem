@@ -17,9 +17,20 @@ local ThemeContext = {}
 -- rendered outside a provider still has a theme.
 ThemeContext.Context = React.createContext(DefaultSkin)
 
--- The provider: it takes the skin and the children.
-function ThemeContext.provider(skin: Theme, children: any): any
-	return React.createElement(ThemeContext.Context.Provider, { value = skin }, children)
+-- The provider: a component, so it takes the skin and the children in its
+-- props. The children travel in a Fragment, never as a raw table inside
+-- another children table (react-lua issue #42).
+export type ThemeProviderProps = {
+	value: Theme,
+	children: any?,
+}
+
+function ThemeContext.provider(props: ThemeProviderProps): any
+	return React.createElement(
+		ThemeContext.Context.Provider,
+		{ value = props.value },
+		React.createElement(React.Fragment, nil, props.children)
+	)
 end
 
 -- The hook every component uses.

@@ -43,7 +43,7 @@ function Countdown.render(props: CountdownProps): any
 		elseif secondsLeft <= WARNING_SECONDS then "warning"
 		else "primary"
 
-	return React.createElement(Text, {
+	return React.createElement(Text.render, {
 		text = if props.label ~= nil
 			then props.label
 			else string.format("%02d:%02d", math.floor(secondsLeft / 60), secondsLeft % 60),

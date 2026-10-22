@@ -28,7 +28,7 @@ local Gallery = {}
 -- A titled section of the gallery.
 local function section(title: string, children: { any }): any
 	return React.createElement(
-		Card,
+		Card.render,
 		{
 			title = title,
 			size = UDim2.new(1, -32, 0, 0),
@@ -130,7 +130,7 @@ function Gallery.render(): any
 					{ text = "default", variant = "primary", size = "m" }
 				),
 				React.createElement(
-					Button,
+					Button.render,
 					{ text = "disabled", variant = "primary", size = "m", disabled = true }
 				),
 				React.createElement(
@@ -204,7 +204,7 @@ function Gallery.render(): any
 					{ resource = "Money", amount = 12, delta = -4 }
 				),
 				React.createElement(
-					ResourceChip,
+					ResourceChip.render,
 					{ resource = "Money", amount = 12, hidden = true }
 				),
 			}),
@@ -296,7 +296,7 @@ function Gallery.render(): any
 		table.insert(
 			children,
 			React.createElement(
-				Modal,
+				Modal.render,
 				{
 					title = "A modal",
 					onClose = function()

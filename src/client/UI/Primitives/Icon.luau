@@ -41,7 +41,11 @@ function Icon.render(props: IconProps): any
 	local tone = props.tone or "neutral"
 	local size = props.size or "medium"
 	local side = theme.icon[size]
-	local role = if tone == "neutral" then "surface.raised" else "accent." .. tone
+	local role = if tone == "neutral"
+		then "surface.raised"
+		elseif tone == "success" or tone == "warning" or tone == "danger" then "meter."
+			.. tone :: string
+		else "accent." .. (tone :: string)
 
 	local mark = props.mark
 	local children: { any } = {}

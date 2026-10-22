@@ -20,6 +20,14 @@ export type ToastProps = {
 	onDismiss: (() -> ())?,
 }
 
+-- The gradient role of every tone (the skin has no "meter.success": a
+-- success uses the fill).
+local TOAST_GRADIENTS: { [string]: string } = {
+	success = "meter.fill",
+	warning = "meter.warning",
+	danger = "meter.danger",
+}
+
 local Toast = {}
 
 function Toast.render(props: ToastProps): any
@@ -55,7 +63,7 @@ function Toast.render(props: ToastProps): any
 	end
 
 	return React.createElement(Surface.render, {
-		gradient = if tone == "info" then "surface.raised" else "button." .. (tone :: any),
+		gradient = TOAST_GRADIENTS[tone] or "surface.raised",
 		size = UDim2.fromOffset(320, 40),
 		anchorPoint = Vector2.new(1, 0),
 		position = UDim2.new(1, -theme.spacing.l, 0, theme.spacing.l),
