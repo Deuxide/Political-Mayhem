@@ -103,9 +103,8 @@ see the Verification log.
 ## Next up
 
 1. Reconnect Studio (template in the `studio-mcp-usage` skill), run the M7-T4
-   L2, and record the evidence.
-2. Fix the Gallery's overlapping rows/sections (Known issues), then run the M7
-   milestone L2 and report "Milestone M7 ready".
+   L2 and the Gallery layout check, and record the evidence.
+2. Run the M7 milestone L2 and report "Milestone M7 ready".
 
 ## Verification log
 
@@ -198,12 +197,14 @@ None.
   `DraftHandlers` refuses the edit with a Notice and the client reverts, so it
   is safe but not UI_SPEC section 5's "shown disabled with a tooltip". Queue
   the role field and the disabled states with M8's PoliticsTab.
-- **The Gallery's rows overlap.** The Gallery puts every row child at (0,0)
-  and every section card at (0,0), so the components render on top of each
-  other (the L2 label counts could not see it). It is a dev-only screen, but
-  "the Gallery shows every component in every state" needs it fixed; plan:
-  lay the sections and rows out with list layouts and content-driven heights
-  before the batched M7 L2, then look at a screenshot in Studio.
+- **Gallery layout (fixed in code, awaiting L2).** The Gallery used to put every
+  row child and every section at (0,0). It now uses vertical and horizontal
+  `UIListLayout`s with automatic sizes, fixed-width wrappers for the
+  full-width SegmentedTrack examples, wrappers for the self-positioning Toast
+  examples, and renders the Modal outside the scrolling column. CHECK PASSED,
+  but the visual proof belongs to the pending M7 L2 (the MCP currently has no
+  Studio instance): confirm that the sections are separated and every
+  component is visible.
 - Roblox's own CorePackages/UIBlox topbar UI prints a `Warning` ("FoundationProvider
   not found…") with a stack under `CorePackages…` on every playtest when the player
   joins. It does not come from our code (our React lives in
@@ -224,6 +225,7 @@ Newest first. One line per session.
 
 | Date | Summary |
 |---|---|
+| 2026-10-23 | Gallery layout fixed (Known issue): the sections and rows now use `UIListLayout` + `AutomaticSize`, the SegmentedTrack examples get fixed-width wrappers, the Toast examples get wrappers for their top-right positioning, and the Modal renders outside the scrolling column. CHECK PASSED 400/400. The visual verification is part of the pending M7 L2 (the MCP still has no Studio instance). |
 | 2026-10-23 | M7-T4 implemented: the `EconomyTab` (lines, assign, strike, build, market, lobby, sync indicator), the six pure draft reducers, `PlayerView.ownLines`, the 300 ms debounced `Draft_Update`, the echo/rejection reconciliation (D-072), and the two design-system fixes (the Stepper layout and visibly disabled buttons). CHECK PASSED 400/400. The Studio L2 is **NOT VERIFIED**: `list_roblox_studios` reports no instances after the T3 playtest, so the task stays in progress until Studio is reopened and Rojo + MCP are reconnected. Next: the T4 L2, then the Gallery layout fix and the M7 milestone L2. |
 | 2026-10-23 | M7-T3 complete: `OwnClassPanel` and `ClassCard` from the view, `PlayerView.needs` and `PlayerView.rounds` added (server-authoritative), `Store.applyActiveTab`, the `ResourceChip` row layout and tier text. CHECK PASSED 397/397. The batched Studio L2 passed (Normal open, Hard partial, Extreme fog): the panels render from a live view, the tabs switch, zero project errors/warnings. The L2 found and fixed two bugs: the own panel's chips all sat at (0,0) (`ResourceChip` ignores a `position` prop) and the top bar hardcoded the match length (now `PlayerView.rounds`, so Extreme shows "Day 1 of 18"). Found on the way: the Gallery's rows/sections all sit at (0,0) — recorded in Known issues to fix before the milestone L2. |
 | 2026-10-22 | M7-T0, T1 and T2 passed their batched Studio L2: the Gallery shows every component in every state and a second skin restyles everything, the app shell renders the themed phase name and the countdown, and the client receives the server's View_Snapshot. The L2 found and fixed three real bugs (the theme provider was not a component, some call sites passed component tables, and three gradient roles did not exist in the skin). Next: M7-T3. |

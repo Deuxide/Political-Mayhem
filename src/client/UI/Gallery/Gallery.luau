@@ -25,30 +25,61 @@ local Toast = require(script.Parent.Parent.Composites.Toast)
 
 local Gallery = {}
 
--- A titled section of the gallery.
+-- A titled section of the gallery: the title over a vertical stack of rows.
+-- The flow is plain frames and list layouts; the components keep their look.
 local function section(title: string, children: { any }): any
-	return React.createElement(
-		Card.render,
-		{
-			title = title,
-			size = UDim2.new(1, -32, 0, 0),
-		},
-		React.createElement("Frame", {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, -32, 0, 0),
-			Position = UDim2.fromOffset(16, 0),
-			AutomaticSize = Enum.AutomaticSize.Y,
-		}, children)
-	)
-end
-
--- A row of examples.
-local function row(children: { any }): any
+	local content: { any } = {
+		React.createElement("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, 8),
+		}),
+	}
+	for _, child in children do
+		table.insert(content, child)
+	end
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 40),
+		Size = UDim2.fromScale(1, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-	}, children)
+	}, {
+		React.createElement("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, 6),
+		}),
+		React.createElement(Text.render, {
+			text = title,
+			tone = "muted",
+			size = "xs",
+			uppercase = true,
+			size2 = UDim2.new(1, 0, 0, 20),
+		}),
+		React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromScale(1, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+		}, content),
+	})
+end
+
+-- A row of examples, left to right. The row's height follows its tallest
+-- child, so a 120 px card and a 24 px chip can share a row.
+local function row(children: { any }): any
+	local content: { any } = {
+		React.createElement("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, 12),
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+		}),
+	}
+	for _, child in children do
+		table.insert(content, child)
+	end
+	return React.createElement("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+	}, content)
 end
 
 function Gallery.render(): any
@@ -156,13 +187,8 @@ function Gallery.render(): any
 	table.insert(
 		children,
 		section("Divider", {
-			row({
-				React.createElement(Divider.render, { size = UDim2.new(1, -32, 0, 1) }),
-				React.createElement(
-					Divider.render,
-					{ size = UDim2.new(1, -32, 0, 1), tone = "strong" }
-				),
-			}),
+			React.createElement(Divider.render, { size = UDim2.new(1, 0, 0, 1) }),
+			React.createElement(Divider.render, { size = UDim2.new(1, 0, 0, 1), tone = "strong" }),
 		})
 	)
 
@@ -175,7 +201,7 @@ function Gallery.render(): any
 				title = tone,
 				tone = tone :: any,
 				subtitle = "subtitle",
-				size = UDim2.fromOffset(200, 120),
+				size = UDim2.fromOffset(180, 110),
 			})
 		)
 	end
@@ -211,16 +237,22 @@ function Gallery.render(): any
 		})
 	)
 
-	-- SegmentedTrack: every tone and a few values
+	-- SegmentedTrack: every tone and a few values. The track fills its parent,
+	-- so each example gets a fixed-width wrapper in the row.
 	local trackRow: { any } = {}
 	for _, tone in { "fill", "warning", "danger" } do
 		table.insert(
 			trackRow,
-			React.createElement(SegmentedTrack.render, {
-				value = 6,
-				max = 10,
-				tone = tone :: any,
-				size = "m",
+			React.createElement("Frame", {
+				BackgroundTransparency = 1,
+				Size = UDim2.fromOffset(200, 10),
+			}, {
+				React.createElement(SegmentedTrack.render, {
+					value = 6,
+					max = 10,
+					tone = tone :: any,
+					size = "m",
+				}),
 			})
 		)
 	end
@@ -267,17 +299,23 @@ function Gallery.render(): any
 		})
 	)
 
-	-- Toast
-	local toastRow: { any } = {}
+	-- Toast: the toast positions itself top-right of its parent, so each one
+	-- gets a wrapper big enough to show it in the flow.
+	local toastColumn: { any } = {}
 	for _, tone in { "info", "success", "warning", "danger" } do
 		table.insert(
-			toastRow,
-			React.createElement(Toast.render, { message = tone, tone = tone :: any })
+			toastColumn,
+			React.createElement("Frame", {
+				BackgroundTransparency = 1,
+				Size = UDim2.fromOffset(340, 56),
+			}, {
+				React.createElement(Toast.render, { message = tone, tone = tone :: any }),
+			})
 		)
 	end
-	table.insert(children, section("Toast", { row(toastRow) }))
+	table.insert(children, section("Toast", toastColumn))
 
-	-- Modal
+	-- Modal: an overlay, so it is rendered outside the scrolling column below.
 	table.insert(
 		children,
 		section("Modal", {
@@ -292,9 +330,39 @@ function Gallery.render(): any
 			}),
 		})
 	)
+
+	local column: { any } = {
+		React.createElement("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, 12),
+		}),
+	}
+	for _, child in children do
+		table.insert(column, child)
+	end
+
+	local scrolling = React.createElement(
+		"ScrollingFrame",
+		{
+			BackgroundTransparency = 1,
+			Size = UDim2.fromScale(1, 1),
+			Position = UDim2.fromOffset(0, 0),
+			AutomaticCanvasSize = Enum.AutomaticSize.Y,
+			CanvasSize = UDim2.new(),
+			ScrollBarThickness = 6,
+		},
+		React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, -32, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			Position = UDim2.fromOffset(16, 16),
+		}, column)
+	)
+
+	local root: { any } = { scrolling }
 	if showModal then
 		table.insert(
-			children,
+			root,
 			React.createElement(
 				Modal.render,
 				{
@@ -314,26 +382,8 @@ function Gallery.render(): any
 
 	return React.createElement(
 		ThemeContext.provider,
-		{
-			value = skin,
-		},
-		React.createElement(
-			"ScrollingFrame",
-			{
-				BackgroundTransparency = 1,
-				Size = UDim2.fromScale(1, 1),
-				Position = UDim2.fromOffset(0, 0),
-				AutomaticCanvasSize = Enum.AutomaticSize.Y,
-				CanvasSize = UDim2.new(),
-				ScrollBarThickness = 6,
-			},
-			React.createElement("Frame", {
-				BackgroundTransparency = 1,
-				Size = UDim2.new(1, -32, 0, 0),
-				AutomaticSize = Enum.AutomaticSize.Y,
-				Position = UDim2.fromOffset(16, 16),
-			}, children)
-		)
+		{ value = skin },
+		React.createElement(React.Fragment, nil, root)
 	)
 end
 
