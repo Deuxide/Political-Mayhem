@@ -31,6 +31,7 @@ function M.run()
 				workers = 0,
 				seats = {},
 			},
+			needs = { food = 2, goods = 1, health = 1, education = 1 },
 			draft = {
 				sequence = 4,
 				locked = false,
@@ -104,6 +105,13 @@ function M.run()
 		Lib.eq(next.inbox.bills[1].id, "Bill-1", "the bill")
 		Lib.eq(#next.match.view.alliances, 1, "the alliance arrived")
 		Lib.eq(#state.inbox.bills, 0, "the old state did not change")
+	end)
+
+	Lib.test("the active tab is a local choice", function()
+		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+		local next = Store.applyActiveTab(state, "politics")
+		Lib.eq(next.ui.activeTab, "politics", "the new tab")
+		Lib.eq(state.ui.activeTab, "economy", "the old state did not change")
 	end)
 
 	Lib.test("a local draft is pending until the server echoes it", function()

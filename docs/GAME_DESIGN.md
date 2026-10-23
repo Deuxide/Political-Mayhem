@@ -457,6 +457,7 @@ nothing secret can travel to a client.
 | Data | open | partial | fog |
 |---|---|---|---|
 | Own class: everything | full | full | full |
+| Own needs (per Day, difficulty-scaled) | exact | exact | exact |
 | Others' Money | exact | tier (Low/Mid/High) | hidden |
 | Others' stocks | exact | tier | hidden |
 | Others' Influence | exact | hidden | hidden |

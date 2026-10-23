@@ -3,18 +3,18 @@
 **This file is the handoff.** Update it after every task (even if the session
 may end abruptly), including the Verification log.
 
-Last updated: 2026-10-22
+Last updated: 2026-10-23
 
 ## Snapshot
 
 - **Project:** Political Mayhem
-- **Current milestone:** M6 (Server runtime and networking)
-- **Current task:** M7-T3 — `OwnClassPanel` and `ClassCard` (the detailed own panel; the others' cards show `?` for the hidden fields). M7-T0 to T2 passed their batched Studio check on 2026-10-22.
-- **Project phase:** M5 merged to stable (`56f9420 "Merge M5"`, 2026-10-22); M6 started on `M6-dev1` off that merge.
+- **Current milestone:** M7 (client foundation)
+- **Current task:** M7-T3 — `OwnClassPanel` and `ClassCard` are built and `scripts/check` passes; the Studio L2 is pending because the MCP dropped (no instances). M7-T0 to T2 passed their batched Studio check this session.
+- **Project phase:** M6 merged to stable (`0f3d4e5 "Merge M6"`); M7 runs on `M7-dev1` off that merge.
 - **Current branch:** M7-dev1 — created 2026-10-22 off merged stable (0f3d4e5 "Merge M6"). The old `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push -u origin M6-dev1` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** M6 (0f3d4e5)
-- **Last `scripts/check` result:** CHECK PASSED (388/388 tests)
+- **Last `scripts/check` result:** CHECK PASSED (397/397 tests)
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
 
@@ -59,6 +59,7 @@ Last updated: 2026-10-22
 - [x] M4 milestone: agent-led Studio verification passed (2026-10-22) — tree + byte-identical modules, in-engine transfer/trade/promise/alliance, in-play server probe, clean playtest; owner merges `M4-dev2` → `Linux-stable`
 - [x] M4 milestone: owner merged (`014de5c "Merge M4"`, 2026-10-22)
 - [x] M5 milestone: agent-led Studio verification passed (2026-10-22) — tree + eight byte-identical modules, in-engine gate G1 (final victory Day 12), scenarios S5 (shared victory) and S6 (collapse), in-play partial/fog/allied visibility; **milestone ready, awaiting the owner's merge**
+- [x] M7-T3: `OwnClassPanel` and `ClassCard` — six resource chips, this Day's needs against the stock (from the new `PlayerView.needs`, computed by `Game/Needs` in the builder), the VP criteria from Config/Objectives with their awards, the sticky-draft summary and the Economy/Politics/Diplomacy tab strip wired through `Store.applyActiveTab`; the other classes show exact values, `PowerTier` words, or `?` per the view, plus reputation stars and the public alliance badge, with the M8 trade/alliance buttons visibly disabled. `ResourceChip` lays its mark, value and delta out in a row and shows a tier word. CHECK PASSED 397/397; the Studio L2 is pending (the MCP dropped)
 - [x] M7-T2: the app shell — `UI/App` (the top bar, the four corners with the viewer's own class bottom-left, the city viewport in the middle and the action dock at the bottom), `UI/Panels/TopBar` (the Day, the themed phase name, the countdown, the Stability track and the policy ticker) and `UI/Composites/Countdown` (the server-driven clock with the warning and urgent states); the client now creates the store, connects the net client and mounts the app, and the Gallery stays available as a dev screen
 - [x] M7-T1: the client net layer and the store — `client/Net/Client` (waits for the server's remotes, sends the intents, feeds the store) and `client/State/Store` (the shape of UI_SPEC section 7 with pure reducers: the snapshot replaces the view and the draft, a phase change sets the phase and the server offset, the patches set the draft and append the bills and the alliances, the local draft is pending until the server echoes it and a refusal shows the server's copy again); 7 new tests
 - [x] M7-T0: the design system — `UI/Theme/Tokens` (the only file with raw colors, fonts and numbers), `UI/Theme/Gradients` (the typed GradientSpec and its builders), `UI/Theme/Skins/Default` and `UI/Theme/Skins/Contrast` (two skins, the semantic roles), `UI/Theme/ThemeContext` (the React context and `useTheme`), the primitives (`Surface` — the only component that creates a `UIGradient` —, `Text`, `Button`, `Icon`, `Divider`) and the composites (`Card`, `ResourceChip`, `SegmentedTrack`, `Stepper`, `Tabs`, `Modal`, `Toast`), and the `Gallery` screen that shows every component in every state with a skin switcher; the client now mounts the Gallery instead of the M0 scaffold
@@ -77,16 +78,18 @@ Last updated: 2026-10-22
 
 ## In progress
 
-M7-T3 — `OwnClassPanel` and `ClassCard`: the detailed own panel and the
-simplified cards of the other three classes, with the hidden fields shown as
-`?` per the view (UI_SPEC section 4.2). M7-T0 to T2 passed their batched
-Studio check on 2026-10-22 (see the Verification log).
+M7-T3 — `OwnClassPanel` and `ClassCard`: the code is complete and
+`scripts/check` passes (397/397); the Studio L2 is **not run** because the
+Studio MCP dropped after the T0 to T2 batch (`list_roblox_studios` returns no
+instances). The check waits for the owner to reopen Studio with the latest
+build and reconnect Rojo/MCP. The batched checks are listed in the request at
+the end of the session.
 
 ## Next up
 
-- M7-T3: `OwnClassPanel` and `ClassCard` (hidden fields render `?`).
-- M7-T4: the `EconomyTab` (debounced `Draft_Update` + a sync indicator).
-- After M7-T4: the batched Studio L2 for M7, then "Milestone M7 ready".
+1. The M7-T3 Studio L2 (the batched checks in the session request).
+2. Then M7-T4: the `EconomyTab` (debounced `Draft_Update` + a sync indicator).
+3. After M7-T4: the batched Studio L2 for M7, then "Milestone M7 ready".
 
 ## Verification log
 
@@ -94,6 +97,7 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 
 | Date | Task / milestone | L1 | L2 | L3 | Notes |
 |---|---|---|---|---|---|
+| 2026-10-23 | M7-T3 | CHECK PASSED (397/397: 395 prior + 1 needs test + 1 store tab test; stylua clean, selene 0 warnings, types 0 errors) | **pending** — the Studio MCP dropped after the M7-T0..T2 batch (`list_roblox_studios` returns no instances); the batched check waits for the owner's Studio gate | none | **The own panel and the class cards (UI_SPEC 4.2).** `PlayerView` now carries the viewer's own `needs`, computed by `Game/Needs.required` in `PlayerViewBuilder` from the real rule and the difficulty multiplier, so the panel displays a number instead of recomputing a rule; the visibility table (GAME_DESIGN 13) records that own needs are exact in every mode, and `tests/player_view.test.luau` pins Normal 8 Food / 4 Health, Easy 6/3, Extreme 10/5 and Middle's flat 2/1. `OwnClassPanel` shows the six resource chips (Money, Influence, Food, Goods, Health, Education), this Day's needs against the stock (the ratio turns danger when short), the class's VP criteria from Config/Objectives with their awards, a sticky-draft summary (slots, assignments, strike, build, market, lobby, votes, locked/open) and the Economy/Politics/Diplomacy tabs wired through `Store.applyActiveTab` (a pure reducer, tested). `ClassCard` shows the class name, the always-exact VP, reputation stars through `Ops/Reputation.stars`, the public alliance badge (marked when it is the viewer's alliance), the six resources as the info mode allows (a number, a `PowerTier` word, or `?`) and the M8 trade/alliance buttons visibly disabled. The App builds all four corners from the view in the fixed relative order (the next three classes after the viewer) and uses the same own panel bottom-left. `ResourceChip` now lays its mark, value and delta out in a row (they all sat at 0,0 before) and can show a tier word. | none | The Studio check must still show the panels with a live view (batched). |
 | 2026-10-22 | M7-T0, T1 and T2 — batched Studio L2 | CHECK PASSED (395/395) | **passed** — owner confirmed the Studio gate this session ("Studio is open with the latest build and Rojo is connected"), instance `game.rbxl`, Edit mode -> Play -> Edit. (1) Tree: `StarterPlayerScripts.Client` holds `Net/Client`, `State/Store`, `UI/App`, `UI/Composites` (Card, Countdown, Modal, ResourceChip, SegmentedTrack, Stepper, Tabs, Toast), `UI/Primitives` (Button, Divider, Icon, Surface, Text), `UI/Panels/TopBar`, `UI/Gallery/Gallery`, `UI/Theme` (Tokens, Gradients, ThemeContext, Skins/Default + Skins/Contrast) and `UI/Dev/ChildrenGuard` — matches the repo exactly. (2) The source is current: the App, the Store, the Surface and the Gallery compared byte-for-byte (length + rolling checksum, computed in Studio and over the repo files) — **all four identical**. (3) Boot: `Server booted`, `[Net] 24 remotes ready in ReplicatedStorage.Shared.Net`, `[Lobby] blue_cat1379 joined the lobby` — **zero errors and zero warnings from project code** on the server and the client; the only lines are the Studio plugin's DataStore notice and the `ContentId` asset-type warning (both pre-baseline, in Known issues). (4) The app shell renders: `AppScreenGui` with 23 frames, 14 gradients, **0 `UICorner`** and the labels `Day 1 of 12`, `MARKET HOURS` (the player-facing phase name, GAME_DESIGN 3.1), `STABILITY`, the countdown and the own-class slot. (5) The Gallery renders every component in every state: 84 labels, 191 frames, 105 gradients, 17 buttons, **0 `UICorner`** — the tones (primary, secondary, ghost, danger, default, disabled), the sizes (s, m, l, xl, xs, display), the class tones, the resource marks, the hidden `?` and the states. Clicking the skin switcher changes it to `skin: Contrast`, so a second skin restyles everything without a component changing. (6) The client talks to the server: the client fired `Lobby_SetClass`/`Lobby_SetReady`/`Lobby_Start`, the server logged `[Lobby] match mayhem-914431 started (Normal, seed 914431) - Working: Bot-Working \| Middle: Seat-1700863289 \| Capitalist: Bot-Capitalist \| State: Bot-State` (one human, three bots), and the client received the `View_Snapshot` (protocol 1, `viewer = Middle`, day 1, phase Window, stability 60, own Money 25) plus the `Phase_Changed` — the store is fed by the server. **The L2 found and fixed three real bugs:** the theme provider was a plain function instead of a component, so the App and the Gallery rendered nothing; several call sites passed a component *table* instead of its function, which react-lua rejects ("Element type is invalid ... got: table"); and the TopBar, the Toast and the Card used gradient roles that the skin does not define (`accent.neutral`, `button.success`, `meter.success`), which made the Surface fail with "attempt to index nil with 'stops'". | none — M7-T0 to T2 add no final visuals (the Gallery and the shell are placeholders for M7-T3 and M7-T4; the owner confirms nothing here beyond merge) | Studio L2 evidence above; the batch covered T0, T1 and T2 together. |
 | 2026-10-22 | M7-T2 | CHECK PASSED (395/395: 388 prior + 7 store tests; stylua clean, selene 0 warnings, types 0 errors) | **pending** — the Studio MCP was not connected when the task was done (it closed after the M6 check); the shell check runs in the batched M7 Studio check | none | **The app shell (UI_SPEC section 2).** `UI/App` lays out the match screen: the top bar, the city viewport in the middle, the four corners (the viewer's own class always bottom-left, D-012) and the action dock at the bottom; it subscribes to the store and re-renders on every change. `UI/Panels/TopBar` shows the Day, the player-facing phase name (GAME_DESIGN 3.1: Market Hours, Closing Bell, Evening Report — never "Window" or "turn"), the countdown, the Stability track and the policy ticker. `UI/Composites/Countdown` runs on the server's clock through the offset the store keeps, with the warning (20 s) and urgent (10 s) states. The client creates the store, connects the net client and mounts the app; the Gallery stays as a dev screen in its own ScreenGui. Everything is built from the design system only — the ui rules lint is clean. |
 | 2026-10-22 | M7-T1 | CHECK PASSED (395/395: 388 prior + 7 store tests) | **pending** — the Studio MCP was not connected; the client check runs in the batched M7 Studio check | none | **The client net layer and the store (UI_SPEC section 7).** `client/Net/Client` waits for the server's remotes, sends the intents (lobby, draft, trade, alliance, bill, chat) and hands every server message to the store. `client/State/Store` holds the shape of UI_SPEC section 7 with pure reducers, so they are unit-tested without Roblox: a snapshot replaces the view, the draft and the protocol and keeps the server offset; a phase change sets the phase, the Day and the end time; a patch sets the draft and appends the bills and the alliances; the local draft stays pending until the server echoes it, and a refusal shows the server's copy again. Seven tests cover the reducers and the store's listeners. The server's patches were corrected to say "append" for the bills and the alliances, which the client reducers expect. |
@@ -171,6 +175,12 @@ None.
 
 ## Known issues
 
+- **The Gallery's rows overlap.** The Gallery puts every row child at (0,0)
+  and every section card at (0,0), so the components render on top of each
+  other (the L2 label counts could not see it). It is a dev-only screen, but
+  "the Gallery shows every component in every state" needs it fixed; plan:
+  lay the sections and rows out with list layouts and content-driven heights
+  before the batched M7 L2, then look at a screenshot in Studio.
 - Roblox's own CorePackages/UIBlox topbar UI prints a `Warning` ("FoundationProvider
   not found…") with a stack under `CorePackages…` on every playtest when the player
   joins. It does not come from our code (our React lives in
@@ -191,6 +201,7 @@ Newest first. One line per session.
 
 | Date | Summary |
 |---|---|
+| 2026-10-23 | M7-T3 code complete: `OwnClassPanel` and `ClassCard` from the view, `PlayerView.needs` added (server-authoritative, difficulty-scaled), `Store.applyActiveTab`, the `ResourceChip` row layout and tier text. CHECK PASSED 397/397. The Studio MCP dropped (no instances), so the L2 is batched and waits for the owner's gate. Found on the way: the Gallery's rows/sections all sit at (0,0) — recorded in Known issues to fix before the milestone L2. |
 | 2026-10-22 | M7-T0, T1 and T2 passed their batched Studio L2: the Gallery shows every component in every state and a second skin restyles everything, the app shell renders the themed phase name and the countdown, and the client receives the server's View_Snapshot. The L2 found and fixed three real bugs (the theme provider was not a component, some call sites passed component tables, and three gradient roles did not exist in the skin). Next: M7-T3. |
 | 2026-10-22 | M7 started: T0 the design system (tokens, two skins, the primitives, the composites, the Gallery), T1 the client net layer and the store (pure reducers, unit-tested) and T2 the app shell (the top bar, the four corners, the countdown). CHECK PASSED 395/395. The Studio MCP closed again, so the M7 Studio checks are batched for the end of the milestone. Next: M7-T3 (OwnClassPanel and ClassCard), then M7-T4 (the EconomyTab). |
 | 2026-10-22 | M6 complete: the batched Studio L2 passed in the engine (24 remotes, one human + three bots, the phases on the server's timer, the fog snapshot with only the allowed fields, the handlers answering, the disconnect logging the takeover). The L2 found and fixed one real bug: the draft shape check did not know the `locked` field, so every real draft was refused. "Milestone M6 ready"; the owner merges. |

@@ -283,6 +283,11 @@ export type ClassView = {
 	lines: { LineView }, -- exact in every mode
 }
 
+-- The viewer's own daily need per stock resource, already scaled by the
+-- difficulty (GAME_DESIGN 5.3, 12). Only the own class needs it: the panel
+-- shows what this Day's Upkeep will consume.
+export type NeedsTable = { [StockId]: number }
+
 -- What a viewer gets to see of the match (GAME_DESIGN 13). Built by
 -- Visibility/PlayerViewBuilder from the info-mode strategy; the server sends
 -- only this shape, never raw MatchState.
@@ -293,6 +298,7 @@ export type PlayerView = {
 	stability: number,
 	policies: { [PolicyId]: number },
 	own: ClassState,
+	needs: NeedsTable, -- the viewer's own needs for this Day (5.3, 12)
 	draft: ActionDraft, -- the viewer's class draft (NETWORKING 4)
 	others: { [ClassId]: ClassView },
 	bills: { Bill }, -- live proposals; ballots stay secret in the drafts

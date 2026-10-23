@@ -140,6 +140,14 @@ function Store.applyPatch(state: StoreState, ops: { PatchOp }): StoreState
 	return next
 end
 
+-- The active tab (UI_SPEC section 7): a local UI choice, never a server
+-- field. The dock and the own panel both read it.
+function Store.applyActiveTab(state: StoreState, tab: string): StoreState
+	local next = Store.copy(state)
+	next.ui.activeTab = tab
+	return next
+end
+
 -- The local draft changed: it is pending until the server echoes it.
 function Store.setLocalDraft(state: StoreState, draft: ActionDraft, seq: number): StoreState
 	local next = Store.copy(state)
