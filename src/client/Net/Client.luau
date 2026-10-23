@@ -6,6 +6,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Store = require(script.Parent.Parent.State.Store)
+local ConfigNetwork = require(ReplicatedStorage.Shared.Config.Network)
 
 type StoreType = Store.Store
 type StoreState = Store.StoreState
@@ -14,13 +15,21 @@ export type Client = {
 	_remotes: { [string]: any },
 	_store: StoreType,
 	_connected: boolean,
+	_draftGeneration: number,
+	_pendingDraft: any?,
 }
 
 local Client = {}
 
 -- The remotes are the server's (NETWORKING 3): the client waits for them.
 function Client.new(store: StoreType): Client
-	return { _remotes = {}, _store = store, _connected = false }
+	return {
+		_remotes = {},
+		_store = store,
+		_connected = false,
+		_draftGeneration = 0,
+		_pendingDraft = nil,
+	}
 end
 
 local function remote(client: Client, name: string): any
@@ -104,7 +113,17 @@ function Client.onReveal(client: Client, payload: any)
 end
 
 function Client.onNotice(client: Client, payload: any)
-	client._store:set(Store.addNotice(client._store:state(), payload))
+	local state = Store.addNotice(client._store:state(), payload)
+	-- A draft the server refused snaps back to the last accepted copy
+	-- (NETWORKING 4); the notice stays in the inbox and explains why.
+	if
+		payload.code == "Rejected"
+		or payload.code == "InvalidPayload"
+		or payload.code == "StaleDraft"
+	then
+		state = Store.rejectDraft(state)
+	end
+	client._store:set(state)
 end
 
 function Client.onChat(client: Client, payload: any)
@@ -155,6 +174,26 @@ end
 
 function Client.updateDraft(client: Client, seq: number, draft: any)
 	remote(client, "Draft_Update"):FireServer({ seq = seq, draft = draft })
+end
+
+-- Edits are debounced (NETWORKING 4): only the latest draft is sent, 300 ms
+-- after the last edit. The generation stops an older timer from sending a
+-- draft a newer edit has already replaced.
+function Client.queueDraft(client: Client, draft: any)
+	client._pendingDraft = draft
+	client._draftGeneration += 1
+	local generation = client._draftGeneration
+	task.delay(ConfigNetwork.draftDebounceSeconds, function()
+		if client._draftGeneration ~= generation then
+			return
+		end
+		local pending = client._pendingDraft
+		if pending == nil then
+			return
+		end
+		client._pendingDraft = nil
+		Client.updateDraft(client, pending.sequence, pending)
+	end)
 end
 
 function Client.lockDraft(client: Client, locked: boolean)

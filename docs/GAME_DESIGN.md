@@ -458,6 +458,7 @@ nothing secret can travel to a client.
 |---|---|---|---|
 | Own class: everything | full | full | full |
 | Own needs (per Day, difficulty-scaled) | exact | exact | exact |
+| Own lines and slot counts | exact | exact | exact |
 | Match length (Days) | exact | exact | exact |
 | Others' Money | exact | tier (Low/Mid/High) | hidden |
 | Others' stocks | exact | tier | hidden |

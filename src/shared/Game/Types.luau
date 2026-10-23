@@ -299,6 +299,7 @@ export type PlayerView = {
 	stability: number,
 	policies: { [PolicyId]: number },
 	own: ClassState,
+	ownLines: { LineView }, -- the viewer's lines, exact in every mode (13)
 	needs: NeedsTable, -- the viewer's own needs for this Day (5.3, 12)
 	draft: ActionDraft, -- the viewer's class draft (NETWORKING 4)
 	others: { [ClassId]: ClassView },

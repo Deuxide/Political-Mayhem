@@ -94,6 +94,18 @@ function M.run()
 		-- own data: the same in every info mode
 		local fog = build(fresh("Extreme"), "Extreme", "Middle")
 		Lib.eq(fog.needs.food, 3, "fog hides others, never the own needs")
+		Lib.eq(#fog.ownLines, 4, "fog hides others, never the own lines")
+	end)
+
+	Lib.test("the viewer's own lines travel, exact in every mode (13)", function()
+		local working = build(fresh("Normal"), "Normal", "Working")
+		Lib.eq(#working.ownLines, 0, "Working starts with no lines")
+
+		local middle = build(fresh("Normal"), "Normal", "Middle")
+		Lib.eq(#middle.ownLines, 4, "the Middle's four lines")
+		Lib.eq(middle.ownLines[1].id, "Clinic-1", "sorted by id")
+		Lib.eq(middle.ownLines[1].owner, "Middle", "the owner")
+		Lib.eq(middle.ownLines[1].openSlots, 2, "the slot count")
 	end)
 
 	Lib.test("partial: Money and stocks are tiers, Influence is hidden (13)", function()

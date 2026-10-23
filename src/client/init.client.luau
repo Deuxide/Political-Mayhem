@@ -44,9 +44,18 @@ appGui.ResetOnSpawn = false
 appGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local appRoot = ReactRoblox.createRoot(appGui)
-appRoot:render(React.createElement(ThemeContext.provider, {
-	value = DefaultSkin,
-}, React.createElement(App.render, { store = store })))
+appRoot:render(React.createElement(
+	ThemeContext.provider,
+	{
+		value = DefaultSkin,
+	},
+	React.createElement(App.render, {
+		store = store,
+		onDraft = function(draft)
+			Client.queueDraft(client, draft)
+		end,
+	})
+))
 
 -- The dev Gallery (M7-T0): off by default, so it never covers the game.
 local galleryGui = Instance.new("ScreenGui")

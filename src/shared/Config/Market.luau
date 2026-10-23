@@ -17,7 +17,7 @@ export type MarketConfig = {
 	prices: {
 		[StockId]: Price,
 	},
-	volumeCap: number, -- total units per class per Day; sells and buys counted together
+	volumeCap: number, -- executed units per side per class per Day (D-048)
 }
 
 return table.freeze({

@@ -36,7 +36,7 @@ return {
 		["button.primary"] = Gradients.raised(Tokens.neutral[300], Tokens.neutral[500]),
 		["button.secondary"] = Gradients.raised(Tokens.neutral[600], Tokens.neutral[800]),
 		["button.danger"] = Gradients.raised(Tokens.danger.light, Tokens.danger.base),
-		["button.disabled"] = Gradients.raised(Tokens.neutral[600], Tokens.neutral[800]),
+		["button.disabled"] = Gradients.inset(Tokens.neutral[900], Tokens.neutral[600]),
 		["highlight.strip"] = Gradients.band(Tokens.neutral[100], Tokens.neutral[50]),
 		["overlay.scrim"] = Gradients.scrim(Tokens.neutral[900]),
 	} :: { [string]: Gradients.GradientSpec },

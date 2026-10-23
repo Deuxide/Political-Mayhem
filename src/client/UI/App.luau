@@ -18,10 +18,13 @@ local Text = require(script.Parent.Primitives.Text)
 local TopBar = require(script.Parent.Panels.TopBar)
 local OwnClassPanel = require(script.Parent.Panels.OwnClassPanel)
 local ClassCard = require(script.Parent.Panels.ClassCard)
+local EconomyTab = require(script.Parent.Panels.EconomyTab)
 local Store = require(script.Parent.Parent.State.Store)
 
 export type AppProps = {
 	store: Store.Store,
+	-- the debounced draft sender (NETWORKING 4); nil in a bare render
+	onDraft: ((Types.ActionDraft) -> ())?,
 	-- overrides for the four corners, in the order of the layout: [1] the
 	-- viewer's own panel (bottom-left), [2] top-left, [3] top-right, [4]
 	-- bottom-right. Absent slots are built from the view.
@@ -213,7 +216,55 @@ function App.render(props: AppProps): any
 		}, own)
 	)
 
-	-- the action dock at the bottom
+	-- the action dock at the bottom: the active tab's panel, or a placeholder
+	-- until M8 builds Politics and Diplomacy. The controls edit the local
+	-- draft through the pure store reducers; onDraft debounces the send.
+	local dock = props.dock
+	if dock == nil and view ~= nil then
+		local function applyDraft(nextState: Store.StoreState)
+			store:set(nextState)
+			if props.onDraft ~= nil then
+				props.onDraft(nextState.draft.current)
+			end
+		end
+
+		if state.ui.activeTab == "economy" then
+			dock = React.createElement(EconomyTab.render, {
+				view = view,
+				draft = state.draft.current,
+				syncState = state.draft.syncState,
+				onOpenSlots = function(lineId, count)
+					applyDraft(Store.setOpenSlots(store:state(), lineId, count))
+				end,
+				onAssign = function(lineId, count)
+					applyDraft(Store.setAssign(store:state(), lineId, count))
+				end,
+				onStrike = function(target)
+					applyDraft(Store.setStrike(store:state(), target))
+				end,
+				onBuild = function(lineType)
+					applyDraft(Store.setBuild(store:state(), lineType))
+				end,
+				onLobby = function(amount)
+					applyDraft(Store.setLobby(store:state(), amount))
+				end,
+				onMarket = function(side, stockId, volume)
+					applyDraft(Store.setMarket(store:state(), side, stockId, volume))
+				end,
+			})
+		else
+			dock = React.createElement(Text.render, {
+				text = if state.ui.activeTab == "politics"
+					then "Politics: coming soon"
+					else "Diplomacy: coming soon",
+				tone = "muted",
+				size = "xs",
+				position = UDim2.fromOffset(theme.spacing.m, theme.spacing.m),
+				size2 = UDim2.new(1, -theme.spacing.m * 2, 0, 24),
+			})
+		end
+	end
+
 	table.insert(
 		children,
 		React.createElement(Surface.render, {
@@ -222,7 +273,7 @@ function App.render(props: AppProps): any
 			size = UDim2.fromOffset(420, theme.layout.dock),
 			anchorPoint = Vector2.new(0.5, 1),
 			zIndex = 6,
-		}, props.dock)
+		}, dock)
 	)
 
 	return React.createElement(

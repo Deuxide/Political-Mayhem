@@ -135,6 +135,7 @@ function PlayerViewBuilder.build(
 		stability = snapshot.stability,
 		policies = snapshot.policies,
 		own = snapshot.classes[viewer],
+		ownLines = lineViews(snapshot, viewer),
 		needs = Needs.required(snapshot, viewer, ruleSet),
 		draft = snapshot.drafts[viewer],
 		others = others,

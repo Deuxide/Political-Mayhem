@@ -53,7 +53,7 @@ function Button.render(props: ButtonProps): any
 
 	local label = React.createElement(Text.render, {
 		text = props.text,
-		tone = "primary",
+		tone = if disabled then "muted" else "primary",
 		size = if size == "l" then "m" else "s",
 		uppercase = props.uppercase == true,
 		align = Enum.TextXAlignment.Center,

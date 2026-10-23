@@ -32,6 +32,7 @@ function M.run()
 				workers = 0,
 				seats = {},
 			},
+			ownLines = {},
 			needs = { food = 2, goods = 1, health = 1, education = 1 },
 			draft = {
 				sequence = 4,
@@ -134,6 +135,84 @@ function M.run()
 		local rejected = Store.rejectDraft(withView)
 		Lib.eq(rejected.draft.syncState, "rejected", "rejected")
 		Lib.eq(rejected.draft.seq, 4, "the server's sequence is back")
+	end)
+
+	Lib.test("the economy reducers edit one field and bump the sequence", function()
+		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+		local slots = Store.setOpenSlots(state, "Farm-1", 1)
+		Lib.eq(slots.draft.current.openSlots["Farm-1"], 1, "open slots")
+		Lib.eq(slots.draft.seq, 5, "the sequence bumps")
+		Lib.eq(slots.draft.syncState, "pending", "pending")
+		Lib.eq(state.draft.current.openSlots["Farm-1"], nil, "the old draft did not change")
+
+		local assigned = Store.setAssign(slots, "Farm-1", 2)
+		Lib.eq(assigned.draft.current.assign["Farm-1"], 2, "assign")
+		Lib.eq(assigned.draft.current.openSlots["Farm-1"], 1, "the earlier field stays")
+
+		local strike = Store.setStrike(assigned, "Capitalist")
+		Lib.eq(strike.draft.current.strike.target, "Capitalist", "the strike target")
+		Lib.eq(Store.setStrike(strike, nil).draft.current.strike, nil, "a second click clears it")
+
+		local build = Store.setBuild(strike, "Farm")
+		Lib.eq(build.draft.current.build.lineType, "Farm", "the build")
+		Lib.eq(Store.setBuild(build, nil).draft.current.build, nil, "clear the build")
+
+		local lobby = Store.setLobby(build, 2)
+		Lib.eq(lobby.draft.current.lobby.amount, 2, "the lobby")
+		Lib.eq(Store.setLobby(lobby, 0).draft.current.lobby, nil, "zero clears the lobby")
+
+		local market = Store.setMarket(lobby, "sell", "food", 2)
+		Lib.eq(market.draft.current.market.sell.food, 2, "the sell")
+		Lib.eq(
+			Store.setMarket(market, "sell", "food", 0).draft.current.market.sell.food,
+			nil,
+			"zero clears the sell"
+		)
+		local buy = Store.setMarket(market, "buy", "goods", 1)
+		Lib.eq(buy.draft.current.market.buy.goods, 1, "the buy")
+		Lib.eq(buy.draft.current.market.sell.food, 2, "the sell stays")
+	end)
+
+	Lib.test("an older echo does not overwrite a newer local edit", function()
+		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+		local first = Store.setOpenSlots(state, "Farm-1", 1) -- seq 5
+		local second = Store.setOpenSlots(first, "Farm-1", 2) -- seq 6
+
+		-- the server accepts seq 5: it is the accepted baseline, but the
+		-- newer local seq 6 stays
+		local echoed = {
+			sequence = 5,
+			locked = false,
+			openSlots = { ["Farm-1"] = 1 },
+			assign = {},
+			market = { sell = {}, buy = {} },
+			votes = {},
+		}
+		local next = Store.applyPatch(second, { { op = "set", path = "draft", value = echoed } })
+		Lib.eq(next.draft.seq, 6, "the local edit stays")
+		Lib.eq(next.draft.current.openSlots["Farm-1"], 2, "the newer value stays")
+		Lib.eq(next.draft.syncState, "pending", "still pending")
+		Lib.eq(next.match.view.draft.sequence, 5, "the view remembers the accepted draft")
+
+		-- a refusal reverts to the accepted seq 5, not the snapshot's seq 4
+		local rejected = Store.rejectDraft(next)
+		Lib.eq(rejected.draft.seq, 5, "the accepted draft")
+		Lib.eq(rejected.draft.current.openSlots["Farm-1"], 1, "the accepted value")
+		Lib.eq(rejected.draft.syncState, "rejected", "rejected")
+
+		-- the echo of seq 6 is accepted and cleans the state
+		local echoed6 = {
+			sequence = 6,
+			locked = false,
+			openSlots = { ["Farm-1"] = 2 },
+			assign = {},
+			market = { sell = {}, buy = {} },
+			votes = {},
+		}
+		local clean =
+			Store.applyPatch(rejected, { { op = "set", path = "draft", value = echoed6 } })
+		Lib.eq(clean.draft.seq, 6, "the newest echo")
+		Lib.eq(clean.draft.syncState, "clean", "in sync")
 	end)
 
 	Lib.test("notices and chat messages arrive", function()

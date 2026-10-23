@@ -16,6 +16,7 @@ export type StepperProps = {
 	step: number?,
 	onChange: ((value: number) -> ())?,
 	disabled: boolean?,
+	position: UDim2?,
 }
 
 local Stepper = {}
@@ -46,6 +47,8 @@ function Stepper.render(props: StepperProps): any
 			text = "-",
 			variant = "secondary",
 			size = "s",
+			position = UDim2.fromOffset(0, 1),
+			size2 = UDim2.fromOffset(28, 26),
 			disabled = disabled or props.value <= props.min,
 			onClick = function()
 				move(-1)
@@ -56,10 +59,11 @@ function Stepper.render(props: StepperProps): any
 		children,
 		React.createElement(Text.render, {
 			text = tostring(props.value),
-			tone = "primary",
+			tone = if disabled then "muted" else "primary",
 			size = "m",
 			align = Enum.TextXAlignment.Center,
-			size2 = UDim2.fromOffset(48, 26),
+			position = UDim2.fromOffset(32, 1),
+			size2 = UDim2.fromOffset(86, 26),
 		})
 	)
 	table.insert(
@@ -68,6 +72,8 @@ function Stepper.render(props: StepperProps): any
 			text = "+",
 			variant = "secondary",
 			size = "s",
+			position = UDim2.fromOffset(122, 1),
+			size2 = UDim2.fromOffset(28, 26),
 			disabled = disabled or props.value >= props.max,
 			onClick = function()
 				move(1)
@@ -77,6 +83,7 @@ function Stepper.render(props: StepperProps): any
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
+		Position = props.position or UDim2.fromOffset(0, 0),
 		Size = UDim2.fromOffset(150, 28),
 	}, children)
 end
