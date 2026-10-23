@@ -23,6 +23,7 @@ local Modal = {}
 function Modal.render(props: ModalProps): any
 	local theme = ThemeContext.useTheme()
 	local width = props.width or 420
+	local headerHeight = 36
 
 	local header: { any } = {}
 	table.insert(
@@ -57,21 +58,28 @@ function Modal.render(props: ModalProps): any
 	if props.children ~= nil then
 		table.insert(body, props.children)
 	end
+	-- The body is inset from the card edges so callers can pass bare content.
+	local bodyContent = React.createElement("Frame", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(theme.spacing.l, theme.spacing.m),
+		Size = UDim2.new(1, -theme.spacing.l * 2, 1, -theme.spacing.m * 2),
+	}, body)
 
 	local card: { any } = {}
 	table.insert(
 		card,
 		React.createElement(Surface.render, {
 			gradient = "surface.header",
-			size = UDim2.new(1, 0, 0, 36),
+			size = UDim2.new(1, 0, 0, headerHeight),
 		}, header)
 	)
 	table.insert(
 		card,
 		React.createElement(Surface.render, {
 			gradient = "surface.card",
-			size = UDim2.new(1, 0, 1, -36),
-		}, body)
+			position = UDim2.fromOffset(0, headerHeight),
+			size = UDim2.new(1, 0, 1, -headerHeight),
+		}, bodyContent)
 	)
 
 	return React.createElement(

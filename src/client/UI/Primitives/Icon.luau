@@ -43,9 +43,12 @@ function Icon.render(props: IconProps): any
 	local side = theme.icon[size]
 	local role = if tone == "neutral"
 		then "surface.raised"
-		elseif tone == "success" or tone == "warning" or tone == "danger" then "meter."
-			.. tone :: string
+		elseif tone == "success" then "meter.fill"
+		elseif tone == "warning" or tone == "danger" then "meter." .. tone
 		else "accent." .. (tone :: string)
+	-- The neutral token is a dark surface; the accent and meter fills are
+	-- bright enough for the dark on-accent mark.
+	local markTone = if tone == "neutral" then "primary" else "onAccent"
 
 	local mark = props.mark
 	local children: { any } = {}
@@ -54,7 +57,7 @@ function Icon.render(props: IconProps): any
 			children,
 			React.createElement(Text.render, {
 				text = mark,
-				tone = "onAccent",
+				tone = markTone,
 				size = "xs",
 				align = Enum.TextXAlignment.Center,
 				size2 = UDim2.fromScale(1, 1),

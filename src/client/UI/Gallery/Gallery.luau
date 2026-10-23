@@ -181,7 +181,16 @@ function Gallery.render(): any
 	for _, size in { "small", "medium", "large" } do
 		table.insert(iconRow, React.createElement(Icon.render, { mark = "M", size = size :: any }))
 	end
-	table.insert(children, section("Icon", { row(iconRow) }))
+	local iconToneRow: { any } = {}
+	for _, tone in
+		{ "neutral", "working", "middle", "capitalist", "state", "success", "warning", "danger" }
+	do
+		table.insert(
+			iconToneRow,
+			React.createElement(Icon.render, { mark = "M", tone = tone :: any, size = "medium" })
+		)
+	end
+	table.insert(children, section("Icon", { row(iconRow), row(iconToneRow) }))
 
 	-- Divider
 	table.insert(
@@ -375,6 +384,7 @@ function Gallery.render(): any
 					text = "The body of the modal.",
 					tone = "secondary",
 					size = "s",
+					size2 = UDim2.new(1, 0, 0, 24),
 				})
 			)
 		)

@@ -31,6 +31,7 @@ local Card = {}
 function Card.render(props: CardProps): any
 	local theme = ThemeContext.useTheme()
 	local tone = props.tone or "neutral"
+	local headerHeight = 28
 
 	local header: { any } = {}
 	table.insert(
@@ -39,7 +40,7 @@ function Card.render(props: CardProps): any
 			Surface.render,
 			{
 				gradient = if tone == "neutral" then "surface.header" else "accent." .. tone,
-				size = UDim2.new(1, 0, 0, 28),
+				size = UDim2.new(1, 0, 0, headerHeight),
 			},
 			React.createElement(Text.render, {
 				text = props.title,
@@ -58,8 +59,9 @@ function Card.render(props: CardProps): any
 				text = props.subtitle,
 				tone = "muted",
 				size = "xs",
-				position = UDim2.new(1, -theme.spacing.l, 1, 0),
-				anchorPoint = Vector2.new(1, 0),
+				align = Enum.TextXAlignment.Right,
+				size2 = UDim2.new(1, -theme.spacing.l * 2, 1, 0),
+				position = UDim2.fromOffset(theme.spacing.l, 0),
 			})
 		)
 	end
@@ -73,14 +75,15 @@ function Card.render(props: CardProps): any
 	table.insert(
 		content,
 		React.createElement(Surface.render, {
-			size = UDim2.new(1, 0, 0, 28),
+			size = UDim2.new(1, 0, 0, headerHeight),
 		}, header)
 	)
 	table.insert(
 		content,
 		React.createElement(Surface.render, {
 			gradient = "surface.card",
-			size = UDim2.new(1, 0, 1, -28),
+			position = UDim2.fromOffset(0, headerHeight),
+			size = UDim2.new(1, 0, 1, -headerHeight),
 		}, body)
 	)
 

@@ -39,7 +39,7 @@ function Toast.render(props: ToastProps): any
 		children,
 		React.createElement(Text.render, {
 			text = props.message,
-			tone = if tone == "info" then "primary" else tone :: any,
+			tone = if tone == "info" then "primary" else "onAccent",
 			size = "s",
 			size2 = UDim2.new(1, -theme.spacing.l, 1, 0),
 			position = UDim2.fromOffset(theme.spacing.l, 0),
