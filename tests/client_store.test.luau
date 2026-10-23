@@ -19,6 +19,7 @@ function M.run()
 		return {
 			viewer = "Middle",
 			day = 1,
+			rounds = 12,
 			phase = "Window",
 			stability = 60,
 			policies = { Wage = 2 },

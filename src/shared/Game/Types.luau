@@ -294,6 +294,7 @@ export type NeedsTable = { [StockId]: number }
 export type PlayerView = {
 	viewer: ClassId,
 	day: number,
+	rounds: number, -- the match length in Days for this difficulty (GAME_DESIGN 12)
 	phase: Phase,
 	stability: number,
 	policies: { [PolicyId]: number },

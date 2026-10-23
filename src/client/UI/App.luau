@@ -139,7 +139,7 @@ function App.render(props: AppProps): any
 		children,
 		React.createElement(TopBar.render, {
 			day = state.match.day,
-			rounds = 12,
+			rounds = if view ~= nil then view.rounds else nil,
 			phase = state.match.phase,
 			endsAt = state.match.endsAt,
 			serverOffset = state.match.serverOffset,

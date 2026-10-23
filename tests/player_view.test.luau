@@ -71,16 +71,19 @@ function M.run()
 
 	Lib.test("the viewer's own needs travel, scaled by the difficulty (5.3, 12)", function()
 		local normal = build(fresh("Normal"), "Normal", "Working")
+		Lib.eq(normal.rounds, 12, "Normal: the match is 12 Days")
 		Lib.eq(normal.needs.food, 8, "Normal: 16 workers need 8 Food")
 		Lib.eq(normal.needs.health, 4, "Normal: 16 workers need 4 Health")
 		Lib.eq(normal.needs.goods, 0, "Working needs no Goods")
 		Lib.eq(normal.needs.education, 0, "Working needs no Education")
 
 		local easy = build(fresh("Easy"), "Easy", "Working")
+		Lib.eq(easy.rounds, 8, "Easy: the match is 8 Days")
 		Lib.eq(easy.needs.food, 6, "Easy: 0.75 scales 8 down to 6")
 		Lib.eq(easy.needs.health, 3, "Easy: 0.75 scales 4 down to 3")
 
 		local extreme = build(fresh("Extreme"), "Extreme", "Working")
+		Lib.eq(extreme.rounds, 18, "Extreme: the match is 18 Days")
 		Lib.eq(extreme.needs.food, 10, "Extreme: 1.15 rounds 9.2 up")
 		Lib.eq(extreme.needs.health, 5, "Extreme: 1.15 rounds 4.6 up")
 

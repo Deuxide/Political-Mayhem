@@ -130,6 +130,7 @@ function PlayerViewBuilder.build(
 	return {
 		viewer = viewer,
 		day = snapshot.day,
+		rounds = ruleSet:rounds(),
 		phase = snapshot.phase,
 		stability = snapshot.stability,
 		policies = snapshot.policies,

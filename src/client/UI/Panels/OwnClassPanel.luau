@@ -225,15 +225,22 @@ function OwnClassPanel.render(props: OwnClassPanelProps): any
 		end
 		table.insert(
 			body,
-			React.createElement(ResourceChip.render, {
-				resource = resourceId,
-				amount = amount,
-				tone = tone :: any,
-				position = UDim2.fromOffset(
-					if column == 0 then PAD else width - PAD - 120,
-					row * CHIP_ROW + y
-				),
-			})
+			React.createElement(
+				"Frame",
+				{
+					BackgroundTransparency = 1,
+					Position = UDim2.fromOffset(
+						if column == 0 then PAD else width - PAD - 120,
+						row * CHIP_ROW + y
+					),
+					Size = UDim2.fromOffset(120, 24),
+				},
+				React.createElement(ResourceChip.render, {
+					resource = resourceId,
+					amount = amount,
+					tone = tone :: any,
+				})
+			)
 		)
 	end
 	y += CHIP_ROW * 3

@@ -14,7 +14,7 @@ local Countdown = require(script.Parent.Parent.Composites.Countdown)
 
 export type TopBarProps = {
 	day: number,
-	rounds: number,
+	rounds: number?, -- nil until the first view; the top bar then shows the Day alone
 	phase: string,
 	endsAt: number,
 	serverOffset: number,
@@ -38,7 +38,9 @@ function TopBar.render(props: TopBarProps): any
 	table.insert(
 		left,
 		React.createElement(Text.render, {
-			text = string.format("Day %d of %d", props.day, props.rounds),
+			text = if props.rounds ~= nil
+				then string.format("Day %d of %d", props.day, props.rounds)
+				else string.format("Day %d", props.day),
 			tone = "primary",
 			size = "m",
 			size2 = UDim2.fromOffset(140, 24),
