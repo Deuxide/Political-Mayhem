@@ -41,6 +41,7 @@ Client.connect(client)
 local appGui = Instance.new("ScreenGui")
 appGui.Name = "AppScreenGui"
 appGui.ResetOnSpawn = false
+appGui.IgnoreGuiInset = true
 appGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local appRoot = ReactRoblox.createRoot(appGui)
@@ -62,6 +63,7 @@ local galleryGui = Instance.new("ScreenGui")
 galleryGui.Name = "GalleryScreenGui"
 galleryGui.ResetOnSpawn = false
 galleryGui.Enabled = false
+galleryGui.IgnoreGuiInset = true
 galleryGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local galleryRoot = ReactRoblox.createRoot(galleryGui)
