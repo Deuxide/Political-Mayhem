@@ -17,6 +17,7 @@ export type NetworkConfig = {
 	maxSequence: number, -- highest draft sequence number accepted
 	maxSlotCount: number, -- highest slot/worker count in one draft field
 	maxResourceAmount: number, -- highest amount in one bag or lobby order
+	draftDebounceSeconds: number, -- wait after the last draft edit (NETWORKING 4)
 	rateLimits: { [string]: RateLimit },
 }
 
@@ -29,6 +30,7 @@ return table.freeze({
 	maxSequence = 1000000000,
 	maxSlotCount = 1000,
 	maxResourceAmount = 1000000,
+	draftDebounceSeconds = 0.3, -- NETWORKING 4: 300 ms after the last edit
 	-- The limits of NETWORKING section 3.1: "n/s" is n sends per second,
 	-- except the chat, which gets one message per 0.7 s. The period is in
 	-- seconds, the unit the server clock uses.

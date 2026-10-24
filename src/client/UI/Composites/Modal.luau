@@ -1,0 +1,110 @@
+--!strict
+-- Modal: a scrim with a card on it (UI_SPEC section 3). It floats over the
+-- city and never blocks the top bar or the own panel.
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local React = require(ReplicatedStorage.Packages.react)
+local ThemeContext = require(script.Parent.Parent.Theme.ThemeContext)
+local Surface = require(script.Parent.Parent.Primitives.Surface)
+local Text = require(script.Parent.Parent.Primitives.Text)
+local Button = require(script.Parent.Parent.Primitives.Button)
+
+export type ModalComponent = (ModalProps) -> any
+
+export type ModalProps = {
+	title: string,
+	children: any?,
+	onClose: (() -> ())?,
+	width: number?,
+}
+
+local Modal = {}
+
+function Modal.render(props: ModalProps): any
+	local theme = ThemeContext.useTheme()
+	local width = props.width or 420
+	local headerHeight = 36
+
+	local header: { any } = {}
+	table.insert(
+		header,
+		React.createElement(Text.render, {
+			text = props.title,
+			tone = "primary",
+			size = "m",
+			uppercase = true,
+			size2 = UDim2.new(1, -theme.spacing.l, 1, 0),
+			position = UDim2.fromOffset(theme.spacing.l, 0),
+		})
+	)
+	if props.onClose ~= nil then
+		local onClose = props.onClose
+		table.insert(
+			header,
+			React.createElement(Button.render, {
+				text = "x",
+				variant = "ghost",
+				size = "s",
+				position = UDim2.new(1, -theme.spacing.l, 0, 0),
+				anchorPoint = Vector2.new(1, 0),
+				onClick = function()
+					onClose()
+				end,
+			})
+		)
+	end
+
+	local body: { any } = {}
+	if props.children ~= nil then
+		table.insert(body, props.children)
+	end
+	-- The body is inset from the card edges so callers can pass bare content.
+	local bodyContent = React.createElement("Frame", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(theme.spacing.l, theme.spacing.m),
+		Size = UDim2.new(1, -theme.spacing.l * 2, 1, -theme.spacing.m * 2),
+	}, body)
+
+	local card: { any } = {}
+	table.insert(
+		card,
+		React.createElement(Surface.render, {
+			gradient = "surface.header",
+			size = UDim2.new(1, 0, 0, headerHeight),
+		}, header)
+	)
+	table.insert(
+		card,
+		React.createElement(Surface.render, {
+			gradient = "surface.card",
+			position = UDim2.fromOffset(0, headerHeight),
+			size = UDim2.new(1, 0, 1, -headerHeight),
+		}, bodyContent)
+	)
+
+	return React.createElement(
+		"Frame",
+		{
+			BackgroundTransparency = 1,
+			Size = UDim2.fromScale(1, 1),
+			ZIndex = 50,
+		},
+		React.createElement(
+			Surface.render,
+			{
+				gradient = "overlay.scrim",
+				size = UDim2.fromScale(1, 1),
+				ZIndex = 50,
+			},
+			React.createElement(Surface.render, {
+				gradient = "surface.card",
+				size = UDim2.fromOffset(width, 260),
+				position = UDim2.fromScale(0.5, 0.5),
+				anchorPoint = Vector2.new(0.5, 0.5),
+				ZIndex = 51,
+			}, card)
+		)
+	)
+end
+
+return Modal

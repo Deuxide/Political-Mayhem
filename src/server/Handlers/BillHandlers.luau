@@ -81,7 +81,7 @@ function BillHandlers.connect(support: SupportType)
 		end
 
 		-- everybody hears about the bill (it is public, GAME_DESIGN 7.2)
-		Replication.patchAll(support, "bills", bill)
+		Replication.patchAll(support, "bills", bill, "append")
 	end)
 end
 

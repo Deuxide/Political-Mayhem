@@ -71,20 +71,31 @@ function Replication.snapshotAll(support: SupportType)
 end
 
 -- A patch for the members of a class.
-function Replication.patch(support: SupportType, classId: ClassId, path: string, value: any)
+function Replication.patch(
+	support: SupportType,
+	classId: ClassId,
+	path: string,
+	value: any,
+	op: "set" | "remove" | "append"?
+)
 	for _, member in Support.membersOf(support, classId) do
 		support.remotes.View_Patch:FireClient(member, {
-			ops = { { op = "set", path = path, value = value } },
+			ops = { { op = op or "set", path = path, value = value } },
 			serverTime = support.clock(),
 		})
 	end
 end
 
 -- A patch for everybody (public data, like the bills on the table).
-function Replication.patchAll(support: SupportType, path: string, value: any)
+function Replication.patchAll(
+	support: SupportType,
+	path: string,
+	value: any,
+	op: "set" | "remove" | "append"?
+)
 	for _, player in support.players() do
 		support.remotes.View_Patch:FireClient(player, {
-			ops = { { op = "set", path = path, value = value } },
+			ops = { { op = op or "set", path = path, value = value } },
 			serverTime = support.clock(),
 		})
 	end

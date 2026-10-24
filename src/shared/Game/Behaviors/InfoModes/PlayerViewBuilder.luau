@@ -19,6 +19,7 @@ local Types = require(script.Parent.Parent.Parent.Types)
 local RuleSet = require(script.Parent.Parent.Parent.RuleSet)
 local StateOps = require(script.Parent.Parent.Parent.State.StateOps)
 local Alliances = require(script.Parent.Parent.Parent.Ops.Alliances)
+local Needs = require(script.Parent.Parent.Parent.Needs)
 local InfoMode = require(script.Parent.InfoMode)
 local OpenInfo = require(script.Parent.OpenInfo)
 local PartialInfo = require(script.Parent.PartialInfo)
@@ -129,10 +130,13 @@ function PlayerViewBuilder.build(
 	return {
 		viewer = viewer,
 		day = snapshot.day,
+		rounds = ruleSet:rounds(),
 		phase = snapshot.phase,
 		stability = snapshot.stability,
 		policies = snapshot.policies,
 		own = snapshot.classes[viewer],
+		ownLines = lineViews(snapshot, viewer),
+		needs = Needs.required(snapshot, viewer, ruleSet),
 		draft = snapshot.drafts[viewer],
 		others = others,
 		bills = snapshot.bills,

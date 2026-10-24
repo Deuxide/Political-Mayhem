@@ -66,8 +66,8 @@ function AllianceHandlers.connect(support: SupportType)
 			return
 		end
 		-- both classes hear about the proposal
-		Replication.patch(support, classId, "alliances", proposal)
-		Replication.patch(support, to, "alliances", proposal)
+		Replication.patch(support, classId, "alliances", proposal, "append")
+		Replication.patch(support, to, "alliances", proposal, "append")
 	end)
 
 	support.remotes.Alliance_Respond.OnServerEvent:Connect(function(player: any, payload: any)
