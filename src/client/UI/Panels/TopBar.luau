@@ -34,9 +34,15 @@ local PHASE_NAMES: { [string]: string } = {
 function TopBar.render(props: TopBarProps): any
 	local theme = ThemeContext.useTheme()
 
-	local left: { any } = {}
-	table.insert(
-		left,
+	-- The top row: Day, phase and clock, left to right. The Stability block
+	-- sits at the top-right; the ticker runs along the bottom of the bar.
+	local topRow: { any } = {
+		React.createElement("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, theme.spacing.s),
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+		}),
 		React.createElement(Text.render, {
 			text = if props.rounds ~= nil
 				then string.format("Day %d of %d", props.day, props.rounds)
@@ -44,51 +50,55 @@ function TopBar.render(props: TopBarProps): any
 			tone = "primary",
 			size = "m",
 			size2 = UDim2.fromOffset(140, 24),
-		})
-	)
-
-	local middle: { any } = {}
-	table.insert(
-		middle,
+			layoutOrder = 1,
+		}),
 		React.createElement(Text.render, {
 			text = PHASE_NAMES[props.phase] or props.phase,
 			tone = "secondary",
 			size = "s",
 			uppercase = true,
 			size2 = UDim2.fromOffset(150, 24),
-		})
-	)
-	table.insert(
-		middle,
+			layoutOrder = 2,
+		}),
 		React.createElement(Countdown.render, {
 			endsAt = props.endsAt,
 			serverOffset = props.serverOffset,
-		})
-	)
+			layoutOrder = 3,
+		}),
+	}
 
-	local right: { any } = {}
-	table.insert(
-		right,
+	local stability: { any } = {
+		React.createElement("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, theme.spacing.xs),
+		}),
 		React.createElement(Text.render, {
 			text = "Stability",
 			tone = "muted",
 			size = "xs",
 			uppercase = true,
 			size2 = UDim2.fromOffset(90, 16),
-		})
-	)
-	table.insert(
-		right,
+			layoutOrder = 1,
+		}),
 		React.createElement(SegmentedTrack.render, {
 			value = props.stability,
 			max = 100,
 			segments = 10,
 			size = "m",
-		})
-	)
+			layoutOrder = 2,
+		}),
+	}
 
 	-- the policy ticker: the level of every track that is on
-	local ticker: { any } = {}
+	local ticker: { any } = {
+		React.createElement("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding = UDim.new(0, theme.spacing.m),
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+		}),
+	}
+	local tickerOrder = 0
 	for _, name in
 		{
 			"Wage",
@@ -102,6 +112,7 @@ function TopBar.render(props: TopBarProps): any
 	do
 		local level = props.policies[name]
 		if level ~= nil and level > 0 then
+			tickerOrder += 1
 			table.insert(
 				ticker,
 				React.createElement(Text.render, {
@@ -109,16 +120,9 @@ function TopBar.render(props: TopBarProps): any
 					tone = "muted",
 					size = "xs",
 					size2 = UDim2.fromOffset(120, 16),
+					layoutOrder = tickerOrder,
 				})
 			)
-		end
-	end
-
-	-- one list of children: a raw table must never sit next to another child
-	local header: { any } = {}
-	for _, list in { left, middle, right, ticker } do
-		for _, element in list do
-			table.insert(header, element)
 		end
 	end
 
@@ -135,7 +139,23 @@ function TopBar.render(props: TopBarProps): any
 				BackgroundTransparency = 1,
 				Size = UDim2.new(1, -theme.spacing.l * 2, 1, 0),
 				Position = UDim2.fromOffset(theme.spacing.l, 0),
-			}, header)
+			}, {
+				React.createElement("Frame", {
+					BackgroundTransparency = 1,
+					Size = UDim2.new(1, 0, 0, 24),
+				}, topRow),
+				React.createElement("Frame", {
+					BackgroundTransparency = 1,
+					AnchorPoint = Vector2.new(1, 0),
+					Position = UDim2.fromScale(1, 0),
+					Size = UDim2.fromOffset(200, 32),
+				}, stability),
+				React.createElement("Frame", {
+					BackgroundTransparency = 1,
+					Position = UDim2.fromOffset(0, 40),
+					Size = UDim2.new(1, 0, 0, 16),
+				}, ticker),
+			})
 		)
 	)
 

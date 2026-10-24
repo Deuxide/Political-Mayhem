@@ -19,6 +19,7 @@ export type SegmentedTrackProps = {
 	segments: number?,
 	tone: TrackTone?,
 	size: TrackSize?,
+	layoutOrder: number?,
 }
 
 local SegmentedTrack = {}
@@ -48,6 +49,7 @@ function SegmentedTrack.render(props: SegmentedTrackProps): any
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, height),
+		LayoutOrder = props.layoutOrder or 0,
 	}, cells)
 end
 

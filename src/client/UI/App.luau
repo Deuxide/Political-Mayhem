@@ -269,7 +269,7 @@ function App.render(props: AppProps): any
 		children,
 		React.createElement(Surface.render, {
 			gradient = "surface.header",
-			position = UDim2.new(0.5, 0, 1, -(theme.layout.dock + theme.spacing.l)),
+			position = UDim2.new(0.5, 0, 1, -theme.spacing.l),
 			size = UDim2.fromOffset(420, theme.layout.dock),
 			anchorPoint = Vector2.new(0.5, 1),
 			zIndex = 6,

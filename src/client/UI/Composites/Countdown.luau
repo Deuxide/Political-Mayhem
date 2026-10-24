@@ -15,6 +15,7 @@ export type CountdownProps = {
 	endsAt: number, -- server time
 	serverOffset: number, -- serverTime minus the local clock
 	label: string?,
+	layoutOrder: number?,
 }
 
 local Countdown = {}
@@ -50,6 +51,7 @@ function Countdown.render(props: CountdownProps): any
 		tone = tone :: any,
 		size = "m",
 		size2 = UDim2.fromOffset(90, 24),
+		layoutOrder = props.layoutOrder,
 	})
 end
 

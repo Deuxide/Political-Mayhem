@@ -3,13 +3,13 @@
 **This file is the handoff.** Update it after every task (even if the session
 may end abruptly), including the Verification log.
 
-Last updated: 2026-10-23
+Last updated: 2026-10-24
 
 ## Snapshot
 
 - **Project:** Political Mayhem
 - **Current milestone:** M7 (client foundation)
-- **Current task:** M7-T4 is implemented and L1 is green (400/400). Its core Studio L2 passed this session (Middle full economic Day, Working Day, Capitalist/State controls, Gallery layout/skin/modal) and the Card/Modal fixes were visually verified. The later design-system fixes (text roles, Toast text, Icon tones, Gallery Icon-tone row) are L1-green but **NOT VERIFIED**: the Studio MCP tools disappeared when the OpenCode server restarted. Next: reconnect the MCP, re-run the Gallery L2, then the M7 milestone L2.
+- **Current task:** M7-T4 is implemented; the T4 core L2, the Gallery/component L2 and the TopBar fix passed in Studio. The milestone L2 found two T2 layout bugs: the top bar had no layout (all labels at 16,0) and the action dock sat 132 px above the bottom. Both are fixed; the TopBar is L2-verified, the dock is L1-green and **NOT VERIFIED** because Studio crashed on the playtest restart. Next: reopen Studio, verify the dock/bottom row and the own panel/cards, then finish the M7 milestone L2.
 - **Project phase:** M6 merged to stable (`0f3d4e5 "Merge M6"`); M7 runs on `M7-dev1` off that merge.
 - **Current branch:** M7-dev1 — created 2026-10-22 off merged stable (0f3d4e5 "Merge M6"). The old `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
@@ -101,21 +101,33 @@ Middle ran a full economic Day through the dock (open slot, build Farm, sell
 Working assigned 6 workers, struck the Capitalist, and bought 2 Food over the
 Day; Capitalist and State exercised their build/lobby controls. The Gallery
 showed all 14 sections in order, the skin switch, the modal and the toasts.
-The L2 also fixed six design-system defects (see the Verification log).
-**Still to verify:** the latest text-role, Toast, Icon and Gallery-tone fixes;
-the Studio MCP tools disappeared with the OpenCode server restart.
+The L2 also fixed six design-system defects (see the Verification log); the
+Gallery/component fixes were verified in Studio on 2026-10-24. **Still to
+verify:** the action dock's bottom alignment, the own panel/cards final smoke
+and the milestone L2; Studio crashed on the playtest restart.
+
+**M7-T2 follow-up — the top bar and the dock (fixed, L2 partial).** The
+milestone smoke found the `TopBar` header frame had no layout: Day, phase,
+clock, Stability and the policy ticker all rendered at `16,0`. It now uses a
+top row (Day, phase, clock), a right-aligned Stability block and a bottom
+ticker row, all with `UIListLayout` and explicit `layoutOrder` (Countdown and
+SegmentedTrack gained a `layoutOrder` prop). The live check shows Day `16,0`,
+phase `164,0`, clock `322,0`, Stability `1313,0`, ticker `16..544` at `y=40`.
+The action dock was anchored bottom but offset by `dock + spacing`, so it
+floated 132 px above the bottom; it is now `1 - spacing.l` and bottom-aligned
+with the own panel and the BR card. The TopBar is verified; the dock, the own
+panel/cards final smoke and the milestone L2 were interrupted by a Studio
+crash on the playtest restart.
 
 ## Next up
 
-1. Reconnect the Studio MCP (the tools disappeared with the OpenCode server
-   restart; `list_mcp_resources` still answers, but no Studio tool is exposed).
-   Then re-open the Gallery and verify the latest fixes: the
-   success/warning/danger text is readable, the Icon tone row shows all eight
-   tones with a light neutral mark, the Toast text is readable on every tone,
-   and the Contrast skin still restyles everything; zero project errors and
-   warnings.
-2. Run the M7 milestone L2 (the T0/T1/T2/T3/T4 checks together), record it,
-   and report "Milestone M7 ready".
+1. Reopen Studio with `build/game.rbxl` (the playtest crashed Studio), reconnect
+   Rojo and the MCP, and tell me. Then verify the dock is bottom-aligned with
+   the own panel and the BR card (the bottom row ends at screen − 24), the own
+   panel/cards with the new text/Icon tones, the EconomyTab sync (edit →
+   `saving` → `saved`) and the Politics/Diplomacy placeholders.
+2. Finish the M7 milestone L2 (top bar, dock, own panel, cards, tabs,
+   EconomyTab, Gallery), record it, and report "Milestone M7 ready".
 
 ## Verification log
 
@@ -123,6 +135,7 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 
 | Date | Task / milestone | L1 | L2 | L3 | Notes |
 |---|---|---|---|---|---|
+| 2026-10-24 | M7-T2 follow-up — the top bar and the action dock (found in the milestone L2) | CHECK PASSED (400/400; stylua clean, selene 0 warnings, types 0 errors) | **partial** — owner gate confirmed in this session ("studio opened, mcp and rojo connected"), instance `game.rbxl`. (1) The seven fixed component modules (Card, Modal, Toast, Icon, both skins, Gallery) were byte-identical. The Gallery fixes passed live: success/warning/danger text `126,204,128` / `238,190,96` / `226,118,96`; all eight Icon tones (neutral marks light, success `meter.fill`); Toast text `onAccent` on the colored tones; chip deltas `+3`/`-4` light; the skin switch Default → Contrast; zero project errors/warnings. (2) The milestone smoke found the TopBar's header frame had **no layout**, so Day, phase, clock, Stability and ticker all sat at `16,0`; the action dock was anchored bottom but offset by `dock + spacing`, so it sat 132 px above the bottom. (3) The TopBar now uses a top row (Day, phase, clock), a right Stability block and a bottom ticker row; verified live: Day `16,0`, phase `164,0`, clock `322,0`, Stability `1313,0`, ticker `16/148/280/412/544` at `y=40`; the app renders 169 frames, 86 gradients, 166 labels, 38 buttons and **0 UICorner**. (4) The dock is now `position = (0.5, 0, 1, -spacing.l)` (bottom-aligned with the own panel and the BR card); it is byte-identical in Studio (`App 8395/533707063`) but **NOT VERIFIED** in a running client: **Studio crashed during the playtest restart**. The own panel/cards final smoke and the dock/bottom-row check are also pending. | none | The top bar and the dock are T2 (UI_SPEC section 2); the Gallery/component fixes from 2026-10-23 are now verified. Next: reopen Studio, verify the dock sits bottom-aligned between the own panel and the BR card, re-check the own panel/cards with the new text/Icon tones, then finish the milestone L2. |
 | 2026-10-23 | M7-T4 — Studio L2 (the `EconomyTab` and the Gallery) | CHECK PASSED (400/400; stylua clean, selene 0 warnings, types 0 errors) | **partial** — owner gate confirmed this session ("studio opened, rojo and mcp connected"), instance `game.rbxl`. All 14 changed runtime modules were byte-identical to the repo first. (1) **Middle, full economic Day:** Day 1 start 25 Money / 2 Influence / stock 2/1/1/1, draft "no changes - last Day carries over". Edits: Clinic-1 open slots 2→1, build Farm, sell 1 Food, buy 1 Goods, lobby 1; the indicator showed `saving` then `saved`; the draft summary `slots on 1 lines / build Farm` + `sell 1 / buy 1 / lobby 1 / open`. After the 120 s Window: Day 2 Market Hours, **Money 6, Influence 5, Food 0, Goods 1, Health 0, Education 0** (25−3−12+2−6=6; 2+1+2=5; Food 2−1−2=0 with 1 unmet; Goods 1+1−1=1); the own lines gained **Farm-4** (5 lines); the draft rolled to the sticky `slots on 1 lines / open` (build/market/lobby cleared); `[Match] mayhem-323683 day 2 hash f6dab3f9`. (2) **Working Day:** start 10 Money / 3 Influence / stock 4/0/1/0; the tab showed all 10 lines, 3 strike targets, the market, and no build/lobby. Edits: assign 2 to Capitalist Factory-1, 2 to Middle Farm-1, 2 to Middle Farm-2; strike Capitalist; buy 2 Food; `saved`; draft `assigned 6 / strike Capitalist` + `buy 2 / open`. After two Days: `assigned 6 / strike Capitalist` + `open` (sticky fields carried, the market cleared), Money 18 / Influence 9 (consistent with Wage level 2 at 8/Day and no outlawed-strike penalty); `[Match] mayhem-327509 day 2 hash 2bc26742` / `day 3 hash 2172ec57`. (3) **Capitalist:** 4 lines, Farm 12/Factory 20, lobby `2 Money each, max 4`; build Factory + lobby 1 → `build Factory` + `lobby 1 / open`, `saved`. (4) **State:** Clinic-2/School-2, Clinic 15/School 15, market, no lobby; build Clinic → `build Clinic` + `open`, `saved`. (5) **Gallery:** 14 sections in order (TEXT → … → MODAL), 84 labels, skin `Default` → `Contrast`, the modal opened with the title/body/close x, the toasts and tabs visible; screenshots `gallery_modal_fixed` and `gallery_top_fixed`. **Zero project errors/warnings** in every playtest; only the known DataStore/ContentId environment lines. (6) **L2 fixes:** Card body at y=28 under its header and the subtitle right-aligned inside it; Modal body at y=36 with a 16/12 inset (body text 570,293 388×24, no overlap); both skins gained `text.success/warning/danger` (they were absent, so those tones rendered black); Toast text `onAccent` on colored tones; Icon `success` → `meter.fill` and a light mark on the neutral token; the Gallery now shows all eight Icon tones. The Card/Modal fixes were visually verified before the restart; the text/Icon/Toast/skin/Gallery-tone fixes are **NOT VERIFIED** because the Studio MCP tools disappeared with the OpenCode server restart (`list_mcp_resources` answers, but `get_studio_state`/`list_roblox_studios` are unknown). | none | Core T4 implementation at `3b40d6c`; Gallery layout at `9551080`; the L2 fixes are in the commit that carries this STATUS update. This row supersedes the L2 cell of the M7-T4 implementation row below. |
 | 2026-10-23 | M7-T4 | CHECK PASSED (400/400: 397 prior + 2 store tests + 1 player-view test; stylua clean, selene 0 warnings, types 0 errors) | **NOT VERIFIED** — `list_roblox_studios` returned no instances after the T3 playtest; the owner's earlier gate confirmation no longer reaches a live Studio, so no L2 claim is made. When Studio is reopened and Rojo + MCP are connected, run the checklist in the Notes column. | none | **The `EconomyTab` and the debounced draft (UI_SPEC 4.2/5, NETWORKING 4).** The view gained `PlayerView.ownLines: { LineView }` (sorted, exact in every mode; the own class's lines were not in the view), filled by `PlayerViewBuilder`; GAME_DESIGN 13 records the row. `Config/Network.draftDebounceSeconds = 0.3`; the stale `Config/Market` comment now says the cap is per side (D-048). The Store gained `copyDraft`, `withDraft` and six pure reducers (`setOpenSlots`, `setAssign`, `setStrike`, `setBuild`, `setLobby`, `setMarket`); every edit bumps the sequence and sets `pending`. `applyPatch` accepts an echo at or above the local sequence, remembers an older echo as `view.draft` without overwriting the newer local edit, and `rejectDraft` reverts to that accepted baseline (D-072); `Client.onNotice` reverts on `Rejected`/`InvalidPayload`/`StaleDraft`. `Client.queueDraft` debounces the send 300 ms with a generation guard, and `init.client` passes it as `onDraft`. `UI/Panels/EconomyTab` renders the owner's lines with open-slot steppers, the Working's assignment across every class's lines (all 10, capped by open slots and the worker pool) and the three strike target buttons, the buildable types with costs (unaffordable disabled), the four market stocks with sell/buy steppers capped per side, the Middle/Capitalist lobby stepper (capped by Money, the per-Day max and the shared Influence cap), and the saved/saving/rejected indicator; `App` puts it in the dock and shows a "coming soon" placeholder for Politics/Diplomacy. Two design-system defects found on the way and fixed: `Stepper`'s minus/value/plus all sat at (0,0) (now 0/32/122 with a `position` prop), and disabled buttons were visually identical to secondary (now the inset `button.disabled` gradient and muted text in both skins). Tests: the reducers, the echo reconciliation/rejection baseline, and the own-lines view. **L2 checklist:** compare the 13 changed runtime modules (Types, PlayerViewBuilder, Network, Market, Store, Client, Stepper, Button, Default, Contrast, EconomyTab, App, init.client) by length + checksum; start a Middle match, inspect the dock and the sync label; exercise open slots, a build, sell/buy, the lobby, observe `saving` → `saved`, wait for the Window (Easy 90 s) and verify Day 2's production/market/build/lobby effects; repeat a Working assign/strike and a quick Capitalist/State build/lobby check; zero project errors/warnings. Known limitation: role gating is not wired (the view carries no seat roles); the server refuses an unauthorized edit and the client reverts. |
 | 2026-10-23 | M7-T3 | CHECK PASSED (397/397: 395 prior + 1 needs test + 1 store tab test; stylua clean, selene 0 warnings, types 0 errors) | **passed** — owner confirmed the Studio gate this session ("roblox studio opened, rojo and mcp connected"), instance `game.rbxl`, Edit -> Play -> Edit. Three playtests, each with the real client and three bot seats, after a byte-identical check of the seven changed modules (OwnClassPanel, ClassCard, App, ResourceChip, Store, Types, PlayerViewBuilder — all identical to the repo). (1) **Normal (open):** the App renders 116 frames, 57 gradients, **0 `UICorner`**, 97 labels; the own panel bottom-left shows WORKING, VP 0, the six chips laid out in a 2x3 grid (Money 10, Influence 3, Food 4, Goods 0, Health 1, Education 0), NEEDS THIS DAY as Food 4/8 and Health 1/4, the four VP criteria with their 1 VP awards, the sticky draft ("no changes - last Day carries over") and the ECONOMY/POLITICS/DIPLOMACY tab strip; the three cards top-left (MIDDLE), top-right (CAPITALIST) and bottom-right (STATE) show exact VP, 3/5 reputation stars and exact Money/Influence/stocks in the 2x3 grid; clicking POLITICS switches the active tab (the tab's gradient changes from `surface.inset` to `surface.raised`, Economy back to inset) and the re-render produces no error; the own panel's scrolling frame (canvas 296x330, window 296x182, bar 4) scrolls the criteria and the draft into view (CanvasPosition 148). (2) **Extreme (fog):** "Day 1 of 18"; 18 `?` chips, exactly six on each of the three cards (Money, Influence, four stocks) and none on the own panel; own needs show Food 3/10 and Health 0/5, the rest of the own panel exact. (3) **Hard (partial):** "Day 1 of 14"; the cards show tier words (High/Mid/Low) for Money and stocks and exactly one `?` per card for Influence. **Zero project errors and zero warnings** in all three; the only Output lines are the two pre-existing environment lines (DataStore publish, ContentId) plus the server's normal boot/match lines. The L2 found and fixed two real bugs: the own panel's six chips all sat at (0,0) (`ResourceChip` ignores a `position` prop; they are now wrapped in positioned Frames, like the cards), and the top bar hardcoded `rounds = 12`, so Extreme showed "Day 1 of 12" — the match length now travels in `PlayerView.rounds` from `RuleSet`, and the tests pin 8/12/14/18. | none | **The own panel and the class cards (UI_SPEC 4.2).** `PlayerView` now carries the viewer's own `needs`, computed by `Game/Needs.required` in `PlayerViewBuilder` from the real rule and the difficulty multiplier, so the panel displays a number instead of recomputing a rule; the visibility table (GAME_DESIGN 13) records that own needs are exact in every mode, and `tests/player_view.test.luau` pins Normal 8 Food / 4 Health, Easy 6/3, Extreme 10/5 and Middle's flat 2/1. `OwnClassPanel` shows the six resource chips (Money, Influence, Food, Goods, Health, Education), this Day's needs against the stock (the ratio turns danger when short), the class's VP criteria from Config/Objectives with their awards, a sticky-draft summary (slots, assignments, strike, build, market, lobby, votes, locked/open) and the Economy/Politics/Diplomacy tabs wired through `Store.applyActiveTab` (a pure reducer, tested). `ClassCard` shows the class name, the always-exact VP, reputation stars through `Ops/Reputation.stars`, the public alliance badge (marked when it is the viewer's alliance), the six resources as the info mode allows (a number, a `PowerTier` word, or `?`) and the M8 trade/alliance buttons visibly disabled. The App builds all four corners from the view in the fixed relative order (the next three classes after the viewer) and uses the same own panel bottom-left. `ResourceChip` now lays its mark, value and delta out in a row (they all sat at 0,0 before) and can show a tier word. | none | L2 passed; the alliance badge was not exercised because no alliance can exist before M8/M9. |
@@ -199,12 +212,12 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 
 ## Blockers
 
-- **Studio MCP tools unavailable after the OpenCode server restart
-  (2026-10-23).** `list_mcp_resources` still answers for the `roblox-studio`
-  server, but the tool catalog exposes no Studio tools (`get_studio_state` and
-  `list_roblox_studios` are unknown), so no further Studio L2 can run.
-  Reconnect the Studio MCP; then the Gallery re-check and the milestone L2 can
-  finish.
+- **Studio crashed during the playtest restart (2026-10-24).** The playtest
+  that was about to verify the dock fix crashed Studio right after the App
+  synced; no further L2 can run until Studio is reopened with
+  `build/game.rbxl` and Rojo is connected. The 2026-10-23 MCP drop is resolved.
+  The dock fix, the own panel/cards final smoke and the milestone L2 are
+  **NOT VERIFIED**.
 
 ## Known issues
 
@@ -214,15 +227,6 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
   `DraftHandlers` refuses the edit with a Notice and the client reverts, so it
   is safe but not UI_SPEC section 5's "shown disabled with a tooltip". Queue
   the role field and the disabled states with M8's PoliticsTab.
-- **Gallery layout (verified in part).** The Gallery used to put every row
-  child and every section at (0,0); it now uses vertical and horizontal
-  `UIListLayout`s with automatic sizes, fixed-width wrappers for the
-  full-width SegmentedTrack examples, wrappers for the self-positioning Toast
-  examples, and renders the Modal outside the scrolling column. The T4 L2
-  confirmed the 14 sections in order and the skin/modal/toast states; it also
-  fixed the Card and Modal bodies overlapping their headers. The latest
-  text-role, Toast and Icon-tone fixes await the Gallery L2 (the MCP dropped
-  with the OpenCode server restart).
 - Roblox's own CorePackages/UIBlox topbar UI prints a `Warning` ("FoundationProvider
   not found…") with a stack under `CorePackages…` on every playtest when the player
   joins. It does not come from our code (our React lives in
@@ -243,6 +247,7 @@ Newest first. One line per session.
 
 | Date | Summary |
 |---|---|
+| 2026-10-24 | Studio reopened; the seven fixed components matched and the Gallery L2 passed (text tones, all eight Icon tones, Toast text `onAccent`, chip deltas, both skins). The milestone smoke found the TopBar had no layout (all labels at 16,0) and the dock floated 132 px above the bottom; both were fixed (grouped TopBar rows; dock bottom-aligned). The TopBar was verified live; the dock fix is L1-green and synced (`App 8395/533707063`). Studio crashed on the playtest restart, so the dock/bottom row, the own panel/cards and the final milestone smoke are **NOT VERIFIED**. Next: reopen Studio and finish the milestone L2. |
 | 2026-10-23 | M7-T4 L2 run and fixes: Middle full economic Day (25/2 → 6/5, Farm-4 built, draft rolled, hash f6dab3f9), Working Day (assigned 6, struck Capitalist, bought 2 Food; sticky draft; hashes 2bc26742/2172ec57), Capitalist build+lobby, State build, and the Gallery (14 sections, skin switch, modal, screenshots). The L2 found and fixed six design-system defects: Card/Modal bodies overlapped their headers, both skins lacked `text.success/warning/danger`, the Toast used the tone text on its colored fill, the Icon success role used a missing `meter.success` and the neutral mark was dark-on-dark, and the Gallery lacked the Icon-tone row. CHECK PASSED 400/400. Card/Modal were visually verified; the later text/Icon/Toast/skin fixes are **NOT VERIFIED** because the Studio MCP tools disappeared with the OpenCode server restart. Next: reconnect the MCP, re-run the Gallery L2, then the M7 milestone L2. |
 | 2026-10-23 | Gallery layout fixed (Known issue): the sections and rows now use `UIListLayout` + `AutomaticSize`, the SegmentedTrack examples get fixed-width wrappers, the Toast examples get wrappers for their top-right positioning, and the Modal renders outside the scrolling column. CHECK PASSED 400/400. The visual verification is part of the pending M7 L2 (the MCP still has no Studio instance). |
 | 2026-10-23 | M7-T4 implemented: the `EconomyTab` (lines, assign, strike, build, market, lobby, sync indicator), the six pure draft reducers, `PlayerView.ownLines`, the 300 ms debounced `Draft_Update`, the echo/rejection reconciliation (D-072), and the two design-system fixes (the Stepper layout and visibly disabled buttons). CHECK PASSED 400/400. The Studio L2 is **NOT VERIFIED**: `list_roblox_studios` reports no instances after the T3 playtest, so the task stays in progress until Studio is reopened and Rojo + MCP are reconnected. Next: the T4 L2, then the Gallery layout fix and the M7 milestone L2. |
