@@ -56,6 +56,9 @@ appRoot:render(React.createElement(
 		onDraft = function(draft)
 			Client.queueDraft(client, draft)
 		end,
+		onProposeBill = function(requestId, policyId, level)
+			Client.proposeBill(client, requestId, policyId, level)
+		end,
 	})
 ))
 

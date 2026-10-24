@@ -19,12 +19,15 @@ local TopBar = require(script.Parent.Panels.TopBar)
 local OwnClassPanel = require(script.Parent.Panels.OwnClassPanel)
 local ClassCard = require(script.Parent.Panels.ClassCard)
 local EconomyTab = require(script.Parent.Panels.EconomyTab)
+local PoliticsTab = require(script.Parent.Panels.PoliticsTab)
 local Store = require(script.Parent.Parent.State.Store)
 
 export type AppProps = {
 	store: Store.Store,
 	-- the debounced draft sender (NETWORKING 4); nil in a bare render
 	onDraft: ((Types.ActionDraft) -> ())?,
+	-- the live bill proposal (NETWORKING 3.1); nil in a bare render
+	onProposeBill: ((requestId: string, policyId: Types.PolicyId, level: number) -> ())?,
 	-- overrides for the four corners, in the order of the layout: [1] the
 	-- viewer's own panel (bottom-left), [2] top-left, [3] top-right, [4]
 	-- bottom-right. Absent slots are built from the view.
@@ -216,9 +219,9 @@ function App.render(props: AppProps): any
 		}, own)
 	)
 
-	-- the action dock at the bottom: the active tab's panel, or a placeholder
-	-- until M8 builds Politics and Diplomacy. The controls edit the local
-	-- draft through the pure store reducers; onDraft debounces the send.
+	-- the action dock at the bottom: the active tab's panel. The controls edit
+	-- the local draft through the pure store reducers; onDraft debounces the
+	-- send. Politics is live (M8-T1); Diplomacy is still a placeholder (M8-T2).
 	local dock = props.dock
 	if dock == nil and view ~= nil then
 		local function applyDraft(nextState: Store.StoreState)
@@ -252,11 +255,23 @@ function App.render(props: AppProps): any
 					applyDraft(Store.setMarket(store:state(), side, stockId, volume))
 				end,
 			})
+		elseif state.ui.activeTab == "politics" then
+			dock = React.createElement(PoliticsTab.render, {
+				view = view,
+				draft = state.draft.current,
+				syncState = state.draft.syncState,
+				phase = state.match.phase,
+				endsAt = state.match.endsAt,
+				serverOffset = state.match.serverOffset,
+				notices = state.inbox.notices,
+				onVote = function(billId, side, influence)
+					applyDraft(Store.setVote(store:state(), billId, side, influence))
+				end,
+				onProposeBill = props.onProposeBill,
+			})
 		else
 			dock = React.createElement(Text.render, {
-				text = if state.ui.activeTab == "politics"
-					then "Politics: coming soon"
-					else "Diplomacy: coming soon",
+				text = "Diplomacy: coming soon",
 				tone = "muted",
 				size = "xs",
 				position = UDim2.fromOffset(theme.spacing.m, theme.spacing.m),

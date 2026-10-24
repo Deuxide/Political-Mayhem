@@ -20,6 +20,7 @@ type LogEntry = Types.LogEntry
 type PlayerView = Types.PlayerView
 type Phase = Types.Phase
 type StockId = Types.StockId
+type VoteSide = Types.VoteSide
 type VoteSpec = Types.VoteSpec
 
 export type ConnectionStatus = "connecting" | "ready" | "closed"
@@ -147,6 +148,30 @@ function Store.withDraft(view: PlayerView, draft: ActionDraft): PlayerView
 	}
 end
 
+-- A shallow copy of a view with a new live-bills list (M8-T1). A public bill
+-- patch must not mutate the view the old state still holds: the UI reads the
+-- view and the store's listeners compare it.
+function Store.withBills(view: PlayerView, bills: { Types.Bill }): PlayerView
+	return {
+		viewer = view.viewer,
+		day = view.day,
+		rounds = view.rounds,
+		phase = view.phase,
+		stability = view.stability,
+		policies = view.policies,
+		own = view.own,
+		ownLines = view.ownLines,
+		needs = view.needs,
+		draft = view.draft,
+		others = view.others,
+		bills = bills,
+		promises = view.promises,
+		alliances = view.alliances,
+		reputation = view.reputation,
+		victory = view.victory,
+	}
+end
+
 -- A patch (NETWORKING 4). The paths are the ones the server sends: "draft"
 -- is set, "bills" and "alliances" are appended. An echoed draft older than
 -- the local edit is remembered as the server's accepted copy but does not
@@ -166,7 +191,26 @@ function Store.applyPatch(state: StoreState, ops: { PatchOp }): StoreState
 				next.match.view = Store.withDraft(view, echoed)
 			end
 		elseif op.op == "append" and op.path == "bills" then
-			table.insert(next.inbox.bills, op.value)
+			local bill = op.value :: Types.Bill
+			table.insert(next.inbox.bills, bill)
+			local view = next.match.view
+			if view ~= nil then
+				local exists = false
+				for _, existing in view.bills do
+					if existing.id == bill.id then
+						exists = true
+						break
+					end
+				end
+				if not exists then
+					local bills: { Types.Bill } = {}
+					for _, existing in view.bills do
+						table.insert(bills, existing)
+					end
+					table.insert(bills, bill)
+					next.match.view = Store.withBills(view, bills)
+				end
+			end
 		elseif op.op == "append" and op.path == "alliances" then
 			local view = next.match.view
 			if view ~= nil then
@@ -288,6 +332,25 @@ function Store.setMarket(
 		bag[stockId] = volume
 	else
 		bag[stockId] = nil
+	end
+	return Store.setLocalDraft(state, draft, draft.sequence)
+end
+
+-- The politics reducer (M8-T1): a bill's ballot is the side plus the extra
+-- Influence committed to it, part of the draft like every other field. A nil
+-- side clears the vote (the class abstains); everything is re-checked by the
+-- server when the draft is sent.
+function Store.setVote(
+	state: StoreState,
+	billId: BillId,
+	side: VoteSide?,
+	influence: number?
+): StoreState
+	local draft = editDraft(state)
+	if side == nil then
+		draft.votes[billId] = nil
+	else
+		draft.votes[billId] = { side = side, influence = math.max(0, influence or 0) }
 	end
 	return Store.setLocalDraft(state, draft, draft.sequence)
 end

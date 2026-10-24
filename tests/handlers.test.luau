@@ -22,6 +22,7 @@ function M.run()
 	local AllianceHandlers = Loader.require(root.server.Handlers.AllianceHandlers)
 	local BillHandlers = Loader.require(root.server.Handlers.BillHandlers)
 	local ChatHandlers = Loader.require(root.server.Handlers.ChatHandlers)
+	local Bills = Loader.require(root.shared.Game.Ops.Bills)
 
 	-- A fake remote: it records what the server sent and lets the test fire
 	-- the server handler.
@@ -364,6 +365,54 @@ function M.run()
 			Lib.eq(game.notices()[1].code, "Rejected", "the client is told why")
 		end
 	)
+
+	Lib.test("a bill passes with the votes of two clients", function()
+		local game = newGame({ second = "Capitalist" })
+		game.remotes.Bill_Propose.fire(
+			game.player,
+			{ requestId = "b1", policyId = "Wage", level = 3 }
+		)
+		Lib.eq(#game.state().bills, 1, "the bill is live")
+		local billId = game.state().bills[1].id
+		Lib.eq(game.state().classes.Middle.influence, 1, "the Middle paid the proposal cost")
+
+		local function castVote(player, side)
+			game.remotes.Draft_Update.fire(player, {
+				seq = 1,
+				draft = {
+					sequence = 1,
+					locked = false,
+					openSlots = {},
+					assign = {},
+					market = { sell = {}, buy = {} },
+					votes = { [billId] = { side = side, influence = 0 } },
+				},
+			})
+		end
+		castVote(game.player, "yes")
+		local capitalist = game.players[2]
+		castVote(capitalist, "yes")
+
+		Lib.eq(game.state().drafts.Middle.votes[billId].side, "yes", "the Middle's ballot")
+		Lib.eq(game.state().drafts.Capitalist.votes[billId].side, "yes", "the Capitalist's ballot")
+
+		local tally = Bills.tally(game.state(), billId)
+		Lib.eq(tally.yesWeight, 5, "Middle 3 + Capitalist 2")
+		Lib.eq(tally.noWeight, 0, "no votes against")
+		Lib.eq(tally.passed, true, "the bill passes")
+
+		local heard = 0
+		for _, entry in game.sent do
+			if entry.player == capitalist and entry.payload.ops ~= nil then
+				for _, op in entry.payload.ops do
+					if op.path == "bills" and op.value.id == billId then
+						heard += 1
+					end
+				end
+			end
+		end
+		Lib.eq(heard, 1, "the other client heard about the bill")
+	end)
 
 	Lib.test("chat is filtered before it goes out, and only to the audience", function()
 		local game = newGame({
