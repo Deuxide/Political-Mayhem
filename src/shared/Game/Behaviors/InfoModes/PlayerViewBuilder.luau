@@ -2,10 +2,10 @@
 -- PlayerViewBuilder (GAME_DESIGN 13): turns the authoritative MatchState into
 -- the PlayerView one client may receive. The builder owns everything that is
 -- the same in every info mode — the viewer's own class, policies, Stability,
--- the Day, VP, lines, bills, promises, alliances, reputation and the victory
--- result — and delegates only the three fields a mode may hide or tier
--- (another class's Money, stocks and Influence) to the InfoMode strategy the
--- RuleSet selects.
+-- the Day, VP, lines, bills, promises, alliances and their proposals,
+-- reputation and the victory result — and delegates only the three fields a
+-- mode may hide or tier (another class's Money, stocks and Influence) to the
+-- InfoMode strategy the RuleSet selects.
 --
 -- The view is built from a deep copy of the state: what a client holds can
 -- never alias the server's live state, and mutating a view (a test, a buggy
@@ -25,6 +25,7 @@ local OpenInfo = require(script.Parent.OpenInfo)
 local PartialInfo = require(script.Parent.PartialInfo)
 local FogInfo = require(script.Parent.FogInfo)
 
+type AllianceProposal = Types.AllianceProposal
 type ClassId = Types.ClassId
 type ClassView = Types.ClassView
 type LineId = Types.LineId
@@ -127,6 +128,15 @@ function PlayerViewBuilder.build(
 		end
 	end
 
+	-- A pending proposal is private to the two classes (8.4): the view carries
+	-- only the ones the viewer is part of. The active alliances stay public.
+	local proposals: { AllianceProposal } = {}
+	for _, proposal in snapshot.allianceProposals do
+		if proposal.from == viewer or proposal.to == viewer then
+			table.insert(proposals, proposal)
+		end
+	end
+
 	return {
 		viewer = viewer,
 		day = snapshot.day,
@@ -142,6 +152,7 @@ function PlayerViewBuilder.build(
 		bills = snapshot.bills,
 		promises = snapshot.promises,
 		alliances = snapshot.alliances,
+		allianceProposals = proposals,
 		reputation = snapshot.reputation,
 		victory = snapshot.victory,
 	}

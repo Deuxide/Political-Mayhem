@@ -19,6 +19,8 @@ local Card = require(script.Parent.Parent.Composites.Card)
 local PolicyBoard = require(script.Parent.PolicyBoard)
 
 type ActionDraft = Types.ActionDraft
+type Alliance = Types.Alliance
+type AllianceProposal = Types.AllianceProposal
 type Bill = Types.Bill
 type BillId = Types.BillId
 type ClassId = Types.ClassId
@@ -38,6 +40,10 @@ export type PoliticsTabProps = {
 	notices: { any },
 	onVote: (BillId, VoteSide?, number) -> (),
 	onProposeBill: ((requestId: string, policyId: PolicyId, level: number) -> ())?,
+	-- the live alliance intents (M8-T3); nil in a bare render
+	onProposeAlliance: ((to: ClassId) -> ())?,
+	onRespondAlliance: ((from: ClassId, accept: boolean) -> ())?,
+	onBreakAlliance: (() -> ())?,
 }
 
 local PoliticsTab = {}
@@ -90,6 +96,30 @@ local function levelLabel(policyId: PolicyId, level: number): string
 	return track.levelLabels[level] or tostring(level)
 end
 
+-- The active alliance of a class in the public view, or nil.
+local function allianceOf(view: PlayerView, classId: ClassId): Alliance?
+	for _, alliance in view.alliances do
+		for i = 1, #alliance.members do
+			local member: ClassId = alliance.members[i] :: any
+			if member == classId then
+				return alliance
+			end
+		end
+	end
+	return nil
+end
+
+-- The other side of a two-member alliance (8.4).
+local function otherMember(alliance: Alliance, classId: ClassId): ClassId?
+	for i = 1, #alliance.members do
+		local member: ClassId = alliance.members[i] :: any
+		if member ~= classId then
+			return member
+		end
+	end
+	return nil
+end
+
 -- The seconds left in the Window from the same server clock as the
 -- Countdown (NETWORKING 5). The panel only needs the proposal cutoff, so it
 -- ticks once a second instead of on every frame like the top bar's clock.
@@ -137,8 +167,10 @@ function PoliticsTab.render(props: PoliticsTabProps): any
 
 	-- "" means no proposal is in flight; a request id is never empty.
 	local pendingId, setPendingId = React.useState("")
+	local selectedTarget, setSelectedTarget = React.useState(nil :: ClassId?)
 	React.useEffect(function()
 		setPendingId("")
+		setSelectedTarget(nil)
 	end, { view.day })
 
 	local ownProposed = false
@@ -488,6 +520,236 @@ function PoliticsTab.render(props: PoliticsTabProps): any
 				}, card)
 			)
 			y += CARD_HEIGHT + 8
+		end
+	end
+
+	-- The alliance controls (UI_SPEC 4.2, GAME_DESIGN 8.4): one active
+	-- alliance at most, a proposal answered by the other side and live until
+	-- the Window closes. The server re-checks every rule.
+	table.insert(
+		body,
+		React.createElement(Text.render, {
+			text = "Alliance",
+			tone = "muted",
+			size = "xs",
+			uppercase = true,
+			position = UDim2.fromOffset(0, y),
+			size2 = UDim2.fromOffset(WIDTH, SECTION),
+		})
+	)
+	y += SECTION
+
+	local ownAlliance = allianceOf(view, viewer)
+	local incoming: { AllianceProposal } = {}
+	local outgoing: { AllianceProposal } = {}
+	for _, proposal in view.allianceProposals do
+		if proposal.to == viewer then
+			table.insert(incoming, proposal)
+		elseif proposal.from == viewer then
+			table.insert(outgoing, proposal)
+		end
+	end
+
+	if ownAlliance ~= nil then
+		local other = otherMember(ownAlliance, viewer)
+		local otherText = if other ~= nil then tostring(other) else "a class"
+		local otherTone: any = if other ~= nil then string.lower(other) else "neutral"
+		local age = math.max(0, view.day - ownAlliance.formedOnDay)
+		local allianceCard = React.createElement(React.Fragment, nil, {
+			React.createElement(Button.render, {
+				text = "Break alliance",
+				variant = "danger",
+				size = "s",
+				disabled = props.phase ~= "Window" or props.onBreakAlliance == nil,
+				position = UDim2.fromOffset(PAD, 10),
+				size2 = UDim2.fromOffset(140, 26),
+				onClick = function()
+					local callback = props.onBreakAlliance
+					if callback ~= nil then
+						callback()
+					end
+				end,
+			}),
+			React.createElement(Text.render, {
+				text = "The break is public and audited at the Closing Bell",
+				tone = "muted",
+				size = "xs",
+				position = UDim2.fromOffset(PAD, 42),
+				size2 = UDim2.new(1, -PAD * 2, 0, 16),
+			}),
+		})
+		table.insert(
+			body,
+			React.createElement(Card.render, {
+				title = "Allied with " .. otherText,
+				subtitle = string.format("Day %d - age %d", ownAlliance.formedOnDay, age),
+				tone = otherTone,
+				size = UDim2.fromOffset(WIDTH, 84),
+				position = UDim2.fromOffset(0, y),
+			}, allianceCard)
+		)
+		y += 84 + 8
+	else
+		local function respond(proposal: AllianceProposal, accept: boolean)
+			local callback = props.onRespondAlliance
+			if callback ~= nil then
+				callback(proposal.from, accept)
+			end
+		end
+
+		for index = 1, #incoming do
+			local proposal = incoming[index]
+			local proposer = tostring(proposal.from)
+			local proposerTone: any = string.lower(proposer)
+			local proposalCard = React.createElement(React.Fragment, nil, {
+				React.createElement(Button.render, {
+					text = "Accept",
+					variant = "primary",
+					size = "s",
+					disabled = props.phase ~= "Window" or props.onRespondAlliance == nil,
+					position = UDim2.fromOffset(PAD, 10),
+					size2 = UDim2.fromOffset(90, 26),
+					onClick = function()
+						respond(proposal, true)
+					end,
+				}),
+				React.createElement(Button.render, {
+					text = "Decline",
+					variant = "secondary",
+					size = "s",
+					disabled = props.phase ~= "Window" or props.onRespondAlliance == nil,
+					position = UDim2.fromOffset(PAD + 100, 10),
+					size2 = UDim2.fromOffset(90, 26),
+					onClick = function()
+						respond(proposal, false)
+					end,
+				}),
+				React.createElement(Text.render, {
+					text = "The proposal ends when the Window closes",
+					tone = "muted",
+					size = "xs",
+					position = UDim2.fromOffset(PAD, 42),
+					size2 = UDim2.new(1, -PAD * 2, 0, 16),
+				}),
+			})
+			table.insert(
+				body,
+				React.createElement(Card.render, {
+					title = proposer .. " proposes an alliance",
+					subtitle = string.format("Day %d", proposal.proposedDay),
+					tone = proposerTone,
+					size = UDim2.fromOffset(WIDTH, 84),
+					position = UDim2.fromOffset(0, y),
+				}, proposalCard)
+			)
+			y += 84 + 8
+		end
+
+		for index = 1, #outgoing do
+			local proposal = outgoing[index]
+			local recipient = tostring(proposal.to)
+			local recipientTone: any = string.lower(recipient)
+			local waiting = React.createElement(Text.render, {
+				text = "The proposal ends when the Window closes",
+				tone = "muted",
+				size = "xs",
+				position = UDim2.fromOffset(PAD, 10),
+				size2 = UDim2.new(1, -PAD * 2, 0, 16),
+			})
+			table.insert(
+				body,
+				React.createElement(Card.render, {
+					title = "Waiting for " .. recipient,
+					subtitle = string.format("proposed Day %d", proposal.proposedDay),
+					tone = recipientTone,
+					size = UDim2.fromOffset(WIDTH, 58),
+					position = UDim2.fromOffset(0, y),
+				}, waiting)
+			)
+			y += 58 + 8
+		end
+
+		if #incoming == 0 and #outgoing == 0 then
+			local targets: { ClassId } = {}
+			for _, rawClassId in Types.CLASS_IDS do
+				local classId: ClassId = rawClassId :: any
+				if classId ~= viewer then
+					table.insert(targets, classId)
+				end
+			end
+
+			for index = 1, #targets do
+				local classId: ClassId = targets[index] :: any
+				local targetAlliance = allianceOf(view, classId)
+				local selectedNow = selectedTarget == classId
+				table.insert(
+					body,
+					React.createElement(Button.render, {
+						text = classId,
+						variant = if selectedNow then "primary" else "secondary",
+						size = "s",
+						disabled = targetAlliance ~= nil
+							or props.phase ~= "Window"
+							or props.onProposeAlliance == nil,
+						position = UDim2.fromOffset((index - 1) * 130, y),
+						size2 = UDim2.fromOffset(120, 26),
+						onClick = function()
+							setSelectedTarget(classId)
+						end,
+					})
+				)
+			end
+			y += ROW
+
+			local selectedAlliance: Alliance? = nil
+			if selectedTarget ~= nil then
+				selectedAlliance = allianceOf(view, selectedTarget)
+			end
+			local allianceReason: string? = nil
+			if props.phase ~= "Window" then
+				allianceReason = "the Window is closed"
+			elseif props.onProposeAlliance == nil then
+				allianceReason = "alliances are not connected"
+			elseif selectedTarget == nil then
+				allianceReason = "choose a class"
+			elseif selectedAlliance ~= nil then
+				allianceReason = `{selectedTarget} already has an alliance`
+			end
+
+			table.insert(
+				body,
+				React.createElement(Button.render, {
+					text = "Propose alliance",
+					variant = "primary",
+					size = "s",
+					disabled = allianceReason ~= nil,
+					position = UDim2.fromOffset(0, y),
+					size2 = UDim2.fromOffset(140, 26),
+					onClick = function()
+						local callback = props.onProposeAlliance
+						local targetId = selectedTarget
+						if callback ~= nil and targetId ~= nil then
+							callback(targetId)
+						end
+					end,
+				})
+			)
+			y += ROW
+
+			local allianceStatus = if allianceReason ~= nil
+				then allianceReason
+				else "A proposal lasts until the Window closes"
+			table.insert(
+				body,
+				React.createElement(Text.render, {
+					text = allianceStatus,
+					tone = if allianceReason ~= nil then "muted" else "secondary",
+					size = "xs",
+					position = UDim2.fromOffset(0, y),
+					size2 = UDim2.new(1, 0, 0, 18),
+				})
+			)
+			y += 20
 		end
 	end
 

@@ -182,6 +182,7 @@ local function copyView(view: PlayerView): PlayerView
 		bills = view.bills,
 		promises = view.promises,
 		alliances = view.alliances,
+		allianceProposals = view.allianceProposals,
 		reputation = view.reputation,
 		victory = view.victory,
 	}
@@ -216,8 +217,19 @@ function Store.withAlliances(view: PlayerView, alliances: { Types.Alliance }): P
 	return next
 end
 
+-- The viewer's private pending proposals (M8-T3).
+function Store.withAllianceProposals(
+	view: PlayerView,
+	proposals: { Types.AllianceProposal }
+): PlayerView
+	local next = copyView(view)
+	next.allianceProposals = proposals
+	return next
+end
+
 -- A patch (NETWORKING 4). The paths are the ones the server sends: "draft"
--- is set, "bills" and "alliances" are appended. An echoed draft older than
+-- is set; "bills" and "promises" are appended; "alliances" and the private
+-- "allianceProposals" are appended or removed. An echoed draft older than
 -- the local edit is remembered as the server's accepted copy but does not
 -- overwrite the newer local edit.
 function Store.applyPatch(state: StoreState, ops: { PatchOp }): StoreState
@@ -275,15 +287,34 @@ function Store.applyPatch(state: StoreState, ops: { PatchOp }): StoreState
 					next.match.view = Store.withPromises(view, promises)
 				end
 			end
-		elseif op.op == "append" and op.path == "alliances" then
+		elseif (op.op == "append" or op.op == "remove") and op.path == "allianceProposals" then
+			local proposal = op.value :: Types.AllianceProposal
+			local view = next.match.view
+			if view ~= nil then
+				local proposals: { Types.AllianceProposal } = {}
+				for _, existing in view.allianceProposals do
+					if existing.id ~= proposal.id then
+						table.insert(proposals, existing)
+					end
+				end
+				if op.op == "append" then
+					table.insert(proposals, proposal)
+				end
+				next.match.view = Store.withAllianceProposals(view, proposals)
+			end
+		elseif (op.op == "append" or op.op == "remove") and op.path == "alliances" then
 			local alliance = op.value :: Types.Alliance
 			local view = next.match.view
 			if view ~= nil then
 				local alliances: { Types.Alliance } = {}
 				for _, existing in view.alliances do
-					table.insert(alliances, existing)
+					if existing.id ~= alliance.id then
+						table.insert(alliances, existing)
+					end
 				end
-				table.insert(alliances, alliance)
+				if op.op == "append" then
+					table.insert(alliances, alliance)
+				end
 				next.match.view = Store.withAlliances(view, alliances)
 			end
 		end

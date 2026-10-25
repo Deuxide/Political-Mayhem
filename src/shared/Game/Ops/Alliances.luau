@@ -6,7 +6,7 @@
 --
 -- A pending proposal lives in the state, like the trade offers: it has to
 -- survive between the two live actions (NETWORKING: `Alliance_Propose` then
--- `Alliance_Respond`).
+-- `Alliance_Respond`) and it expires with the Window (8.4).
 local Types = require(script.Parent.Parent.Types)
 local Promises = require(script.Parent.Parent.Ops.Promises)
 
@@ -55,6 +55,16 @@ function Alliances.propose(
 	if Alliances.allianceOf(state, to) ~= nil then
 		return nil, `{to} already has an alliance`
 	end
+	-- The same pair cannot have two live proposals (the reverse direction is
+	-- the same pair). The UI hides the button; the server is authoritative.
+	for _, pending in state.allianceProposals do
+		if
+			(pending.from == from and pending.to == to)
+			or (pending.from == to and pending.to == from)
+		then
+			return nil, "there is already a pending alliance proposal"
+		end
+	end
 
 	local proposal: AllianceProposal = {
 		id = `AllianceProposal-{#state.allianceProposals + 1}`,
@@ -73,6 +83,15 @@ local function removeProposal(state: MatchState, proposal: AllianceProposal)
 			return
 		end
 	end
+end
+
+-- Drops every pending proposal at the end of the Window (8.4): a proposal
+-- that nobody answered does not carry into the next Day. The next phase
+-- snapshot replaces the clients' views, so no patch is needed.
+function Alliances.expireProposals(state: MatchState): number
+	local removed = #state.allianceProposals
+	state.allianceProposals = {}
+	return removed
 end
 
 -- Answers a proposal: accepting forms the alliance, declining only drops

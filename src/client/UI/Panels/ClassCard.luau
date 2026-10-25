@@ -4,8 +4,8 @@
 -- stocks and Influence show as the info mode allows (exact, a tier, or a
 -- question mark), while VP, lines and reputation are public in every mode.
 --
--- The trade and alliance actions belong to M8; the buttons exist and are
--- disabled until the composer lands.
+-- The alliance action is live (M8-T3); the Offer trade shortcut stays
+-- disabled until the UI_SPEC 5 city-side offer card pass (M8-T2 deferral).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local React = require(ReplicatedStorage.Packages.react)
@@ -28,6 +28,9 @@ export type ClassCardProps = {
 	reputation: Types.Reputation?,
 	alliance: Types.Alliance?, -- the alliance the class belongs to (public)
 	alliedWithViewer: boolean?,
+	-- nil when the class cannot propose to this class right now (an active
+	-- alliance, a live proposal, a closed Window or a bare render)
+	onProposeAlliance: (() -> ())?,
 }
 
 local ClassCard = {}
@@ -177,7 +180,7 @@ function ClassCard.render(props: ClassCardProps): any
 		)
 	end
 
-	-- the actions of M8: present, visibly not available yet
+	-- the actions of M8: the alliance action is live, the trade shortcut is not
 	table.insert(
 		body,
 		React.createElement(Button.render, {
@@ -195,9 +198,10 @@ function ClassCard.render(props: ClassCardProps): any
 			text = "Propose alliance",
 			variant = "secondary",
 			size = "s",
-			disabled = true,
+			disabled = props.onProposeAlliance == nil,
 			position = UDim2.fromOffset(140, 148),
 			size2 = UDim2.fromOffset(140, 26),
+			onClick = props.onProposeAlliance,
 		})
 	)
 

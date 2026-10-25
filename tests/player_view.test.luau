@@ -236,6 +236,40 @@ function M.run()
 		Lib.eq(state.victory.kind, "collapse", "victory untouched")
 	end)
 
+	Lib.test(
+		"alliance proposals travel only to the two classes; alliances are public (8.4)",
+		function()
+			local state = fresh("Normal")
+			table.insert(state.allianceProposals, {
+				id = "AllianceProposal-1",
+				from = "Middle",
+				to = "Capitalist",
+				proposedDay = 1,
+			})
+			local middle = build(state, "Normal", "Middle")
+			Lib.eq(#middle.allianceProposals, 1, "the proposer sees the proposal")
+			Lib.eq(middle.allianceProposals[1].to, "Capitalist", "the recipient")
+			local cap = build(state, "Normal", "Capitalist")
+			Lib.eq(#cap.allianceProposals, 1, "the recipient sees it too")
+			local working = build(state, "Normal", "Working")
+			Lib.eq(#working.allianceProposals, 0, "a third class does not")
+			local stateView = build(state, "Normal", "State")
+			Lib.eq(#stateView.allianceProposals, 0, "the State does not either")
+
+			table.insert(state.alliances, {
+				id = "Alliance-1",
+				members = { "Middle", "Capitalist" },
+				formedOnDay = 1,
+			})
+			local outsider = build(state, "Normal", "Working")
+			Lib.eq(#outsider.alliances, 1, "the active alliance is public")
+			Lib.eq(#outsider.allianceProposals, 0, "the proposal stays private")
+
+			middle.allianceProposals[1].to = "State"
+			Lib.eq(state.allianceProposals[1].to, "Capitalist", "the view is detached")
+		end
+	)
+
 	Lib.test("every viewer gets a plain-serializable view in every mode (13)", function()
 		for _, difficulty in Types.DIFFICULTIES do
 			for _, viewer in Types.CLASS_IDS do

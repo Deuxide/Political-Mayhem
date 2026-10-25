@@ -23,6 +23,7 @@ function M.run()
 	local BillHandlers = Loader.require(root.server.Handlers.BillHandlers)
 	local ChatHandlers = Loader.require(root.server.Handlers.ChatHandlers)
 	local Bills = Loader.require(root.shared.Game.Ops.Bills)
+	local PlayerViewBuilder = Loader.require(root.shared.Game.Behaviors.InfoModes.PlayerViewBuilder)
 
 	-- A fake remote: it records what the server sent and lets the test fire
 	-- the server handler.
@@ -120,6 +121,19 @@ function M.run()
 					end
 				end
 				return list
+			end,
+			patches = function(player, path, op)
+				local values = {}
+				for _, entry in sent do
+					if entry.player == player and entry.payload and entry.payload.ops then
+						for _, patch in entry.payload.ops do
+							if patch.path == path and patch.op == op then
+								table.insert(values, patch.value)
+							end
+						end
+					end
+				end
+				return values
 			end,
 		}
 	end
@@ -398,17 +412,89 @@ function M.run()
 		Lib.eq(results, 2, "both parties heard the withdrawal")
 	end)
 
-	Lib.test("an alliance is proposed and accepted through the remotes", function()
+	Lib.test("an alliance is proposed, accepted and broken through the remotes (M8-T3)", function()
 		local game = newGame({ second = "Capitalist" })
+		local capitalist = game.players[2]
 		game.remotes.Alliance_Propose.fire(game.player, { to = "Capitalist" })
 		Lib.eq(#game.state().allianceProposals, 1, "the proposal is live")
-		Lib.eq(game.state().allianceProposals[1].from, "Middle", "the sender's class")
+		local proposal = game.state().allianceProposals[1]
+		Lib.eq(proposal.from, "Middle", "the sender's class")
+		Lib.eq(
+			#game.patches(game.player, "allianceProposals", "append"),
+			1,
+			"the proposer got the proposal"
+		)
+		Lib.eq(
+			#game.patches(capitalist, "allianceProposals", "append"),
+			1,
+			"the recipient got the proposal"
+		)
+		Lib.eq(#game.patches(game.player, "alliances", "append"), 0, "no active alliance yet")
 
-		local capitalist = game.players[2]
+		local stateBefore = game.state()
+		local middleView = PlayerViewBuilder.build(stateBefore, game.match:ruleSet(), "Middle")
+		local outsiderView = PlayerViewBuilder.build(stateBefore, game.match:ruleSet(), "State")
+		Lib.eq(#middleView.allianceProposals, 1, "the proposal is in the proposer's view")
+		Lib.eq(#outsiderView.allianceProposals, 0, "a third class does not see it")
+
 		game.remotes.Alliance_Respond.fire(capitalist, { from = "Middle", accept = true })
 		Lib.eq(#game.state().alliances, 1, "the alliance exists")
-		Lib.eq(game.state().alliances[1].members[1], "Middle", "the first member")
-		Lib.eq(game.state().alliances[1].members[2], "Capitalist", "the second member")
+		local alliance = game.state().alliances[1]
+		Lib.eq(alliance.members[1], "Middle", "the first member")
+		Lib.eq(alliance.members[2], "Capitalist", "the second member")
+		Lib.eq(#game.state().allianceProposals, 0, "the proposal is gone")
+		Lib.eq(
+			#game.patches(game.player, "allianceProposals", "remove"),
+			1,
+			"the proposer dropped the proposal"
+		)
+		Lib.eq(
+			#game.patches(capitalist, "allianceProposals", "remove"),
+			1,
+			"the recipient dropped the proposal"
+		)
+		Lib.eq(
+			#game.patches(game.player, "alliances", "append"),
+			1,
+			"the proposer got the public alliance"
+		)
+		Lib.eq(#game.patches(capitalist, "alliances", "append"), 1, "the recipient got it too")
+
+		local alliedView = PlayerViewBuilder.build(game.state(), game.match:ruleSet(), "State")
+		Lib.eq(#alliedView.alliances, 1, "the active alliance is public")
+		Lib.eq(#alliedView.allianceProposals, 0, "the proposal stays private")
+
+		game.remotes.Alliance_Break.fire(game.player, {})
+		Lib.eq(#game.state().alliances, 0, "the alliance is gone")
+		Lib.eq(#game.patches(game.player, "alliances", "remove"), 1, "the proposer got the break")
+		Lib.eq(#game.patches(capitalist, "alliances", "remove"), 1, "the recipient got the break")
+		Lib.eq(
+			game.patches(game.player, "alliances", "remove")[1].id,
+			alliance.id,
+			"the right alliance"
+		)
+		local brokenView = PlayerViewBuilder.build(game.state(), game.match:ruleSet(), "State")
+		Lib.eq(#brokenView.alliances, 0, "the public badge is gone")
+	end)
+
+	Lib.test("a declined alliance proposal leaves both views", function()
+		local game = newGame({ second = "Capitalist" })
+		local capitalist = game.players[2]
+		game.remotes.Alliance_Propose.fire(game.player, { to = "Capitalist" })
+		game.remotes.Alliance_Respond.fire(capitalist, { from = "Middle", accept = false })
+		Lib.eq(#game.state().alliances, 0, "no alliance")
+		Lib.eq(#game.state().allianceProposals, 0, "the proposal is gone")
+		Lib.eq(
+			#game.patches(game.player, "allianceProposals", "remove"),
+			1,
+			"the proposer dropped it"
+		)
+		Lib.eq(
+			#game.patches(capitalist, "allianceProposals", "remove"),
+			1,
+			"the recipient dropped it"
+		)
+		Lib.eq(#game.patches(game.player, "alliances", "append"), 0, "no public alliance")
 	end)
 
 	Lib.test("an alliance answer for the wrong proposer is refused", function()

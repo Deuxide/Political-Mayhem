@@ -68,6 +68,15 @@ appRoot:render(React.createElement(
 		onCancelTrade = function(offerId)
 			Client.cancelTrade(client, offerId)
 		end,
+		onProposeAlliance = function(to)
+			Client.proposeAlliance(client, to)
+		end,
+		onRespondAlliance = function(from, accept)
+			Client.respondAlliance(client, from, accept)
+		end,
+		onBreakAlliance = function()
+			Client.breakAlliance(client)
+		end,
 	})
 ))
 

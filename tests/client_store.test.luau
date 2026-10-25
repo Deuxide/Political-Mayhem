@@ -46,6 +46,7 @@ function M.run()
 			bills = {},
 			promises = {},
 			alliances = {},
+			allianceProposals = {},
 			reputation = {},
 			victory = nil,
 		}
@@ -111,6 +112,49 @@ function M.run()
 		Lib.eq(#next.match.view.alliances, 1, "the alliance arrived")
 		Lib.eq(#state.match.view.alliances, 0, "the old view's alliances did not change")
 		Lib.eq(#state.inbox.bills, 0, "the old state did not change")
+	end)
+
+	Lib.test("alliance proposals arrive and leave; a break removes the public alliance", function()
+		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+		local proposal = {
+			id = "AllianceProposal-1",
+			from = "Middle",
+			to = "Capitalist",
+			proposedDay = 1,
+		}
+		local withProposal = Store.applyPatch(state, {
+			{ op = "append", path = "allianceProposals", value = proposal },
+		})
+		Lib.eq(#withProposal.match.view.allianceProposals, 1, "the proposal arrived")
+		Lib.eq(withProposal.match.view.allianceProposals[1].to, "Capitalist", "the recipient")
+		Lib.eq(#state.match.view.allianceProposals, 0, "the old view did not change")
+
+		local removed = Store.applyPatch(withProposal, {
+			{ op = "remove", path = "allianceProposals", value = proposal },
+		})
+		Lib.eq(#removed.match.view.allianceProposals, 0, "the proposal left")
+		Lib.eq(#withProposal.match.view.allianceProposals, 1, "the old view kept it")
+
+		local alliance = {
+			id = "Alliance-1",
+			members = { "Middle", "Capitalist" },
+			formedOnDay = 1,
+		}
+		local withAlliance = Store.applyPatch(removed, {
+			{ op = "append", path = "alliances", value = alliance },
+		})
+		Lib.eq(#withAlliance.match.view.alliances, 1, "the alliance arrived")
+		Lib.eq(#removed.match.view.alliances, 0, "the old view did not change")
+		local twice = Store.applyPatch(withAlliance, {
+			{ op = "append", path = "alliances", value = alliance },
+		})
+		Lib.eq(#twice.match.view.alliances, 1, "an append is idempotent")
+
+		local broken = Store.applyPatch(withAlliance, {
+			{ op = "remove", path = "alliances", value = alliance },
+		})
+		Lib.eq(#broken.match.view.alliances, 0, "the break removed the alliance")
+		Lib.eq(#withAlliance.match.view.alliances, 1, "the old view kept it")
 	end)
 
 	Lib.test("the active tab is a local choice", function()

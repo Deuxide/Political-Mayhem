@@ -39,6 +39,10 @@ export type AppProps = {
 	) -> ())?,
 	onRespondTrade: ((offerId: string, accept: boolean) -> ())?,
 	onCancelTrade: ((offerId: string) -> ())?,
+	-- the live alliance intents (NETWORKING 3.1); nil in a bare render
+	onProposeAlliance: ((to: Types.ClassId) -> ())?,
+	onRespondAlliance: ((from: Types.ClassId, accept: boolean) -> ())?,
+	onBreakAlliance: (() -> ())?,
 	-- overrides for the four corners, in the order of the layout: [1] the
 	-- viewer's own panel (bottom-left), [2] top-left, [3] top-right, [4]
 	-- bottom-right. Absent slots are built from the view.
@@ -130,6 +134,19 @@ function App.render(props: AppProps): any
 
 	local classes = if view ~= nil then otherClasses(view.viewer) else {}
 
+	-- The alliance controls: the viewer may propose only while free and with
+	-- no live proposal; a class already in an alliance is not a target.
+	local ownAlliance = if view ~= nil then allianceOf(view, view.viewer) else nil
+	local ownProposal = false
+	if view ~= nil then
+		for _, proposal in view.allianceProposals do
+			if proposal.from == view.viewer or proposal.to == view.viewer then
+				ownProposal = true
+				break
+			end
+		end
+	end
+
 	local function card(index: number): any
 		local override = overrides[index]
 		if override ~= nil then
@@ -140,12 +157,24 @@ function App.render(props: AppProps): any
 		end
 		local classId = classes[index - 1]
 		local alliance = allianceOf(view, classId)
+		local canPropose = state.match.phase == "Window"
+			and ownAlliance == nil
+			and not ownProposal
+			and alliance == nil
+			and props.onProposeAlliance ~= nil
 		return React.createElement(ClassCard.render, {
 			classId = classId,
 			view = view.others[classId],
 			reputation = view.reputation[classId],
 			alliance = alliance,
 			alliedWithViewer = alliance ~= nil and allianceHas(alliance, view.viewer),
+			onProposeAlliance = if canPropose
+				then function()
+					if props.onProposeAlliance ~= nil then
+						props.onProposeAlliance(classId)
+					end
+				end
+				else nil,
 		})
 	end
 
@@ -279,6 +308,9 @@ function App.render(props: AppProps): any
 					applyDraft(Store.setVote(store:state(), billId, side, influence))
 				end,
 				onProposeBill = props.onProposeBill,
+				onProposeAlliance = props.onProposeAlliance,
+				onRespondAlliance = props.onRespondAlliance,
+				onBreakAlliance = props.onBreakAlliance,
 			})
 		elseif state.ui.activeTab == "diplomacy" then
 			local function proposeTrade(

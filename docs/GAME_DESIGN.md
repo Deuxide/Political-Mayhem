@@ -331,6 +331,8 @@ TradeOffer { id, from, to, give: ResourceBag, want: ResourceBag,
 ### 8.4 Alliances
 
 - Any two classes may form an alliance: one proposes, the other accepts.
+- A pending proposal is private to the two classes and expires at the end of
+  the Window if unanswered; active alliances are public.
 - A class has at most one alliance. Either side may break it any time
   (`BreakAlliance`); the break is public.
 - Benefits: allied classes see each other's full stocks even in `fog` mode,

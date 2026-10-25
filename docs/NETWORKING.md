@@ -62,7 +62,7 @@ that the sender may not edit are rejected as a whole):
 | Remote | Payload | When |
 |---|---|---|
 | `View_Snapshot` | `{ protocol, view: PlayerView, serverTime }` | on join, phase change, reconnect |
-| `View_Patch` | `{ ops: {PatchOp}, serverTime }` | live changes mid-window (trades, bills, alliances, stability ticks) |
+| `View_Patch` | `{ ops: {PatchOp}, serverTime }` | live changes mid-window (trades, bills, public alliances, private alliance proposals, stability ticks) |
 | `Phase_Changed` | `{ phase, day, endsAt }` | on every phase change (`endsAt` is server time) |
 | `Reveal_Report` | `{ day, events: {LogEntry}, deltas: { [ClassId]: { money, influence, stock: { [StockId]: number }, vp } } }` | at start of Reveal |
 | `Trade_Incoming` | `{ offer: TradeOffer }` | recipient's Diplomacy role only |
@@ -72,6 +72,9 @@ that the sender may not edit are rejected as a whole):
 | `Match_Ended` | `{ result: VictoryResult, summary }` | once |
 
 `PatchOp` is a small list of `{ op = "set"\|"remove"\|"append", path, value }`.
+An alliance proposal patch goes only to the two classes involved; an active
+alliance append/remove goes to every client, because the badge is public
+(GAME_DESIGN 8.4).
 When in doubt, send a full `View_Snapshot`; correctness beats bandwidth.
 
 ## 4. Draft synchronization

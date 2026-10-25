@@ -9,12 +9,12 @@ Last updated: 2026-10-25
 
 - **Project:** Political Mayhem
 - **Current milestone:** M8 (political and social UI)
-- **Current task:** M8-T2 (the `DiplomacyTab`) — **done and verified** (2026-10-25): the offers inbox/outbox, the trade composer, the `PromiseBuilder` and the public promise ledger work in Studio; a State -> Middle offer with a Deliver promise was acked as `Trade-1` and cancelled, the incoming card/result and a public `promises` patch were exercised, and the tab switch re-rendered cleanly; `scripts/check` passes 408/408. Next is M8-T3.
+- **Current task:** M8-T3 (alliance UI and badges) — **implemented; L1 green (414/414); L2 pending** (the M8-T3 build needs a fresh Studio open). The `PoliticsTab` has the alliance controls (active alliance with age and Break, incoming Accept/Decline, outgoing waiting, target propose), the `ClassCard`'s "Propose alliance" is wired, the server sends private proposal patches to the two classes and public alliance/break patches to everyone, and unanswered proposals expire at the Day end (D-078). The two-client form/accept/break path is the L1 handler test; the Studio L2 is next.
 - **Project phase:** M7 merged to stable (`9d3a581 "Merge M7"`); M8 runs on `M8-dev1` off that merge.
 - **Current branch:** M8-dev1 — created 2026-10-24 off `Linux-stable` after the M7 merge (`9d3a581 "Merge M7"`), pushed. The old `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** M7 (9d3a581)
-- **Last `scripts/check` result:** CHECK PASSED (408/408 tests)
+- **Last `scripts/check` result:** CHECK PASSED (414/414 tests)
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
 
@@ -186,10 +186,57 @@ Frame "Players.blue_cat1379.PlayerGui.AppScreenGui.Frame.6"`, `Script
 'AssistantCommand', Line 5`), not project code. The playtest was stopped; no
 second playtest was started (Vinegar crash risk).
 
+## M8-T3 build record (implemented; L1 green; L2 pending)
+
+**M8-T3 — alliance UI and badges (implemented 2026-10-25; CHECK PASSED 414/414;
+L2 pending).** The dock's POLITICS tab now ends with the alliance controls
+(UI_SPEC 4.2, GAME_DESIGN 8.4): the active alliance card names the ally and its
+age with a Break button, an incoming proposal card has Accept/Decline, an
+outgoing proposal shows "Waiting for X", and a free class gets the three target
+buttons plus "Propose alliance" with the reason a proposal is unavailable. The
+`ClassCard`'s "Propose alliance" button is live (the App computes eligibility:
+Window, no own alliance, no live proposal, target free); "Offer trade" stays
+disabled pending the M8-T2 UI_SPEC 5 deferral.
+
+The data path was corrected with the UI. `PlayerView` gained
+`allianceProposals` (only the viewer's proposals; `PlayerViewBuilder` filters by
+`from`/`to`), while `alliances` now holds only active public alliances (D-078).
+`AllianceHandlers` patches proposals as `allianceProposals` to the two classes,
+removes them on accept/decline/failed accept, sends an accepted alliance to
+every client with `patchAll`, and sends the break's `alliances` remove to
+everyone; `Alliances.propose` refuses a duplicate live pair, and
+`Alliances.expireProposals` is called by `DayEndStep` so an unanswered proposal
+does not cross the Day (the next snapshot clears the client view). `Store` handles
+append/remove for both paths immutably (an append is idempotent). Tests: 414/414
+(408 prior + 1 client-store proposal/alliance patch test + 1 player-view
+proposal-privacy test + 3 alliance-ops tests (duplicate, expiry, DayEnd) + 1
+handler decline test; the existing handler alliance test now covers the
+propose/accept/break patches and the public/private views). stylua clean, selene
+0 warnings, types 0 errors.
+
+**Studio L2 (pending).** The M8-T2 playtest was the last playtest in the current
+Studio session; the next playtest needs a fresh open (Vinegar can crash on a
+second `start_stop_play`). The owner should close the current place without
+saving, open the rebuilt `build/game.rbxl`, run `rojo serve` and Connect, and
+confirm the Studio gate. The L2 checklist: compare the changed runtime modules
+(`Types`, `PlayerViewBuilder`, `Alliances`, `DayEndStep`, `AllianceHandlers`,
+`Store`, `ClassCard`, `App`, `PoliticsTab`, `init.client`) byte-identical; start
+one Normal match with State + 3 bots; scroll the POLITICS tab to the Alliance
+section; propose to a bot and verify the outgoing "Waiting for X" and the
+private proposal in the view (the bot cannot answer until M9); synthetic
+`allianceProposals`/`alliances` patches to exercise the incoming Accept/Decline
+card, the "Allied with Capitalist" card and the `ClassCard` badge, and a
+synthetic remove to clear the badge; click Break on the synthetic alliance
+(the live state has none, so the server refuses with a Notice — expected); zero
+project errors/warnings; stop. Do not start a second playtest after stopping.
+The two-client form/accept/break is the L1 handler test
+(`an alliance is proposed, accepted and broken through the remotes (M8-T3)`).
+
 ## Next up
 
-1. **M8-T3 (alliance UI and badges)** — the next task. M8-T2 is done and
-   verified (L2 passed 2026-10-25; CHECK PASSED 408/408).
+1. **M8-T3's Studio L2** — the implementation is L1-green; after the owner
+   reopens the fresh `build/game.rbxl` and reconnects Rojo, run the one Normal
+   playtest above and record the evidence. The two-client path is the L1 test.
 2. M8-T4 adds the `ChatDrawer`; M8-T5 the `EveningReport` and `EndSummary`.
 
 ## Verification log
@@ -198,6 +245,7 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 
 | Date | Task / milestone | L1 | L2 | L3 | Notes |
 |---|---|---|---|---|---|
+| 2026-10-25 | M8-T3 — the alliance UI and badges (UI_SPEC 4.2, GAME_DESIGN 8.4) | CHECK PASSED (414/414: 408 prior + 1 client-store proposal/alliance patch test + 1 player-view proposal-privacy test + 3 alliance-ops tests (duplicate, expiry, DayEnd) + 1 handler decline test; the existing handler alliance test now covers propose/accept/break patches and the public/private views; stylua clean, selene 0 warnings, types 0 errors) | **NOT VERIFIED / pending** — the M8-T2 playtest was the last playtest in the current Studio session; the M8-T3 build needs a fresh open (Vinegar crash risk on a second `start_stop_play`). The owner must reopen `build/game.rbxl` and reconnect Rojo, then run the checklist in the build record: byte-identical changed modules; one Normal State + 3 bots match; the Alliance section (targets, real outgoing proposal to a bot, synthetic incoming/active alliance, the `ClassCard` badge, synthetic remove, Break click); zero project errors/warnings; stop. The two-client form/accept/break is the L1 handler test. | none | **Implemented:** `PlayerView.allianceProposals` (private to the two classes) and the public `alliances` (D-078); `PlayerViewBuilder` filters proposals; `AllianceHandlers` private proposal patches + public alliance/break `patchAll` + proposal remove on every answer; `Alliances.propose` same-pair guard and `expireProposals`; `DayEndStep` expires unanswered proposals; `Store.withAllianceProposals` and append/remove handling for both paths; `PoliticsTab` alliance section (active card + Break, incoming Accept/Decline, outgoing waiting, target buttons + Propose, status); `ClassCard` "Propose alliance" wired via `App`/`init.client`; 6 new tests. The L2 remains the task's open item. |
 | 2026-10-25 | M8-T2 — the `DiplomacyTab` (UI_SPEC 4.2, GAME_DESIGN 8.2-8.3) | CHECK PASSED (408/408: 402 prior + 3 store trade/expiry/promise tests + 1 `Bills.targetBounds` test + 2 handler tests — a promise accepted across two clients and a cancel delivered to both; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio gate confirmed; fresh `game.rbxl`, Edit -> Play -> Edit. All ten changed modules byte-identical (length/djb2): Bills 7366/2017102197, TradeHandlers 8282/2763924370, Client 7573/398416944, Store 18607/2450458601, App 10795/4093769962, init.client 3327/1422929169, PoliticsTab 14639/302818171, DiplomacyTab 11845/2933355825, TradeComposer 9926/2662015712, PromiseBuilder 12271/3205048190. **Normal** (`mayhem-23637`, State + 3 bots; Day 1 -> 4, hashes 2515c04c/1d95677a/fad0051c): the DIPLOMACY tab rendered the empty inbox/outbox, the composer targets and six give/want rows, the `PromiseBuilder` (Deliver/VoteYes/NoStrike/NoBreak) and the empty ledger. A State -> Middle offer (5 Money for 2 Food + Deliver 3 Money by Day 3) was acked as `Trade-1` (card `pending`, composer `offer sent`); Cancel -> `declined`. A synthetic `Trade_Incoming` `Trade-9001` (Capitalist -> State, 4 Money for 1 Influence + Deliver 2 Money by Day 4) showed Accept/Decline; a synthetic `Trade_Result` -> `declined`. A synthetic public `promises` append `Promise-9001` (Capitalist -> State, Deliver 3 Money by Day 4, open, delivered 1 of 3) rendered the ledger row and the audit text; the tab switch Economy -> Diplomacy re-rendered the persisted declined cards and the ledger section with no `createTextInstance`/ChildrenGuard. Zero project errors/warnings; the only error is the AssistantCommand inspection path typo (`Frame is not a valid member ... Frame.6`, `Script 'AssistantCommand', Line 5`), not project code; the environment baseline is the DataStore/ContentId lines. The two-client acceptance + public patch is the L1 handler test (`a trade with a promise is accepted and the promise becomes public`); the playtest is one client + 3 bot seats because bots cannot answer until M9. | none | **Implemented:** `UI/Panels/DiplomacyTab` (inbox/outbox, ledger), `UI/Panels/TradeComposer` (target, six give/want steppers, promise attach, propose/cancel), `UI/Panels/PromiseBuilder` (four kinds, audit text); `Store.TradeEntry` + `addIncomingOffer`/`addOutgoingOffer`/`applyTradeResult`, phase expiry, non-mutating view copies, `promises`/`alliances` append patches; `Client` trade event handlers and intents; `App`/`init.client` wiring; `TradeHandlers` sends an accepted trade's promises as a public patch and a cancel to both parties; `Bills.targetBounds` shared by the server and both UI forms. Decisions D-075 (client-held offers; pending offers expire at Resolve and clear at a new Window), D-076 (public promise patch; cancel to both), D-077 (shared target bounds). The two-client Done-when is the L1 handler test (`a trade with a promise is accepted and the promise becomes public`); the L2 is one client + 3 bot seats because bots cannot answer an offer until M9. Known gaps: pending offers are lost on reconnect (the view has no trades field), the tab/composer are not role-gated (M12-T1), the composer attaches one promise per offer (the server supports 8), and UI_SPEC 5's city-side live-offer card / `ClassCard` trade shortcut are deferred. |
 | 2026-10-24 | M8-T1 — the `PoliticsTab` (UI_SPEC 4.2, GAME_DESIGN 7.3) | CHECK PASSED (402/402: the 400 prior + the vote reducer test + the two-client bill test; the policy-label checks are inside the existing config test; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio gate confirmed; fresh instance `game.rbxl`, Edit -> Play -> Edit. All six changed modules byte-identical: Policies 3866/1369710833, Store 13275/3134238880, App 9047/2379129522, init.client 3005/2840407909, PoliticsTab 14867/2902114595, PolicyBoard 2671/2308096251. **Normal** (`mayhem-236077`, State + 3 bots): the App and POLITICS tab render; the board shows all 7 tracks (Wage, TaxWorking, TaxMiddle, TaxCapitalist, PublicServices, Tariff, StrikeRights); a State bill proposed live (free) appeared as `WAGE MEDIUM -> HIGH`, the form showed `proposal accepted`, the Propose button changed from primary (label 238,241,247; gradient 58,63,75) to disabled (label 118,126,141; gradient 38,40,46), and a second click added no second bill (one card, one `Your vote`); Yes + 2 Influence showed `Base 3 + 2 Influence = 5 votes` and `saved`; at the Closing Bell the bill passed — ticker `Wage 2` -> `Wage 3`, board `Wage High`, bill cleared, State VP +1. **Easy** (`mayhem-702006`): Wage Medium, Tax: Capitalist 10% and Public services Market enabled; Tax: Working, Tax: Middle, Tariff and Strike rights `OFF` with muted labels 118,126,141 and disabled gradients 20,22,28 — exactly 3 active / 4 OFF. Zero project errors/warnings in both; only the pre-existing DataStore/ContentId environment lines. The two-client path is the L1 handler test (`a bill passes with the votes of two clients`); the MCP playtest is one client + 3 bot seats. | none | **Implemented:** `UI/Panels/PoliticsTab` and `UI/Panels/PolicyBoard`; `Store.setVote` and `Store.withBills`; the `bills` patch now updates `view.bills` (immutably) as well as the inbox; `App` renders the tab and wires the draft votes and the live `Bill_Propose`; `init.client` passes `Client.proposeBill`; `Config/Policies` gained the player-facing names/level labels; the handler test proposes as Middle and passes with Middle + Capitalist ballots (5 yes, quorum 5); 2 new store tests. The alliance controls are M8-T3; role gating is M12. The Studio check found no code defects; Studio crashed twice on a second playtest start (Vinegar `RBXCRASH-Undefined`), so the Easy run was done after a reopen as the first playtest. |
 | 2026-10-24 | M7 milestone — the T0/T1/T2/T3/T4 Studio L2 | CHECK PASSED (400/400; stylua clean, selene 0 warnings, types 0 errors) | **passed** — owner confirmed Studio opened this session; fresh instance `c9cc155b-474a-405f-bc83-a0215f8f2c87`, `game.rbxl`, Edit -> Play -> Edit. All 12 latest modules were byte-identical: Client `2885/13465889` (with both ScreenGuis' `IgnoreGuiInset = true` and `ZIndexBehavior.Sibling`), App `8395/533707063`, TopBar `4780/1057570579`, Countdown `1758/97460313`, SegmentedTrack `1721/134205235`, Card, Modal, Toast, Icon, both skins, Gallery. The final run found and fixed the last bug: both ScreenGuis defaulted to `ZIndexBehavior.Global`, so every panel's content (z=1) drew behind its parent Surface (z=5/6/10) and the App was visually blank; both now use `Sibling`, and the screenshots (`zindex_fixed`, `m7_politics_tab`, `m7_diplomacy_tab`, `m7_economy_final`, `m7_gallery_inset_zorder`) show the top bar/ticker, the three class cards, the own Middle panel with red needs, and the dock text. The dock shares its bottom edge with the own panel and the BR card; the EconomyTab edit (Clinic-1 open slots 2→1) produced `saving` → `saved`, draft `slots on 1 lines / open`; POLITICS and DIPLOMACY show their placeholders and ECONOMY returns. The Gallery renders with the inset/Sibling settings (the dev overlay over the match is expected). The match `mayhem-409816` resolved Day 1→2→3 (hashes `1e953909` / `6de49213`). **Zero project errors/warnings**; only the DataStore/ContentId baseline. | none — the shell's look/palette is the owner's L3 if desired; the palette remains the documented placeholder | The T0 Gallery, T1 net/store and T3 Normal/Hard/Extreme evidence stand (earlier rows); T4's full Middle/Working/Capitalist/State L2 stands. The role-gating limitation remains for M8. This row supersedes the partial T2 follow-up below. |
@@ -320,6 +368,13 @@ None.
   still holds the offers and can accept/decline them, but the UI will not show
   them. D-075 records the choice; a `trades` view field is a later networking
   change.
+- **The server does not expire live trade offers at the Day end.**
+  `Trade.expireOffers` exists and is tested, but nothing in the server pipeline
+  calls it; an expired offer is refused when answered (`Trade.respond` checks
+  `expiresAt`) and removed then, but it stays in `state.trades` until then, so
+  `Trade.pendingCount` can count it against the 5-offer cap. Found while wiring
+  the M8-T3 alliance-proposal expiry; an M8-T2 follow-up (alliance proposals
+  are now expired by `DayEndStep`).
 - **UI_SPEC 5's city-side live-offer card is not implemented.** Incoming offers
   appear in the `DiplomacyTab` inbox; there is no non-modal card with
   Accept/Decline/Counter on the city side, and the `ClassCard`'s Offer trade
@@ -345,6 +400,7 @@ Newest first. One line per session.
 
 | Date | Summary |
 |---|---|
+| 2026-10-25 | M8-T3 implemented: the `PoliticsTab` alliance controls (active alliance + age + Break, incoming Accept/Decline, outgoing waiting, target propose), the `ClassCard` "Propose alliance" wiring, the private `PlayerView.allianceProposals` / public `alliances` split (D-078), the server's proposal/alliance/break patches, the same-pair guard and the Day-end proposal expiry. CHECK PASSED 414/414 (408 prior + 6 new: 1 store, 1 player view, 3 alliance ops, 1 handler decline; the existing handler alliance test now covers propose/accept/break). The Studio L2 is pending a fresh open because the M8-T2 playtest was the last one in the session; the owner should reopen the rebuilt `build/game.rbxl` and reconnect Rojo. Next: the M8-T3 L2, then M8-T4. |
 | 2026-10-25 | M8-T2 complete: the `DiplomacyTab` Studio L2 passed. Ten modules byte-identical; match `mayhem-23637` (Normal, State + 3 bots) advanced Day 1 -> 4. The DIPLOMACY tab rendered the empty inbox/outbox, the composer targets/six give/want rows, the `PromiseBuilder` (Deliver/VoteYes/NoStrike/NoBreak) and the empty ledger. A State -> Middle offer (5 Money for 2 Food + Deliver 3 Money by Day 3) was acked as `Trade-1`, showed `pending` and `offer sent`, then Cancel -> `declined`. A synthetic incoming `Trade-9001` (Capitalist -> State, 4 Money for 1 Influence + Deliver 2 Money by Day 4) showed Accept/Decline; a synthetic `Trade_Result` -> `declined`. A synthetic public `Promise-9001` (Capitalist -> State, Deliver 3 Money by Day 4) rendered the ledger row `open` with `delivered 1 of 3`; the tab switch Economy -> Diplomacy re-rendered the declined cards/ledger with no createTextInstance/ChildrenGuard. Zero project errors/warnings; the only error is the AssistantCommand inspection path typo, not project code. CHECK PASSED 408/408. Next: M8-T3 (alliance UI and badges). |
 | 2026-10-25 | M8-T2 implemented: the `DiplomacyTab` (inbox/outbox, composer, `PromiseBuilder`, promise ledger), the store trade entries/expiry/promise patches, the server's accepted-promise public patch and cancel-to-both, and the shared `Bills.targetBounds` (D-075/D-076/D-077). CHECK PASSED 408/408 (402 prior + 6 new: 3 store, 1 target-bounds, 2 handler; a promise accepted across two clients and a cancel delivered to both). The Studio L2 was pending at the time; the 2026-10-25 Studio run (row above) passed it. Next: M8-T3. |
 | 2026-10-24 | M8-T1 complete: the `PoliticsTab` Studio L2 passed. Normal: all 7 tracks; a live State bill (free) disabled the form and the one-bill rule held; Yes + 2 Influence saved and the bill passed at the Closing Bell (ticker `Wage 2` -> `Wage 3`, board `Wage High`, bill cleared, +1 VP). Easy: 3 active / 4 OFF with disabled visuals. Six modules byte-identical; zero project errors/warnings. Studio crashed twice on a second playtest start (`RBXCRASH-Undefined`); reopened and ran Easy first. CHECK PASSED 402/402. Next: M8-T2 (the `DiplomacyTab`). |
