@@ -321,6 +321,83 @@ function M.run()
 		Lib.eq(game.state().classes.Middle.money, 25, "no money moved")
 	end)
 
+	Lib.test("a trade with a promise is accepted and the promise becomes public", function()
+		local game = newGame({ second = "Capitalist" })
+		game.remotes.Trade_Propose.fire(game.player, {
+			requestId = "r1",
+			to = "Capitalist",
+			give = { Money = 5 },
+			want = { Goods = 1 },
+			promises = {
+				{ kind = "Deliver", resource = "Money", amount = 3, to = "Capitalist", byDay = 2 },
+			},
+		})
+		local offerId = game.state().trades[1].id
+		Lib.eq(offerId, "Trade-1", "the offer id")
+
+		local capitalist = game.players[2]
+		game.remotes.Trade_Respond.fire(capitalist, { offerId = offerId, accept = true })
+
+		Lib.eq(#game.state().trades, 0, "the offer is gone")
+		Lib.eq(game.state().classes.Middle.money, 20, "Middle paid 5")
+		Lib.eq(game.state().classes.Capitalist.money, 55, "Capitalist got 5")
+		Lib.eq(game.state().classes.Capitalist.stock.goods, 1, "Capitalist paid 1 Goods")
+		Lib.eq(game.state().classes.Middle.stock.goods, 2, "Middle got 1 Goods")
+
+		Lib.eq(#game.state().promises, 1, "the promise exists")
+		local promise = game.state().promises[1]
+		Lib.eq(promise.from, "Middle", "the promisor")
+		Lib.eq(promise.to, "Capitalist", "the promisee")
+		Lib.eq(promise.kind, "Deliver", "the kind")
+		Lib.eq(promise.spec.amount, 3, "the amount")
+		Lib.eq(promise.status, "open", "the promise is open")
+
+		-- the acceptance reached both parties, and so did the public patch
+		local results = 0
+		local patches = 0
+		for _, entry in game.sent do
+			local payload = entry.payload
+			if
+				payload
+				and payload.offerId == offerId
+				and payload.status == "accepted"
+				and payload.requestId == nil
+			then
+				results += 1
+			end
+			if payload and payload.ops and payload.ops[1].path == "promises" then
+				Lib.eq(payload.ops[1].op, "append", "the patch is an append")
+				Lib.eq(payload.ops[1].value.id, promise.id, "the patch carries the promise")
+				patches += 1
+			end
+		end
+		Lib.eq(results, 2, "both parties heard the acceptance")
+		Lib.eq(patches, 2, "both parties got the promise patch")
+	end)
+
+	Lib.test("a withdrawn offer reaches both parties (NETWORKING 3.2)", function()
+		local game = newGame({ second = "Capitalist" })
+		game.remotes.Trade_Propose.fire(game.player, {
+			requestId = "r1",
+			to = "Capitalist",
+			give = { Money = 5 },
+			want = {},
+			promises = {},
+		})
+		local offerId = game.state().trades[1].id
+		game.remotes.Trade_Cancel.fire(game.player, { offerId = offerId })
+		Lib.eq(#game.state().trades, 0, "the offer is gone")
+
+		local results = 0
+		for _, entry in game.sent do
+			local payload = entry.payload
+			if payload and payload.offerId == offerId and payload.status == "declined" then
+				results += 1
+			end
+		end
+		Lib.eq(results, 2, "both parties heard the withdrawal")
+	end)
+
 	Lib.test("an alliance is proposed and accepted through the remotes", function()
 		local game = newGame({ second = "Capitalist" })
 		game.remotes.Alliance_Propose.fire(game.player, { to = "Capitalist" })

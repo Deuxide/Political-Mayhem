@@ -131,19 +131,24 @@ function Client.onChat(client: Client, payload: any)
 end
 
 function Client.onTradeIncoming(client: Client, payload: any)
-	client._store:set(Store.addNotice(client._store:state(), {
+	local state = Store.addIncomingOffer(client._store:state(), payload.offer)
+	state = Store.addNotice(state, {
 		code = "TradeIncoming",
 		message = "a trade offer arrived",
 		offer = payload.offer,
-	}))
+	})
+	client._store:set(state)
 end
 
 function Client.onTradeResult(client: Client, payload: any)
-	client._store:set(Store.addNotice(client._store:state(), {
+	local state = Store.applyTradeResult(client._store:state(), payload)
+	state = Store.addNotice(state, {
 		code = "TradeResult",
 		message = payload.status,
 		offerId = payload.offerId,
-	}))
+		reason = payload.reason,
+	})
+	client._store:set(state)
 end
 
 function Client.onMatchEnded(client: Client, payload: any)

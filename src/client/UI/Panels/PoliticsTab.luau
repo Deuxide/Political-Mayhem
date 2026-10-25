@@ -10,6 +10,7 @@ local React = require(ReplicatedStorage.Packages.react)
 local Types = require(ReplicatedStorage.Shared.Game.Types)
 local ConfigPolicies = require(ReplicatedStorage.Shared.Config.Policies)
 local ConfigClasses = require(ReplicatedStorage.Shared.Config.Classes)
+local Bills = require(ReplicatedStorage.Shared.Game.Ops.Bills)
 local ThemeContext = require(script.Parent.Parent.Theme.ThemeContext)
 local Text = require(script.Parent.Parent.Primitives.Text)
 local Button = require(script.Parent.Parent.Primitives.Button)
@@ -71,18 +72,10 @@ local function firstEnabled(policies: { [PolicyId]: number }): PolicyId?
 	return nil
 end
 
--- The legal target levels for one bill (GAME_DESIGN 7.3): at most one step
--- on a track with four or more levels, any level otherwise.
-local function targetBounds(policyId: PolicyId, current: number): (number, number)
-	local track = ConfigPolicies.tracks[policyId]
-	if track.maxLevel - track.minLevel + 1 >= 4 then
-		return math.max(track.minLevel, current - 1), math.min(track.maxLevel, current + 1)
-	end
-	return track.minLevel, track.maxLevel
-end
-
+-- The legal target levels for one bill (GAME_DESIGN 7.3) come from the same
+-- helper the server's validation uses, so the rule lives in one place.
 local function defaultTarget(policyId: PolicyId, current: number): number
-	local low, high = targetBounds(policyId, current)
+	local low, high = Bills.targetBounds(policyId, current)
 	if current + 1 <= high then
 		return current + 1
 	end
@@ -294,7 +287,7 @@ function PoliticsTab.render(props: PoliticsTabProps): any
 
 	local low, high = 0, 0
 	if selected ~= nil then
-		low, high = targetBounds(selected, currentLevel or 0)
+		low, high = Bills.targetBounds(selected, currentLevel or 0)
 	end
 	table.insert(
 		body,

@@ -59,6 +59,15 @@ appRoot:render(React.createElement(
 		onProposeBill = function(requestId, policyId, level)
 			Client.proposeBill(client, requestId, policyId, level)
 		end,
+		onProposeTrade = function(requestId, to, give, want, promises)
+			Client.proposeTrade(client, requestId, to, give, want, promises)
+		end,
+		onRespondTrade = function(offerId, accept)
+			Client.respondTrade(client, offerId, accept)
+		end,
+		onCancelTrade = function(offerId)
+			Client.cancelTrade(client, offerId)
+		end,
 	})
 ))
 

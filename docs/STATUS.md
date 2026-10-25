@@ -3,18 +3,18 @@
 **This file is the handoff.** Update it after every task (even if the session
 may end abruptly), including the Verification log.
 
-Last updated: 2026-10-24
+Last updated: 2026-10-25
 
 ## Snapshot
 
 - **Project:** Political Mayhem
 - **Current milestone:** M8 (political and social UI)
-- **Current task:** M8-T1 (the `PoliticsTab`) — **done and verified** (2026-10-24): the policy board, the propose form, the live bills and the ballots work in Studio on Normal (all 7 tracks, a live bill passed at the Closing Bell) and Easy (3 active / 4 OFF); `scripts/check` passes 402/402. Next is M8-T2. M7 was merged to stable (`9d3a581 "Merge M7"`).
+- **Current task:** M8-T2 (the `DiplomacyTab`) — **implemented and L1-green (2026-10-25); Studio L2 NOT VERIFIED.** The offers inbox/outbox, the trade composer, the `PromiseBuilder` and the promise ledger are in place; `scripts/check` passes 408/408. The L2 waits for the owner to close the old place, open the freshly built `build/game.rbxl`, run `rojo serve` and click Connect, then confirm the Studio gate. After the L2 passes, mark the task done and start M8-T3.
 - **Project phase:** M7 merged to stable (`9d3a581 "Merge M7"`); M8 runs on `M8-dev1` off that merge.
 - **Current branch:** M8-dev1 — created 2026-10-24 off `Linux-stable` after the M7 merge (`9d3a581 "Merge M7"`), pushed. The old `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
 - **Last milestone merged to stable:** M7 (9d3a581)
-- **Last `scripts/check` result:** CHECK PASSED (402/402 tests)
+- **Last `scripts/check` result:** CHECK PASSED (408/408 tests)
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
 
@@ -120,11 +120,56 @@ with the own panel and the BR card. The TopBar is verified; the dock, the own pa
 were verified in the 2026-10-24 rerun; the milestone row records the final
 evidence.
 
+## M8-T2 build record (implemented; L1 green; L2 pending)
+
+**M8-T2 — the `DiplomacyTab` (implemented 2026-10-25, L1 green, L2 NOT VERIFIED).**
+The dock's DIPLOMACY tab now renders the offers inbox and outbox, the trade
+composer (target class, give/want steppers for the six resources, attach a
+promise), the `PromiseBuilder` (Deliver/VoteYes/NoStrike/NoBreak with the exact
+audit text) and the public promise ledger with status. The client store keeps
+the offer entries (`pendingAck` while the server has not acknowledged a
+proposal), applies `Trade_Incoming` / `Trade_Result`, expires pending offers at
+Resolve and clears them at a new Window (D-075). The server sends the promises
+created by an accepted trade as a public `promises` append patch and sends a
+cancelled offer's `Trade_Result` to both parties (D-076). The composer attaches
+one promise per offer (the server supports up to 8); `NoStrike` is disabled for
+non-Working. `Bills.targetBounds` is now the single source for legal bill target
+levels, shared by the server and both UI forms (D-077). CHECK PASSED 408/408
+(402 prior + 3 store trade/expiry/promise tests + 1 `Bills.targetBounds` test +
+2 handler tests: a promise accepted across two clients and a cancel delivered
+to both). The two-client Done-when is the L1 handler test; the L2 playtest is
+one client + 3 bot seats, because bots cannot answer an offer until M9.
+
+**The L2 is NOT VERIFIED.** The Studio gate is not yet confirmed for the fresh
+`build/game.rbxl` (the build was rebuilt by `scripts/check` after the code
+changes). Batched checklist for the next Studio session:
+1. Byte-identical check of the 10 changed runtime modules: `Bills`,
+   `TradeHandlers`, `Client`, `Store`, `App`, `init.client`, `PoliticsTab`,
+   `DiplomacyTab`, `TradeComposer`, `PromiseBuilder`.
+2. One playtest (Normal, one human + 3 bots): open DIPLOMACY; inspect the
+   composer, target buttons, six give/want rows, promise builder and empty
+   ledger; propose State -> Middle with 5 Money / 2 Food and a Deliver 3 Money
+   by Day 2 promise; verify the outgoing card and the server ack (`Trade-1`);
+   cancel and verify `declined`.
+3. Fire a synthetic `Trade_Incoming` (Capitalist -> State) and a synthetic
+   public `promises` `View_Patch` from the Server DataModel to exercise the
+   incoming card and the populated ledger; then a synthetic `Trade_Result`
+   declined for the incoming offer.
+4. Check the Output (server and client) for zero project errors/warnings; the
+   allowlist is the DataStore publish notice and the `ContentId` asset-type
+   line.
+5. Stop the playtest. Do not start a second one in the same Studio session
+   (Vinegar crashes on restart, RBXCRASH-Undefined).
+
 ## Next up
 
-1. **M8-T2 (the `DiplomacyTab`)** — the offers inbox/outbox, the composer, the
-   `PromiseBuilder` and the ledger. M8-T1 is done (L2 passed 2026-10-24).
-   M8-T3 adds the alliance UI and badges; M8-T4 the `ChatDrawer`; M8-T5 the
+1. **M8-T2 (the `DiplomacyTab`) — L1 green, Studio L2 NOT VERIFIED.** The code
+   and tests are in place (CHECK PASSED 408/408); the batched L2 waits for the
+   owner to close the old place, open the freshly built `build/game.rbxl`, run
+   `rojo serve` and click Connect, then confirm. The checklist is in the M8-T2
+   build record above. After the L2 passes, record the evidence, mark the task
+   done, then start M8-T3.
+2. M8-T3 adds the alliance UI and badges; M8-T4 the `ChatDrawer`; M8-T5 the
    `EveningReport` and `EndSummary`.
 
 ## Verification log
@@ -133,6 +178,7 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 
 | Date | Task / milestone | L1 | L2 | L3 | Notes |
 |---|---|---|---|---|---|
+| 2026-10-25 | M8-T2 — the `DiplomacyTab` (UI_SPEC 4.2, GAME_DESIGN 8.2-8.3) | CHECK PASSED (408/408: 402 prior + 3 store trade/expiry/promise tests + 1 `Bills.targetBounds` test + 2 handler tests — a promise accepted across two clients and a cancel delivered to both; stylua clean, selene 0 warnings, types 0 errors) | **NOT VERIFIED** — the Studio gate is not yet confirmed for the fresh `build/game.rbxl`; no Studio call was made. Batched checklist in the M8-T2 build record. | none | **Implemented:** `UI/Panels/DiplomacyTab` (inbox/outbox, ledger), `UI/Panels/TradeComposer` (target, six give/want steppers, promise attach, propose/cancel), `UI/Panels/PromiseBuilder` (four kinds, audit text); `Store.TradeEntry` + `addIncomingOffer`/`addOutgoingOffer`/`applyTradeResult`, phase expiry, non-mutating view copies, `promises`/`alliances` append patches; `Client` trade event handlers and intents; `App`/`init.client` wiring; `TradeHandlers` sends an accepted trade's promises as a public patch and a cancel to both parties; `Bills.targetBounds` shared by the server and both UI forms. Decisions D-075 (client-held offers; pending offers expire at Resolve and clear at a new Window), D-076 (public promise patch; cancel to both), D-077 (shared target bounds). The two-client Done-when is the L1 handler test (`a trade with a promise is accepted and the promise becomes public`); the L2 is one client + 3 bot seats because bots cannot answer an offer until M9. Known gaps: pending offers are lost on reconnect (the view has no trades field), the tab/composer are not role-gated (M12-T1), the composer attaches one promise per offer (the server supports 8), and UI_SPEC 5's city-side live-offer card / `ClassCard` trade shortcut are deferred. |
 | 2026-10-24 | M8-T1 — the `PoliticsTab` (UI_SPEC 4.2, GAME_DESIGN 7.3) | CHECK PASSED (402/402: the 400 prior + the vote reducer test + the two-client bill test; the policy-label checks are inside the existing config test; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio gate confirmed; fresh instance `game.rbxl`, Edit -> Play -> Edit. All six changed modules byte-identical: Policies 3866/1369710833, Store 13275/3134238880, App 9047/2379129522, init.client 3005/2840407909, PoliticsTab 14867/2902114595, PolicyBoard 2671/2308096251. **Normal** (`mayhem-236077`, State + 3 bots): the App and POLITICS tab render; the board shows all 7 tracks (Wage, TaxWorking, TaxMiddle, TaxCapitalist, PublicServices, Tariff, StrikeRights); a State bill proposed live (free) appeared as `WAGE MEDIUM -> HIGH`, the form showed `proposal accepted`, the Propose button changed from primary (label 238,241,247; gradient 58,63,75) to disabled (label 118,126,141; gradient 38,40,46), and a second click added no second bill (one card, one `Your vote`); Yes + 2 Influence showed `Base 3 + 2 Influence = 5 votes` and `saved`; at the Closing Bell the bill passed — ticker `Wage 2` -> `Wage 3`, board `Wage High`, bill cleared, State VP +1. **Easy** (`mayhem-702006`): Wage Medium, Tax: Capitalist 10% and Public services Market enabled; Tax: Working, Tax: Middle, Tariff and Strike rights `OFF` with muted labels 118,126,141 and disabled gradients 20,22,28 — exactly 3 active / 4 OFF. Zero project errors/warnings in both; only the pre-existing DataStore/ContentId environment lines. The two-client path is the L1 handler test (`a bill passes with the votes of two clients`); the MCP playtest is one client + 3 bot seats. | none | **Implemented:** `UI/Panels/PoliticsTab` and `UI/Panels/PolicyBoard`; `Store.setVote` and `Store.withBills`; the `bills` patch now updates `view.bills` (immutably) as well as the inbox; `App` renders the tab and wires the draft votes and the live `Bill_Propose`; `init.client` passes `Client.proposeBill`; `Config/Policies` gained the player-facing names/level labels; the handler test proposes as Middle and passes with Middle + Capitalist ballots (5 yes, quorum 5); 2 new store tests. The alliance controls are M8-T3; role gating is M12. The Studio check found no code defects; Studio crashed twice on a second playtest start (Vinegar `RBXCRASH-Undefined`), so the Easy run was done after a reopen as the first playtest. |
 | 2026-10-24 | M7 milestone — the T0/T1/T2/T3/T4 Studio L2 | CHECK PASSED (400/400; stylua clean, selene 0 warnings, types 0 errors) | **passed** — owner confirmed Studio opened this session; fresh instance `c9cc155b-474a-405f-bc83-a0215f8f2c87`, `game.rbxl`, Edit -> Play -> Edit. All 12 latest modules were byte-identical: Client `2885/13465889` (with both ScreenGuis' `IgnoreGuiInset = true` and `ZIndexBehavior.Sibling`), App `8395/533707063`, TopBar `4780/1057570579`, Countdown `1758/97460313`, SegmentedTrack `1721/134205235`, Card, Modal, Toast, Icon, both skins, Gallery. The final run found and fixed the last bug: both ScreenGuis defaulted to `ZIndexBehavior.Global`, so every panel's content (z=1) drew behind its parent Surface (z=5/6/10) and the App was visually blank; both now use `Sibling`, and the screenshots (`zindex_fixed`, `m7_politics_tab`, `m7_diplomacy_tab`, `m7_economy_final`, `m7_gallery_inset_zorder`) show the top bar/ticker, the three class cards, the own Middle panel with red needs, and the dock text. The dock shares its bottom edge with the own panel and the BR card; the EconomyTab edit (Clinic-1 open slots 2→1) produced `saving` → `saved`, draft `slots on 1 lines / open`; POLITICS and DIPLOMACY show their placeholders and ECONOMY returns. The Gallery renders with the inset/Sibling settings (the dev overlay over the match is expected). The match `mayhem-409816` resolved Day 1→2→3 (hashes `1e953909` / `6de49213`). **Zero project errors/warnings**; only the DataStore/ContentId baseline. | none — the shell's look/palette is the owner's L3 if desired; the palette remains the documented placeholder | The T0 Gallery, T1 net/store and T3 Normal/Hard/Extreme evidence stand (earlier rows); T4's full Middle/Working/Capitalist/State L2 stands. The role-gating limitation remains for M8. This row supersedes the partial T2 follow-up below. |
 | 2026-10-24 | M7-T2 follow-up — the top bar and the action dock (found in the milestone L2) | CHECK PASSED (400/400; stylua clean, selene 0 warnings, types 0 errors) | **partial** — owner gate confirmed in this session ("studio opened, mcp and rojo connected"), instance `game.rbxl`. (1) The seven fixed component modules (Card, Modal, Toast, Icon, both skins, Gallery) were byte-identical. The Gallery fixes passed live: success/warning/danger text `126,204,128` / `238,190,96` / `226,118,96`; all eight Icon tones (neutral marks light, success `meter.fill`); Toast text `onAccent` on the colored tones; chip deltas `+3`/`-4` light; the skin switch Default → Contrast; zero project errors/warnings. (2) The milestone smoke found the TopBar's header frame had **no layout**, so Day, phase, clock, Stability and ticker all sat at `16,0`; the action dock was anchored bottom but offset by `dock + spacing`, so it sat 132 px above the bottom. (3) The TopBar now uses a top row (Day, phase, clock), a right Stability block and a bottom ticker row; verified live: Day `16,0`, phase `164,0`, clock `322,0`, Stability `1313,0`, ticker `16/148/280/412/544` at `y=40`; the app renders 169 frames, 86 gradients, 166 labels, 38 buttons and **0 UICorner**. (4) The dock is now `position = (0.5, 0, 1, -spacing.l)` (bottom-aligned with the own panel and the BR card); it is byte-identical in Studio (`App 8395/533707063`) but **NOT VERIFIED** in a running client: **Studio crashed during the playtest restart**. The own panel/cards final smoke and the dock/bottom-row check are also pending. (5) Both ScreenGuis now set `IgnoreGuiInset = true` (L1-green; the visual check is pending with the dock). | none | The top bar and the dock are T2 (UI_SPEC section 2); the Gallery/component fixes from 2026-10-23 are now verified. Next: reopen Studio, verify the dock sits bottom-aligned between the own panel and the BR card, re-check the own panel/cards with the new text/Icon tones, then finish the milestone L2. |
@@ -198,6 +244,7 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 | (palette) | Final class colors and gradient palette are placeholders (UI_STYLE section 3) | Pick during M7-T0 |
 | (balance) | Starting numbers in GAME_DESIGN are initial guesses; balanced in M10 | Use as written |
 | (CorePackages) | Roblox's own topbar noisy "FoundationProvider" warning: add a `[Roblox][CorePackages` catch to the ENVIRONMENT.md allowlist? | No doc change for now — game code judged (zero errors/warnings); CorePackages noise attributed in the Verification log |
+| (M8-T2 live offer) | Should M8-T2 also implement UI_SPEC 5's city-side live-offer card (Accept/Decline/Counter, counter prefills the composer) and enable the `ClassCard`'s Offer trade shortcut? | No for M8-T2: the task's scope is the `DiplomacyTab` (inbox/outbox/composer/builder/ledger); incoming offers show in the tab. The shortcut/card are queued for a later UI pass unless the owner says otherwise. |
 
 ## Suggestions
 
@@ -209,10 +256,24 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
   `Packages/` (luau-lsp cannot see type exports through Wally's shims —
   verified by probe during M0-T2; shim requires give fully typed *values*).
   Keep the version-pinned paths in that one file only.
-- **M8-T1 L2:** the action dock is 132 px tall, so the `PoliticsTab` shows about
-  three policy rows at a time and needs scrolling to reach the propose form and
-  the live bills. Consider a taller dock or a two-column board/form layout in a
-  later UI pass; the current layout is functional and was exercised in the L2.
+- **M8-T1/M8-T2 L2:** the action dock is 132 px tall, so the `PoliticsTab`
+  shows about three policy rows at a time and the `DiplomacyTab`'s ~728 px
+  content (inbox/outbox, composer, builder, ledger) needs scrolling to reach
+  the composer and the ledger. Consider a taller dock or a two-column layout in
+  a later UI pass; the current layouts are functional and are exercised in the
+  L2s.
+- **M8-T2 (UI_SPEC 5):** the live-offer card on the city side with
+  Accept/Decline/Counter (counter prefills the composer) is not in the task's
+  scope; incoming offers appear in the `DiplomacyTab` inbox. The `ClassCard`'s
+  Offer trade/Propose alliance buttons also remain disabled. Consider a later
+  UI pass once the composer can accept a preselected target; ask the owner
+  (Open questions).
+- **M8-T2 (promise count):** the composer attaches one promise per offer; the
+  server accepts up to 8. A list-of-promises builder would be a later
+  enhancement; the task's Done-when needs one promise.
+- **M8-T2 (amounts):** the composer's resource steppers cap at 99 while the
+  server allows up to 1,000,000. A text input or a larger step would help
+  large trades; the current form is enough for the L2.
 
 ## Blockers
 
@@ -226,13 +287,24 @@ None.
   visible centre. Cosmetic; the tabs switch correctly and the M8-T1 L2 passed.
   Fix in a later UI pass by passing `size2 = UDim2.fromScale(1, 1)` (or 96×30)
   to the `Button` in `Tabs`.
-- **Role gating is not wired in the EconomyTab or the PoliticsTab.**
-  `PlayerView` carries no seat roles (roles belong to a human member, while the
-  view is per class), so a Politics-only teammate would see the economy
-  controls enabled. The server's `DraftHandlers` refuses the edit with a Notice
-  and the client reverts, so it is safe but not UI_SPEC section 5's "shown
-  disabled with a tooltip". Queue the role field and the disabled states with
-  M12-T1 (multi-human roles).
+- **Role gating is not wired in the EconomyTab, the PoliticsTab or the
+  DiplomacyTab/TradeComposer.** `PlayerView` carries no seat roles (roles
+  belong to a human member, while the view is per class), so a Politics-only
+  teammate would see the economy/trade controls enabled. The server's
+  `DraftHandlers`/`TradeHandlers` refuse the action with a Notice and the
+  client reverts (the trade form shows the refusal), so it is safe but not
+  UI_SPEC section 5's "shown disabled with a tooltip". Queue the role field and
+  the disabled states with M12-T1 (multi-human roles).
+- **Pending trade offers are lost on reconnect.** `PlayerView` has no trades
+  field, so a reconnecting client cannot rebuild its inbox/outbox; the server
+  still holds the offers and can accept/decline them, but the UI will not show
+  them. D-075 records the choice; a `trades` view field is a later networking
+  change.
+- **UI_SPEC 5's city-side live-offer card is not implemented.** Incoming offers
+  appear in the `DiplomacyTab` inbox; there is no non-modal card with
+  Accept/Decline/Counter on the city side, and the `ClassCard`'s Offer trade
+  button remains disabled. Deferred from M8-T2 by task scope; the owner should
+  accept the deferral or schedule the later UI pass (Open questions).
 - Roblox's own CorePackages/UIBlox topbar UI prints a `Warning` ("FoundationProvider
   not found…") with a stack under `CorePackages…` on every playtest when the player
   joins. It does not come from our code (our React lives in
@@ -253,6 +325,7 @@ Newest first. One line per session.
 
 | Date | Summary |
 |---|---|
+| 2026-10-25 | M8-T2 implemented: the `DiplomacyTab` (inbox/outbox, composer, `PromiseBuilder`, promise ledger), the store trade entries/expiry/promise patches, the server's accepted-promise public patch and cancel-to-both, and the shared `Bills.targetBounds` (D-075/D-076/D-077). CHECK PASSED 408/408 (402 prior + 6 new: 3 store, 1 target-bounds, 2 handler; a promise accepted across two clients and a cancel delivered to both). The Studio L2 is **NOT VERIFIED**: the gate is not yet confirmed for the fresh `build/game.rbxl`; the batched checklist is in the M8-T2 build record. Next: owner reopens the fresh build, run the L2, then M8-T3. |
 | 2026-10-24 | M8-T1 complete: the `PoliticsTab` Studio L2 passed. Normal: all 7 tracks; a live State bill (free) disabled the form and the one-bill rule held; Yes + 2 Influence saved and the bill passed at the Closing Bell (ticker `Wage 2` -> `Wage 3`, board `Wage High`, bill cleared, +1 VP). Easy: 3 active / 4 OFF with disabled visuals. Six modules byte-identical; zero project errors/warnings. Studio crashed twice on a second playtest start (`RBXCRASH-Undefined`); reopened and ran Easy first. CHECK PASSED 402/402. Next: M8-T2 (the `DiplomacyTab`). |
 | 2026-10-24 | M7 complete: the owner reopened Studio; the fresh build matched all 12 modules. The final L2 found and fixed the last bug: both ScreenGuis were `ZIndexBehavior.Global`, so the App's content sat behind its panels and rendered blank; they now use `Sibling`, and the screenshots show the top bar, cards, own panel, red needs and dock. `IgnoreGuiInset = true` on both, as asked. The dock is bottom-aligned, the EconomyTab edit showed `saving` → `saved`, both tab placeholders work, the Gallery renders, and the match ran Day 1→3 (`mayhem-409816`). Zero project errors/warnings. CHECK PASSED 400/400. **Milestone M7 ready.** |
 | 2026-10-24 | Studio reopened; the seven fixed components matched and the Gallery L2 passed (text tones, all eight Icon tones, Toast text `onAccent`, chip deltas, both skins). The milestone smoke found the TopBar had no layout (all labels at 16,0) and the dock floated 132 px above the bottom; both were fixed (grouped TopBar rows; dock bottom-aligned). The TopBar was verified live; the dock fix is L1-green and synced (`App 8395/533707063`). Studio crashed on the playtest restart, so the dock/bottom row, the own panel/cards and the final milestone smoke are **NOT VERIFIED**. Both ScreenGuis now set `IgnoreGuiInset = true` (L1). Next: reopen Studio and finish the milestone L2. |

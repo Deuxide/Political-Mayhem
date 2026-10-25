@@ -50,6 +50,19 @@ local function trackOf(state: MatchState, policyId: PolicyId): ConfigPolicies.Po
 	return ConfigPolicies.tracks[policyId]
 end
 
+-- The legal target levels for a bill (7.3): a track with 4+ levels moves by
+-- at most one step, a shorter track may jump to any level. Shared by the
+-- server's validation and the UI's propose/promise forms, so the rule lives
+-- in one place.
+function Bills.targetBounds(policyId: PolicyId, currentLevel: number): (number, number)
+	local track = ConfigPolicies.tracks[policyId]
+	if track.maxLevel - track.minLevel + 1 >= 4 then
+		return math.max(track.minLevel, currentLevel - 1),
+			math.min(track.maxLevel, currentLevel + 1)
+	end
+	return track.minLevel, track.maxLevel
+end
+
 -- Whether a class may propose this bill right now, and why not (7.3).
 -- `secondsLeft` is the time left in the Window; the proposal cutoff is
 -- `cutoffSeconds` before the Window ends.
@@ -70,12 +83,10 @@ function Bills.canPropose(
 
 	-- A track with 4+ levels moves by at most one step; the shorter tracks
 	-- may jump to any level.
-	local levelCount = track.maxLevel - track.minLevel + 1
-	if levelCount >= 4 then
-		local current = (state.policies :: any)[policyId]
-		if math.abs(level - current) > 1 then
-			return false, `{policyId} changes by at most 1 step`
-		end
+	local current = (state.policies :: any)[policyId]
+	local low, high = Bills.targetBounds(policyId, current)
+	if level < low or level > high then
+		return false, `{policyId} changes by at most 1 step`
 	end
 
 	if secondsLeft <= ConfigPolicies.bills.cutoffSeconds then

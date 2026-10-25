@@ -134,7 +134,7 @@ src/client/UI/
   Primitives/            # Surface, Text, Button, Icon, Divider, TrackSegment
   Composites/            # Card, Token (ResourceChip), SegmentedTrack, Stepper,
                          #   Tabs, Modal, Toast, StatRow, ClassHeader, Tooltip
-  Panels/                # OwnClassPanel, ClassCard, PolicyBoard, TradeComposer...
+  Panels/                # OwnClassPanel, ClassCard, PolicyBoard, PoliticsTab, DiplomacyTab, TradeComposer, PromiseBuilder...
   Screens/               # LobbyScreen, MatchHUD, EndScreen
   Gallery/               # dev-only: every component in every state
   App.luau

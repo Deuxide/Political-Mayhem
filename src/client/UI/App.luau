@@ -20,6 +20,7 @@ local OwnClassPanel = require(script.Parent.Panels.OwnClassPanel)
 local ClassCard = require(script.Parent.Panels.ClassCard)
 local EconomyTab = require(script.Parent.Panels.EconomyTab)
 local PoliticsTab = require(script.Parent.Panels.PoliticsTab)
+local DiplomacyTab = require(script.Parent.Panels.DiplomacyTab)
 local Store = require(script.Parent.Parent.State.Store)
 
 export type AppProps = {
@@ -28,6 +29,16 @@ export type AppProps = {
 	onDraft: ((Types.ActionDraft) -> ())?,
 	-- the live bill proposal (NETWORKING 3.1); nil in a bare render
 	onProposeBill: ((requestId: string, policyId: Types.PolicyId, level: number) -> ())?,
+	-- the live trade intents (NETWORKING 3.1); nil in a bare render
+	onProposeTrade: ((
+		requestId: string,
+		to: Types.ClassId,
+		give: Types.ResourceBag,
+		want: Types.ResourceBag,
+		promises: { Types.PromiseSpec }
+	) -> ())?,
+	onRespondTrade: ((offerId: string, accept: boolean) -> ())?,
+	onCancelTrade: ((offerId: string) -> ())?,
 	-- overrides for the four corners, in the order of the layout: [1] the
 	-- viewer's own panel (bottom-left), [2] top-left, [3] top-right, [4]
 	-- bottom-right. Absent slots are built from the view.
@@ -221,7 +232,7 @@ function App.render(props: AppProps): any
 
 	-- the action dock at the bottom: the active tab's panel. The controls edit
 	-- the local draft through the pure store reducers; onDraft debounces the
-	-- send. Politics is live (M8-T1); Diplomacy is still a placeholder (M8-T2).
+	-- send. Economy, Politics and Diplomacy are live (M8).
 	local dock = props.dock
 	if dock == nil and view ~= nil then
 		local function applyDraft(nextState: Store.StoreState)
@@ -268,6 +279,53 @@ function App.render(props: AppProps): any
 					applyDraft(Store.setVote(store:state(), billId, side, influence))
 				end,
 				onProposeBill = props.onProposeBill,
+			})
+		elseif state.ui.activeTab == "diplomacy" then
+			local function proposeTrade(
+				requestId: string,
+				to: Types.ClassId,
+				give: Types.ResourceBag,
+				want: Types.ResourceBag,
+				promises: { Types.PromiseSpec }
+			)
+				local current = store:state()
+				local currentView = current.match.view
+				if currentView == nil then
+					return
+				end
+				-- The local outbox entry exists before the server answers; the
+				-- ack gives it the real offer id (Store.applyTradeResult).
+				local offer: Types.TradeOffer = {
+					id = "pending-" .. requestId,
+					from = currentView.viewer,
+					to = to,
+					give = give,
+					want = want,
+					promises = promises,
+					expiresAt = current.match.endsAt,
+				}
+				store:set(Store.addOutgoingOffer(current, offer, requestId))
+				if props.onProposeTrade ~= nil then
+					props.onProposeTrade(requestId, to, give, want, promises)
+				end
+			end
+
+			dock = React.createElement(DiplomacyTab.render, {
+				view = view,
+				phase = state.match.phase,
+				offers = state.inbox.offers,
+				notices = state.inbox.notices,
+				onPropose = proposeTrade,
+				onRespond = function(offerId, accept)
+					if props.onRespondTrade ~= nil then
+						props.onRespondTrade(offerId, accept)
+					end
+				end,
+				onCancel = function(offerId)
+					if props.onCancelTrade ~= nil then
+						props.onCancelTrade(offerId)
+					end
+				end,
 			})
 		else
 			dock = React.createElement(Text.render, {

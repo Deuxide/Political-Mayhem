@@ -20,10 +20,28 @@ type LogEntry = Types.LogEntry
 type PlayerView = Types.PlayerView
 type Phase = Types.Phase
 type StockId = Types.StockId
+type TradeOffer = Types.TradeOffer
 type VoteSide = Types.VoteSide
 type VoteSpec = Types.VoteSpec
 
 export type ConnectionStatus = "connecting" | "ready" | "closed"
+
+export type TradeDirection = "in" | "out"
+export type TradeStatus = "pending" | "accepted" | "declined" | "failed" | "expired"
+
+-- One live (or just-resolved) trade offer in the inbox/outbox. The view does
+-- not carry trades (NETWORKING 3.1 sends them as events), so the store keeps
+-- them: `direction` says which side the viewer is on, `requestId` correlates
+-- an outgoing proposal with the server's ack, and `pendingAck` is true until
+-- that ack gives the offer its server id.
+export type TradeEntry = {
+	offer: TradeOffer,
+	direction: TradeDirection,
+	status: TradeStatus,
+	reason: string?,
+	requestId: string?,
+	pendingAck: boolean?,
+}
 
 export type StoreState = {
 	connection: {
@@ -43,7 +61,7 @@ export type StoreState = {
 		syncState: "clean" | "pending" | "rejected",
 	},
 	inbox: {
-		offers: { any },
+		offers: { TradeEntry },
 		bills: { any },
 		notices: { any },
 	},
@@ -100,6 +118,11 @@ function Store.applySnapshot(
 ): StoreState
 	local next = Store.copy(state)
 	next.connection = { status = "ready", protocol = protocol }
+	-- A snapshot for a new Day starts a new Window: any offer from the old
+	-- Day is stale (the server expired it at the Closing Bell).
+	if view.day ~= state.match.day then
+		next.inbox.offers = {}
+	end
 	next.match.view = view
 	next.match.serverOffset = serverTime - localTime
 	next.draft.current = view.draft
@@ -108,7 +131,9 @@ function Store.applySnapshot(
 	return next
 end
 
--- The phase and the Day (NETWORKING 3.2).
+-- The phase and the Day (NETWORKING 3.2). Offers are live only in a Window
+-- (GAME_DESIGN 8.2): the Closing Bell expires the pending ones, and the next
+-- Window starts with a clean inbox/outbox.
 function Store.applyPhase(
 	state: StoreState,
 	phase: Phase,
@@ -122,36 +147,26 @@ function Store.applyPhase(
 	next.match.day = day
 	next.match.endsAt = endsAt
 	next.match.serverOffset = serverTime - localTime
+	if phase == "Resolve" then
+		local offers: { TradeEntry } = {}
+		for _, entry in next.inbox.offers do
+			local copy = Store.copyTradeEntry(entry)
+			if copy.status == "pending" then
+				copy.status = "expired"
+			end
+			table.insert(offers, copy)
+		end
+		next.inbox.offers = offers
+	elseif phase == "Window" then
+		next.inbox.offers = {}
+	end
 	return next
 end
 
--- A shallow copy of a view with one field replaced (the server's accepted
--- draft). The view is immutable in the store: a patch builds a new table.
-function Store.withDraft(view: PlayerView, draft: ActionDraft): PlayerView
-	return {
-		viewer = view.viewer,
-		day = view.day,
-		rounds = view.rounds,
-		phase = view.phase,
-		stability = view.stability,
-		policies = view.policies,
-		own = view.own,
-		ownLines = view.ownLines,
-		needs = view.needs,
-		draft = draft,
-		others = view.others,
-		bills = view.bills,
-		promises = view.promises,
-		alliances = view.alliances,
-		reputation = view.reputation,
-		victory = view.victory,
-	}
-end
-
--- A shallow copy of a view with a new live-bills list (M8-T1). A public bill
--- patch must not mutate the view the old state still holds: the UI reads the
--- view and the store's listeners compare it.
-function Store.withBills(view: PlayerView, bills: { Types.Bill }): PlayerView
+-- A shallow copy of a view with one field replaced. The view is immutable
+-- in the store: a patch builds a new table (the UI compares views and the
+-- old state must stay intact).
+local function copyView(view: PlayerView): PlayerView
 	return {
 		viewer = view.viewer,
 		day = view.day,
@@ -164,12 +179,41 @@ function Store.withBills(view: PlayerView, bills: { Types.Bill }): PlayerView
 		needs = view.needs,
 		draft = view.draft,
 		others = view.others,
-		bills = bills,
+		bills = view.bills,
 		promises = view.promises,
 		alliances = view.alliances,
 		reputation = view.reputation,
 		victory = view.victory,
 	}
+end
+
+-- A shallow copy of a view with one field replaced (the server's accepted
+-- draft).
+function Store.withDraft(view: PlayerView, draft: ActionDraft): PlayerView
+	local next = copyView(view)
+	next.draft = draft
+	return next
+end
+
+-- A shallow copy of a view with a new live-bills list (M8-T1). A public bill
+-- patch must not mutate the view the old state still holds.
+function Store.withBills(view: PlayerView, bills: { Types.Bill }): PlayerView
+	local next = copyView(view)
+	next.bills = bills
+	return next
+end
+
+-- The same for the public promises (M8-T2) and alliances (M8-T3).
+function Store.withPromises(view: PlayerView, promises: { Types.Promise }): PlayerView
+	local next = copyView(view)
+	next.promises = promises
+	return next
+end
+
+function Store.withAlliances(view: PlayerView, alliances: { Types.Alliance }): PlayerView
+	local next = copyView(view)
+	next.alliances = alliances
+	return next
 end
 
 -- A patch (NETWORKING 4). The paths are the ones the server sends: "draft"
@@ -211,10 +255,36 @@ function Store.applyPatch(state: StoreState, ops: { PatchOp }): StoreState
 					next.match.view = Store.withBills(view, bills)
 				end
 			end
-		elseif op.op == "append" and op.path == "alliances" then
+		elseif op.op == "append" and op.path == "promises" then
+			local promise = op.value :: Types.Promise
 			local view = next.match.view
 			if view ~= nil then
-				table.insert(view.alliances, op.value)
+				local exists = false
+				for _, existing in view.promises do
+					if existing.id == promise.id then
+						exists = true
+						break
+					end
+				end
+				if not exists then
+					local promises: { Types.Promise } = {}
+					for _, existing in view.promises do
+						table.insert(promises, existing)
+					end
+					table.insert(promises, promise)
+					next.match.view = Store.withPromises(view, promises)
+				end
+			end
+		elseif op.op == "append" and op.path == "alliances" then
+			local alliance = op.value :: Types.Alliance
+			local view = next.match.view
+			if view ~= nil then
+				local alliances: { Types.Alliance } = {}
+				for _, existing in view.alliances do
+					table.insert(alliances, existing)
+				end
+				table.insert(alliances, alliance)
+				next.match.view = Store.withAlliances(view, alliances)
 			end
 		end
 	end
@@ -353,6 +423,98 @@ function Store.setVote(
 		draft.votes[billId] = { side = side, influence = math.max(0, influence or 0) }
 	end
 	return Store.setLocalDraft(state, draft, draft.sequence)
+end
+
+-- ===== The trade offers (M8-T2, GAME_DESIGN 8.2) =====
+--
+-- The PlayerView deliberately has no trades: the server sends Trade_Incoming
+-- to the recipient and Trade_Result to the parties (NETWORKING 3.1). The
+-- store is therefore the client's inbox/outbox; the reducers below keep it
+-- in step with those events.
+
+-- A copy of one entry. The entries in the store are never mutated: a reducer
+-- replaces the list and the entries it changes, like the view.
+function Store.copyTradeEntry(entry: TradeEntry): TradeEntry
+	return {
+		offer = entry.offer,
+		direction = entry.direction,
+		status = entry.status,
+		reason = entry.reason,
+		requestId = entry.requestId,
+		pendingAck = entry.pendingAck,
+	}
+end
+
+-- The server gave the offer its id on the proposal ack; the rest of the
+-- offer is the local copy the composer built.
+function Store.copyOfferWithId(offer: TradeOffer, id: string): TradeOffer
+	return {
+		id = id,
+		from = offer.from,
+		to = offer.to,
+		give = offer.give,
+		want = offer.want,
+		promises = offer.promises,
+		expiresAt = offer.expiresAt,
+	}
+end
+
+-- An offer addressed to the viewer (Trade_Incoming).
+function Store.addIncomingOffer(state: StoreState, offer: TradeOffer): StoreState
+	local next = Store.copy(state)
+	for _, entry in next.inbox.offers do
+		if entry.offer.id == offer.id then
+			return next
+		end
+	end
+	table.insert(next.inbox.offers, {
+		offer = offer,
+		direction = "in",
+		status = "pending",
+		requestId = nil,
+		pendingAck = false,
+	})
+	return next
+end
+
+-- An offer the viewer just sent. The composer builds the local offer and the
+-- request id; the ack replaces the temporary id with the server's.
+function Store.addOutgoingOffer(state: StoreState, offer: TradeOffer, requestId: string): StoreState
+	local next = Store.copy(state)
+	table.insert(next.inbox.offers, {
+		offer = offer,
+		direction = "out",
+		status = "pending",
+		requestId = requestId,
+		pendingAck = true,
+	})
+	return next
+end
+
+-- Trade_Result does double duty (NETWORKING 3.1): with a requestId it is the
+-- server accepting the *proposal* (the offer now has an id, but the trade is
+-- still pending); without one it is the answer to the offer itself.
+function Store.applyTradeResult(state: StoreState, payload: any): StoreState
+	local next = Store.copy(state)
+	local requestId = payload.requestId
+	local offerId = payload.offerId
+	local status: TradeStatus = payload.status :: any
+	local offers: { TradeEntry } = {}
+	for _, entry in next.inbox.offers do
+		local copy = Store.copyTradeEntry(entry)
+		if requestId ~= nil and requestId ~= "" then
+			if entry.direction == "out" and entry.requestId == requestId then
+				copy.offer = Store.copyOfferWithId(entry.offer, offerId)
+				copy.pendingAck = false
+			end
+		elseif entry.offer.id == offerId then
+			copy.status = status
+			copy.reason = payload.reason
+		end
+		table.insert(offers, copy)
+	end
+	next.inbox.offers = offers
+	return next
 end
 
 -- A notice from the server (NETWORKING 3.2).
