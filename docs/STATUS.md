@@ -10,10 +10,10 @@ Last updated: 2026-10-26
 - **Project:** Political Mayhem
 - **Current milestone:** M8 (political and social UI)
 - **Current task:** M9-T2 (the per-class bot heuristics) — **next**. M9-T1 is complete: `BotStrategy` is the abstract behavior base with `WorkingBot`/`MiddleBot`/`CapitalistBot`/`StateBot`; `BotService` runs them at the start of every Window from the same `PlayerView` a human in that seat gets, with a per-bot RNG derived from the match seed; their drafts go through `DraftRules.apply`, the same clamp as a human `Draft_Update` (D-082). The view-restriction test compares the bot's view keys to a human's in Extreme and proves Money/stocks/Influence are absent. The Studio L2 saw `[Bots] planned Working, Capitalist, State` at the first and next Window with no errors. **M8 is ready; next: M9-T2** (needs, VP chase, vote, trade acceptance), per the owner's instruction to continue without stopping.
-- **Project phase:** M7 merged to stable (`9d3a581 "Merge M7"`); M8 runs on `M8-dev1` off that merge.
-- **Current branch:** M8-dev1 — created 2026-10-24 off `Linux-stable` after the M7 merge (`9d3a581 "Merge M7"`), pushed. The old `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push` (it must never target `Linux-stable`).
+- **Project phase:** M8 merged to stable (`4784254 "Merge M8: political and social UI"`, tag `m8-complete`); M9 runs on `M9-dev1` off that merge.
+- **Current branch:** M9-dev1 — created 2026-10-26 off `Linux-stable` after the M8 merge (`4784254`). The M9-T1 commits were cherry-picked from `M8-dev1`; that old branch still has duplicate M9-T1 commits at its tip and should not be used or merged. The older `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
-- **Last milestone merged to stable:** M7 (9d3a581)
+- **Last milestone merged to stable:** M8 (4784254, tag `m8-complete`)
 - **Last `scripts/check` result:** CHECK PASSED (431/431 tests)
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
@@ -563,6 +563,7 @@ Newest first. One line per session.
 
 | Date | Summary |
 |---|---|
+| 2026-10-26 | M8 merged into `Linux-stable` at `4784254` (`Merge M8: political and social UI`, tag `m8-complete`). `M9-dev1` was created from `Linux-stable`; the two M9-T1 commits (`c5f342b`, `3192a25`) were cherry-picked onto it as `42d91bb` and `e3b7b44`. The old `M8-dev1` tip still carries duplicate M9-T1 commits; it is not the active branch and must not be merged. |
 | 2026-10-26 | M9-T1 complete: the bot framework Studio L2 passed. 11 modules byte-identical. A Normal one-human-plus-three-bots match (`mayhem-171876`) printed `[Bots] planned Working, Capitalist, State` in the first Window and again after the Day 2 hash/Reveal; zero project errors/warnings. CHECK PASSED 431/431. Continuing to M9-T2 per the owner's instruction. |
 | 2026-10-26 | M9-T1 implemented: `BotStrategy` plus four class subclasses, the `BotService` runner with per-bot RNGs, the shared `DraftRules` clamp (used by humans and bots), `MatchService.onWindow`, and `init.server` playing the bot seats. Six bot-framework tests plus one `onWindow` test; CHECK PASSED 431/431. The view-restriction test proves a bot's view matches a human's and hides the other classes' Money/Influence/stocks. Studio L2 next. |
 | 2026-10-26 | M8-T5 complete: the EveningReport/EndSummary Studio L2 passed. Eight modules byte-identical. A real Normal Day 1 reveal (`mayhem-371003`, Middle + 3 bots) showed the six Middle deltas with causes and the 11 public lines; it found the card/chat overlap, fixed to 541 px with clipping. The fixed layout (`mayhem-492078`, synthetic reveal) showed the title, rows, danger/success colors, scroll to the other classes, auto-dismiss on a synthetic Window, and the EndSummary `FINAL`/`SHARED`/`COLLAPSE` variants with the final standings. Zero project errors/warnings. Two playtests; stopped. CHECK PASSED 424/424. **M8 ready**; continuing to M9-T1 per the owner's instruction. |
