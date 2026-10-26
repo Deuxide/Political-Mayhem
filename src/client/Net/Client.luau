@@ -107,9 +107,7 @@ end
 function Client.onReveal(client: Client, payload: any)
 	-- the report of the Day: the events are public, the deltas are the
 	-- viewer's own (NETWORKING 3.2)
-	client._store:set(Store.applyPatch(client._store:state(), {
-		{ op = "set", path = "reveal", value = payload },
-	}))
+	client._store:set(Store.applyReveal(client._store:state(), payload))
 end
 
 function Client.onNotice(client: Client, payload: any)
@@ -152,7 +150,8 @@ function Client.onTradeResult(client: Client, payload: any)
 end
 
 function Client.onMatchEnded(client: Client, payload: any)
-	client._store:set(Store.addNotice(client._store:state(), {
+	local state = Store.applyMatchEnded(client._store:state(), payload.result, payload.summary)
+	client._store:set(Store.addNotice(state, {
 		code = "MatchEnded",
 		message = payload.summary,
 		result = payload.result,

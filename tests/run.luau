@@ -46,6 +46,7 @@ local suites = {
 	require("./net_remotes.test"),
 	require("./net_validate.test"),
 	require("./client_store.test"),
+	require("./client_report.test"),
 	require("./lobby_service.test"),
 	require("./match_service.test"),
 	require("./handlers.test"),

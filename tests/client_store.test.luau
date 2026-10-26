@@ -446,6 +446,37 @@ function M.run()
 		Lib.eq(opened.ui.drawerOpen, true, "the opened state did not change")
 	end)
 
+	Lib.test("the Evening Report and the end result live in the store", function()
+		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+		local report = {
+			day = 1,
+			events = { { day = 1, text = "Middle gained 1 VP (needsMet)", actor = "Middle" } },
+			deltas = {
+				Middle = { money = 0, influence = 0, stock = { food = -2 }, vp = 1 },
+			},
+		}
+		local withReveal = Store.applyReveal(state, report)
+		Lib.eq(withReveal.reveal.day, 1, "the report is stored")
+		Lib.eq(withReveal.reveal.deltas.Middle.vp, 1, "the own delta")
+		Lib.eq(state.reveal, nil, "the old state has no report")
+
+		local nextWindow = Store.applyPhase(withReveal, "Window", 2, 1200, 1100, 1000)
+		Lib.eq(nextWindow.reveal, nil, "the next Window clears the report")
+
+		local result = { kind = "final", winners = { "Middle" }, day = 12 }
+		local ended = Store.applyMatchEnded(withReveal, result, "the end")
+		Lib.eq(ended.match.result.kind, "final", "the result is stored")
+		Lib.eq(ended.match.endSummary, "the end", "the summary is stored")
+		Lib.eq(ended.reveal, nil, "the end screen replaces the report")
+		Lib.eq(withReveal.reveal.day, 1, "the old state kept its report")
+
+		local finalView = view()
+		finalView.victory = result
+		local finalSnapshot = Store.applySnapshot(state, finalView, 1, 1000, 900)
+		Lib.eq(finalSnapshot.match.result.kind, "final", "the final snapshot carries the result")
+		Lib.eq(state.match.result, nil, "the old state had no result")
+	end)
+
 	Lib.test("the store tells its listeners about every change", function()
 		local store = Store.new()
 		local seen = 0

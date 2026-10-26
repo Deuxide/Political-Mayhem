@@ -40,10 +40,14 @@ function M.run()
 		local pending = nil
 		local announced = {}
 		local ended = nil
+		local reveal = nil
 		local service = MatchService.new({
 			match = match,
 			onPhaseChanged = function(payload)
 				table.insert(announced, payload)
+			end,
+			onReveal = function(report)
+				reveal = report
 			end,
 			onMatchEnded = function(result)
 				ended = result
@@ -61,6 +65,9 @@ function M.run()
 			announced = announced,
 			getEnded = function()
 				return ended
+			end,
+			getReveal = function()
+				return reveal
 			end,
 			fire = function()
 				local timer = pending
@@ -104,6 +111,22 @@ function M.run()
 		Lib.eq(harness.announced[3].phase, "Reveal", "the Reveal is announced")
 		Lib.eq(harness.pendingDelay(), 8, "the Reveal timer")
 		Lib.eq(harness.match:state().day, 2, "the Day counter advanced")
+	end)
+
+	Lib.test("the report belongs to the Day that was resolved", function()
+		local harness = newService("Normal")
+		harness.service:start()
+		harness.fire()
+
+		local report = harness.getReveal()
+		Lib.truthy(report ~= nil, "the report was sent")
+		Lib.eq(report.day, 1, "the Day just resolved, not the advanced counter")
+		Lib.truthy(#report.events > 0, "the Day's log entries")
+		for _, entry in report.events do
+			Lib.eq(entry.day, 1, "every event belongs to that Day")
+		end
+		Lib.truthy(report.deltas.Working ~= nil, "every class's delta is built")
+		Lib.truthy(report.deltas.State ~= nil, "including the State's")
 	end)
 
 	Lib.test("the Reveal ends with the next Window", function()

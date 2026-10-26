@@ -22,6 +22,8 @@ local EconomyTab = require(script.Parent.Panels.EconomyTab)
 local PoliticsTab = require(script.Parent.Panels.PoliticsTab)
 local DiplomacyTab = require(script.Parent.Panels.DiplomacyTab)
 local ChatDrawer = require(script.Parent.Panels.ChatDrawer)
+local EveningReport = require(script.Parent.Panels.EveningReport)
+local EndSummary = require(script.Parent.Panels.EndSummary)
 local Store = require(script.Parent.Parent.State.Store)
 
 export type AppProps = {
@@ -407,6 +409,29 @@ function App.render(props: AppProps): any
 				onRead = function(channel)
 					store:set(Store.applyChatRead(store:state(), channel))
 				end,
+			})
+		)
+	end
+
+	-- The end screen wins over the report: a match that ends during the
+	-- Closing Bell has no Reveal phase, and its final snapshot carries the
+	-- final standings. The report is only open while the server says Reveal,
+	-- so it disappears by itself when the next Market Hours begins.
+	if view ~= nil and state.match.result ~= nil then
+		table.insert(
+			children,
+			React.createElement(EndSummary.render, {
+				result = state.match.result,
+				view = view,
+				summary = state.match.endSummary,
+			})
+		)
+	elseif view ~= nil and state.match.phase == "Reveal" and state.reveal ~= nil then
+		table.insert(
+			children,
+			React.createElement(EveningReport.render, {
+				report = state.reveal,
+				view = view,
 			})
 		)
 	end

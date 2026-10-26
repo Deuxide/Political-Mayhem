@@ -19,8 +19,10 @@ type LineType = Types.LineType
 type LogEntry = Types.LogEntry
 type PlayerView = Types.PlayerView
 type Phase = Types.Phase
+type RevealReport = Remotes.RevealReportPayload
 type StockId = Types.StockId
 type TradeOffer = Types.TradeOffer
+type VictoryResult = Types.VictoryResult
 type VoteSide = Types.VoteSide
 type VoteSpec = Types.VoteSpec
 
@@ -54,7 +56,10 @@ export type StoreState = {
 		day: number,
 		endsAt: number,
 		serverOffset: number, -- serverTime minus the local clock
+		result: VictoryResult?, -- set once by the final snapshot / Match_Ended
+		endSummary: string?, -- the server's one-line result, if it sent one
 	},
+	reveal: RevealReport?, -- the last Evening Report; cleared when the next Window opens
 	draft: {
 		current: ActionDraft,
 		seq: number,
@@ -86,7 +91,16 @@ Store.__index = Store
 function Store.initialState(): StoreState
 	return {
 		connection = { status = "connecting", protocol = nil },
-		match = { view = nil, phase = "Window", day = 1, endsAt = 0, serverOffset = 0 },
+		match = {
+			view = nil,
+			phase = "Window",
+			day = 1,
+			endsAt = 0,
+			serverOffset = 0,
+			result = nil,
+			endSummary = nil,
+		},
+		reveal = nil,
 		draft = { current = Store.emptyDraft(), seq = 0, syncState = "clean" },
 		inbox = { offers = {}, bills = {}, notices = {} },
 		chat = { channels = {}, unread = {} },
@@ -125,6 +139,9 @@ function Store.applySnapshot(
 	end
 	next.match.view = view
 	next.match.serverOffset = serverTime - localTime
+	-- The final snapshot carries the result, so the EndSummary can show the
+	-- final VPs and reputation even though no Reveal follows a victory.
+	next.match.result = view.victory
 	next.draft.current = view.draft
 	next.draft.seq = view.draft.sequence
 	next.draft.syncState = "clean"
@@ -159,7 +176,33 @@ function Store.applyPhase(
 		next.inbox.offers = offers
 	elseif phase == "Window" then
 		next.inbox.offers = {}
+		-- The report belongs to the Reveal it was opened for; the next
+		-- Window means the next Day's planning, not the old report.
+		next.reveal = nil
 	end
+	return next
+end
+
+-- The Evening Report of a resolved Day (NETWORKING 3.2). The server has
+-- already filtered the deltas to the viewer's own class; the store keeps the
+-- report until the next Window.
+function Store.applyReveal(state: StoreState, report: RevealReport): StoreState
+	local next = Store.copy(state)
+	next.reveal = report
+	return next
+end
+
+-- Match_Ended (NETWORKING 3.2): the result and the server's summary. The
+-- final snapshot has already brought the final VPs and reputation.
+function Store.applyMatchEnded(
+	state: StoreState,
+	result: VictoryResult,
+	summary: string?
+): StoreState
+	local next = Store.copy(state)
+	next.match.result = result
+	next.match.endSummary = summary
+	next.reveal = nil
 	return next
 end
 
@@ -603,7 +646,10 @@ function Store.copy(state: StoreState): StoreState
 			day = state.match.day,
 			endsAt = state.match.endsAt,
 			serverOffset = state.match.serverOffset,
+			result = state.match.result,
+			endSummary = state.match.endSummary,
 		},
+		reveal = state.reveal,
 		draft = {
 			current = state.draft.current,
 			seq = state.draft.seq,
