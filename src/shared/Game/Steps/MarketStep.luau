@@ -161,8 +161,12 @@ function MarketStep.run(_self: MarketStep, state: MatchState, ctx: StepContext)
 	-- Tariff: the policy's level, priced per imported unit (Config/Policies
 	-- holds the per-level effect; the level itself lives in the state).
 	local tariffId: PolicyId = "Tariff"
-	local tariffLevel: number = (state.policies :: any)[tariffId]
+	-- Disabled tracks are absent from the policy map; D-041 says readers
+	-- treat a missing track as level 0. Easy disables Tariff, so this is the
+	-- difference between a free import and a nil arithmetic error.
+	local tariffLevel: number = (state.policies :: any)[tariffId] or 0
 	local tariff: number = (ConfigPolicies.tracks[tariffId].levelValues :: { [any]: any })[tariffLevel]
+		or 0
 
 	for ci = 1, #Types.CLASS_IDS do
 		local classId: ClassId = Types.CLASS_IDS[ci] :: any
