@@ -237,6 +237,7 @@ function EveningReport.render(props: EveningReportProps): any
 			ScrollingDirection = Enum.ScrollingDirection.Y,
 			ScrollBarThickness = 4,
 			ScrollBarImageColor3 = theme.colors["line.strong"],
+			ClipsDescendants = true,
 		},
 		React.createElement("Frame", {
 			BackgroundTransparency = 1,
@@ -254,7 +255,7 @@ function EveningReport.render(props: EveningReportProps): any
 			0,
 			WIDTH,
 			1,
-			-(theme.layout.topBar + theme.layout.dock + theme.spacing.l * 3)
+			-(theme.layout.topBar + theme.layout.dock + theme.spacing.l * 3 + theme.spacing.xl)
 		),
 		zIndex = 8,
 	}, {
