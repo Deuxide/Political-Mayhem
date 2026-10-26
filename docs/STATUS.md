@@ -8,13 +8,13 @@ Last updated: 2026-10-26
 ## Snapshot
 
 - **Project:** Political Mayhem
-- **Current milestone:** M8 (political and social UI)
-- **Current task:** M8-T5 (the `EveningReport` overlay with causes and the `EndSummary`) — **complete** (L1 424/424; Studio L2 passed 2026-10-26). The client stores the filtered reveal report and the final result; the overlay lists every non-zero own-class delta with a cause and the Day's public log, and the end screen shows the result plus the final VP/reputation table. The report's Day is the Day just resolved (D-080); a delta the log does not name gets a rule-category fallback (D-081). **M8 is ready; next: M9-T1** (the bot framework), per the owner's instruction to continue without stopping.
-- **Project phase:** M7 merged to stable (`9d3a581 "Merge M7"`); M8 runs on `M8-dev1` off that merge.
-- **Current branch:** M8-dev1 — created 2026-10-24 off `Linux-stable` after the M7 merge (`9d3a581 "Merge M7"`), pushed. The old `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push` (it must never target `Linux-stable`).
+- **Current milestone:** M9 (bots)
+- **Current task:** M9 milestone — **complete (L1 442/442, L2 gate G2 passed 2026-10-26); M9 ready for owner merge.** All three M9 tasks are done: the bot framework, the per-class heuristics, and live alliances with promise awareness. Gate G2 ran a full Normal match (`mayhem-728044`, one human Middle plus three bots, seed 728044) through the real UI: all 12 Days, bots planning every Window, `Capitalist and State win together` on Day 12, final standings Capitalist 16 / Working 14 / State 10 / Middle 1 VP. The live bot trade path remains deferred (D-085); balance is M10. **Stop here; the owner merges `M9-dev1`.**
+- **Project phase:** M8 merged to stable (`4784254 "Merge M8: political and social UI"`, tag `m8-complete`); M9 runs on `M9-dev1` off that merge.
+- **Current branch:** M9-dev1 — created 2026-10-26 off `Linux-stable` after the M8 merge (`4784254`). The M9-T1 commits were cherry-picked from `M8-dev1`; that old branch still has duplicate M9-T1 commits at its tip and should not be used or merged. The older `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push` (it must never target `Linux-stable`).
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
-- **Last milestone merged to stable:** M7 (9d3a581)
-- **Last `scripts/check` result:** CHECK PASSED (424/424 tests)
+- **Last milestone merged to stable:** M8 (4784254, tag `m8-complete`)
+- **Last `scripts/check` result:** CHECK PASSED (442/442 tests)
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
 
@@ -65,6 +65,10 @@ Last updated: 2026-10-26
 - [x] M8-T3: the alliance UI and badges — the `PoliticsTab` alliance section (active alliance with age and Break, incoming Accept/Decline, outgoing waiting, target buttons plus Propose, and the unavailable reason), the `ClassCard`'s live "Propose alliance" button and public alliance badge, the private `PlayerView.allianceProposals` / public `alliances` split (D-078), the server's private proposal patches plus public alliance/break patches, the same-pair guard and the Day-end proposal expiry. Studio L2 passed on 2026-10-25: a live State -> Middle proposal showed `WAITING FOR MIDDLE` / `proposed Day 2` and then expired at the Day 2 end; a synthetic incoming proposal showed Accept/Decline; a synthetic State + Capitalist alliance showed `ALLIED WITH CAPITALIST` / `Day 1 - age 2` / `Break alliance` and the Capitalist `ALLIED` badge; the Break click was refused with `State has no alliance to break` (Rejected) as expected; the synthetic remove cleared the card and the badge. Zero project errors/warnings. CHECK PASSED 414/414. The two-client form/accept/break is the L1 handler test.
 - [x] M8-T4: the `ChatDrawer` — the collapsed bar above the dock, the Global/Team/Class tabs with unread badges, the Class target picker, the message list (wrapped rows, auto-scroll) and the composer; the store's chat slice (append per channel, unread count, mark-read, drawer open) with pure reducers; the server's filtering path and the channel audiences, including the private Class line's sender echo (D-079); the `Text` primitive gained `wrapped`/`automatic` for the message rows. CHECK PASSED 417/417 (414 prior + 2 store tests + 1 handler test); Studio L2 passed on 2026-10-26: the collapsed `CHAT` bar above the dock; the open drawer showed `Global (0)` / `Team (0)` / `Class (0)`, the empty state and the composer; a Global message and a Team message rendered; a Class line to Capitalist rendered its sender copy (D-079); Hide -> `CHAT (1 UNREAD)` -> reopen cleared it; a long message wrapped to 42 px; the Economy/Politics/Diplomacy tab switch and the Day 1 -> 2 re-render kept the messages and produced no project errors. Zero project errors/warnings (the only non-baseline lines are AssistantCommand probe errors from my inspection scripts).
 - [x] M8-T5: the `EveningReport` overlay and the `EndSummary` — the store's reveal/result slice, the pure report model (every non-zero own delta with a cause, the public log, broken promises and VP gains highlighted), the auto-dismissing Reveal overlay, the end screen with winner(s), final VP table and final reputation, the server's resolved-Day report label and final snapshot (D-080/D-081). CHECK PASSED 424/424 (417 prior + 1 store test + 4 report-model tests + 1 match-service report test + 1 final-snapshot replication test). Studio L2 passed on 2026-10-26: a real Normal Day 1 reveal (`mayhem-371003`, Middle + 3 bots) showed Middle's Influence +2, Food -2, Goods -1, Health -1, Education -1 and VP +1, each with its cause, plus the 11 public log lines; after the layout fix the synthetic reveal (`mayhem-492078`) showed the 680x541 card above the chat bar, the scroll to the other classes, the broken-promise danger and VP-gain success colors; a synthetic Window cleared it, and the EndSummary showed `FINAL` / `Middle wins the final count` / final standings, plus `SHARED` and `COLLAPSE` variants. Zero project errors/warnings.
+- [x] M9-T1: the bot framework — `BotStrategy` abstract base plus `WorkingBot`/`MiddleBot`/`CapitalistBot`/`StateBot`; `BotService` runs the four strategies at the start of each Window from the `PlayerView` a human in that seat would receive, with a per-bot RNG derived from the match seed; the draft goes through `DraftRules.apply`, the one clamp/store also used by the human `Draft_Update`; `MatchService` gained `onWindow` before the phase snapshot, and `init.server` runs the bot classes. CHECK PASSED 431/431 (424 prior + 6 bot-framework tests + 1 `onWindow` test). The view-restriction test compares the bot's `PlayerView` keys with a human's in Extreme and proves the other classes' Money, Influence and stocks are absent. Studio L2 passed on 2026-10-26: 11 runtime modules byte-identical; a one-human-plus-three-bots match (`mayhem-171876`, Normal, seed 171876) printed `[Bots] planned Working, Capitalist, State` at the first Window and again after the Day 2 hash, with zero project errors/warnings.
+- [x] M9-T2: the per-class heuristics — `Config/Bots` now carries the slot, market, trust, build and policy-preference numbers; `BotStrategy` has the shared open-slots, build, sell-surplus, buy-needs, assign-workers, vote and trade-acceptance helpers; `WorkingBot` assigns and buys Food/Health, `MiddleBot` builds toward five lines and keeps Education, `CapitalistBot` builds Farms then Factories, and `StateBot` builds Clinics/Schools. A bill is voted by class interest with no Influence, and trade acceptance weighs market value against the counterparty's Reputation. R1 now applies a validated `openSlots` value to the line (D-083), so the bots' slot plans change production. CHECK PASSED 438/438 (431 prior + 7 heuristic tests; stylua clean, selene 0 warnings, types 0 errors). The bots-only Normal test runs all four bots through twelve Days and ends with the final-Day comparison. Studio L2 passed on 2026-10-26: all seven changed runtime modules byte-identical; the Server VM ran a bots-only Normal match through Day 12 (`final`, Capitalist, hash `b81be492`, 219 events) and a three-Day class-plan probe; a live one-human-plus-three-bots match (`mayhem-93928`, Normal) printed `[Bots] planned Working, Capitalist, State` and the client rendered normally with zero project errors/warnings.
+- [x] M9-T3: bot alliances and promise awareness — `BotStrategy.decideLive` returns alliance proposals, responses and breaks, and `BotService.playWindow` applies them through the shared `Alliances` Ops after each bot's draft, so a later bot in the canonical order can answer a proposal in the same Window. Class preference pairs Working+Middle and Capitalist+State; an alliance is reviewed after `Config/Bots.allianceBreakAfterDays`, and an open `NoBreakAlliance` promise delays the break. `BotStrategy.vote` honours an open `VoteYes` promise before class interest. The 20-seeded bots-only test forms 120 alliances and breaks 80 across the 20 matches. CHECK PASSED 442/442 (438 prior + 4 alliance/promise tests; stylua clean, selene 0 warnings, types 0 errors). Studio L2 passed on 2026-10-26: the three changed runtime modules were byte-identical; the Server VM ran all 20 seeded bots-only matches (6 formations / 4 breaks each, 120/80 total) and a live `mayhem-541624` Normal match showed `WORKING PROPOSES AN ALLIANCE`, the accepted `ALLIED WITH WORKING` / `Day 1 - age 0` card, and the Working `ALLIED` badge, with zero project errors/warnings.
+- [x] M9 milestone: gate G2 passed on 2026-10-26 — a fresh `build/game.rbxl` with the three M9-T3 modules byte-identical ran a full Normal match (`mayhem-728044`, one human Middle plus three bots, seed 728044) through the real UI: all 12 Days, `[Bots] planned Working, Capitalist, State` every Window, `Capitalist and State win together` on Day 12, final standings Capitalist 16 / Working 14 / State 10 / Middle 1 VP, 183 frames / 93 gradients / 191 labels / 39 buttons / 0 `UICorner`, zero project errors/warnings (only the DataStore/ContentId baseline; a Roblox engine shutdown line after stopping). **M9 ready for owner merge.**
 - [x] M7-T3: `OwnClassPanel` and `ClassCard` — six resource chips, this Day's needs against the stock (from the new `PlayerView.needs`, computed by `Game/Needs` in the builder), the VP criteria from Config/Objectives with their awards, the sticky-draft summary and the Economy/Politics/Diplomacy tab strip wired through `Store.applyActiveTab`; the other classes show exact values, `PowerTier` words, or `?` per the view, plus reputation stars and the public alliance badge, with the M8 trade/alliance buttons visibly disabled. `ResourceChip` lays its mark, value and delta out in a row and shows a tier word. CHECK PASSED 397/397; the batched Studio L2 passed on 2026-10-23 (Normal open, Hard partial, Extreme fog; the tabs switch; it found and fixed the chip layout and the hardcoded match length)
 - [x] M7-T2: the app shell — `UI/App` (the top bar, the four corners with the viewer's own class bottom-left, the city viewport in the middle and the action dock at the bottom), `UI/Panels/TopBar` (the Day, the themed phase name, the countdown, the Stability track and the policy ticker) and `UI/Composites/Countdown` (the server-driven clock with the warning and urgent states); the client now creates the store, connects the net client and mounts the app, and the Gallery stays available as a dev screen
 - [x] M7-T1: the client net layer and the store — `client/Net/Client` (waits for the server's remotes, sends the intents, feeds the store) and `client/State/Store` (the shape of UI_SPEC section 7 with pure reducers: the snapshot replaces the view and the draft, a phase change sets the phase and the server offset, the patches set the draft and append the bills and the alliances, the local draft is pending until the server echoes it and a refusal shows the server's copy again); 7 new tests
@@ -355,12 +359,147 @@ Known limitation: the report's fallback causes are rule categories, not
 per-step quantities; the final reputation is shown as kept/broken counts, not
 a delta from the previous view.
 
+## M9-T1 build record (complete; L2 passed)
+
+**M9-T1 — the bot framework (complete 2026-10-26; CHECK PASSED 431/431;
+Studio L2 passed).** `server/Services/Bots/BotStrategy` is the abstract base
+(`decide(view, ctx)` raises `not implemented: BotStrategy:decide`), with four
+depth-1 subclasses (`WorkingBot`, `MiddleBot`, `CapitalistBot`, `StateBot`)
+that currently return the safe empty draft; the heuristics are M9-T2.
+`BotService` gained a runtime runner: `new(seed)` forks one RNG per class from
+the match seed (`Config/Bots.rngSeedStride`), `run(match, classId)` builds the
+`PlayerView` with `PlayerViewBuilder` for that class, passes only the view and
+the bot's RNG to `strategy:decide`, then stores the draft through the new
+`server/Services/DraftRules.apply`. `DraftRules` is now the one clamp/store
+used by both `DraftHandlers` (after its auth/role/stale checks) and the bot
+runner, so the two pipelines cannot drift. `MatchService` gained `onWindow`,
+called after the state becomes Window and before the phase announcement (so
+the snapshot includes bot drafts); `init.server` computes the `kind = "Bot"`
+classes, creates one runner per match and plays them each Window. Tests: six
+in `bot_service.test` (the view-key equality with a human in Extreme and the
+absence of raw state; the shared clamp including a preserved lock and capped
+values; per-bot RNG determinism/separation; all four strategies; the abstract
+error; refusing to act outside the Window) plus one `onWindow` test in
+`match_service.test`. **Studio L2 (passed 2026-10-26).** The Studio gate was
+still valid and Rojo was connected; the 11 changed runtime modules were
+byte-identical (length/djb2): DraftHandlers 4780/1899092307, BotService
+4486/2646714814, DraftRules 1285/1141446367, BotStrategy 1809/872968532,
+WorkingBot 919/90268498, MiddleBot 848/1089153810, CapitalistBot
+895/3969943906, StateBot 836/1222889472, MatchService 7444/2417083369,
+init.server 6197/1928653617, ConfigBots 360/658665677. A Normal match
+(`mayhem-171876`, seed 171876; Middle human + Working/Capitalist/State bots)
+printed `[Bots] planned Working, Capitalist, State` in the first Window; after
+the Day 2 resolution (`hash 47f1bebd`) and the Reveal, the next Window printed
+the same three classes. Zero project errors/warnings (only the DataStore/
+ContentId environment baseline); the client stayed on the normal HUD. One
+playtest; stopped. Known limitation: the role-level bot for a disconnected
+human (GAME_DESIGN 14) is not driven by this runner yet; the M9 gate is the
+one-human-plus-three-bots match.
+
+## M9-T2 build record (complete; L2 passed)
+
+**M9-T2 — the per-class heuristics (2026-10-26; CHECK PASSED 438/438).**
+`Config/Bots` is now the single data home for the heuristic numbers: the RNG
+stride, Money reserve, stock buffer, Influence trade value, neutral trust and
+trust penalty, the Middle line/Education targets, the Capitalist Farm target,
+the State public-service reserve, and the seven policy tracks' class-interest
+signs. `BotStrategy` gained shared static helpers: `openOwnLines` (affordable
+slots from the post-build wallet), `build` (one line with the reserve),
+`sellSurplus` (needs + buffer + class keep), `buyNeeds` (gaps, sell revenue,
+tariff, volume cap), `assignWorkers` (visible-pay preference and stable line
+order), `vote` (class-interest direction, zero Influence) and `acceptTrade`
+(market value with a Reputation premium). The four subclasses choose the
+class-specific build/VP path: Working fills slots and buys Food/Health; Middle
+builds to five lines and keeps two Education; Capitalist builds Farms to three
+then Factories and reserves their Education input; State builds Clinics and
+Schools for public staffing and sells surplus. R1 now applies a surviving
+`openSlots` value to `Line.openSlots` before Production and Scoring, so the
+slot plan is real (D-083). Tests: seven in `bot_heuristics.test` (the four
+class plans, bill direction/no Influence, trade trust/premium, and a bots-only
+Normal match that runs all twelve Days and ends on the final-Day comparison);
+`bot_service` now expects planned drafts; `step_lock_drafts` checks the line
+receives the value. **Studio L2 (passed 2026-10-26).** Studio instance
+`e889683c-163e-42ec-9d15-4c847e5b29a9`, `game.rbxl`, Edit -> Play -> Edit.
+All seven changed runtime modules were byte-identical (length/djb2):
+BotStrategy 11147/3585173062, WorkingBot 1306/3423153803, MiddleBot
+1622/2730072404, CapitalistBot 1763/3128518284, StateBot 1983/3407647227,
+ConfigBots 2309/912233688, LockDraftsStep 8081/191231032. In the Server VM,
+a bots-only Normal match (seed 41) played all twelve Days through the real
+`StateFactory`/`Match`/`BotService`: every Day planned 4/4 bots for Days 1-9
+(3/4 on Days 10-12 when one bot had an empty draft), and the match ended
+`final` on Day 12, Capitalist winner, stability 0, hash `b81be492`, 219
+events. A second Server VM probe (seed 93928) showed the class plans:
+Working `assign=16`, Middle `build=School`, Capitalist `build=Farm`, State
+`build=Clinic` on Day 1; Capitalist added another Farm on Day 2; Working
+assigned 16, then 11 on Day 3. A live one-human-plus-three-bots match
+(`mayhem-93928`, Normal, seed 93928) printed the lobby seat line (Working,
+Middle, Capitalist, State) and `[Bots] planned Working, Capitalist, State`;
+the client App showed `Day 1 of 12` / `MARKET HOURS`,
+171 frames, 88 gradients, 0 `UICorner`, and the Middle panel with its
+starting values and needs. Zero project errors/warnings (only the DataStore/
+ContentId environment baseline); no `createTextInstance`/ChildrenGuard. One
+playtest; stopped. Known limitation: the bots-only match reaches Stability 0
+(the Working budget can overestimate wages and the plans do not coordinate
+builds yet); balance is M10. Live trade acceptance is still a pure helper
+(D-084).
+
+## M9-T3 build record (complete; L2 passed)
+
+**M9-T3 — bot alliances and promises (2026-10-26; CHECK PASSED 442/442).**
+`BotStrategy` gained `BotLiveDecision` and `decideLive`: a bot with an active
+alliance reviews it after `Config/Bots.allianceBreakAfterDays` and breaks it
+unless its own open `NoBreakAlliance` promise runs through the current Day; a
+free bot accepts the best incoming proposal by `Config/Bots.alliancePreference`
+and otherwise proposes to the best free class. `BotStrategy.vote` now checks an
+open `VoteYes` promise before class interest. `BotService.playWindow` applies
+the live decision after each bot's draft through `Alliances.propose`,
+`Alliances.respond` and `Alliances.breakAlliance`, so a later bot in canonical
+order sees and answers a proposal in the same Window. The four tests cover two
+first-Window blocs, a `NoBreakAlliance` promise delaying a break, a `VoteYes`
+promise overriding Capitalist tax preference, and 20 seeded bots-only matches.
+Every seed forms two alliances on Day 1, breaks both after the age rule, and
+re-forms them; the totals are 120 formations and 80 breaks. **Studio L2 (passed 2026-10-26).** Studio instance
+`e889683c-163e-42ec-9d15-4c847e5b29a9`, `game.rbxl`, Edit -> Play -> Edit. The
+three changed runtime modules were byte-identical (length/djb2): BotStrategy
+16154/4134711702, BotService 5979/1869369081, ConfigBots 3091/667575968. The
+Server VM ran all 20 seeded bots-only Normal matches: every seed played 12 Days,
+all four bots planned in every Window, each seed formed 6 alliances and broke 4
+(totals 120/80), and every match ended `final` on Day 12 with stability 0
+(seed 1 hash `7fcae55b`, seed 20 hash `ced318ce`). The live Normal match
+`mayhem-541624` (one human Middle plus three bots, seed 541624) printed
+`[Bots] planned Working, Capitalist, State`; the Politics tab showed
+`WORKING PROPOSES AN ALLIANCE` with Accept/Decline and the Capitalist/State
+`ALLIANCE` badges. Accepting through the real `Alliance_Respond` remote (the
+button sat at the viewport edge) produced `ALLIED WITH WORKING` /
+`Day 1 - age 0` / `Break alliance` and the Working card `ALLIED`. Zero project
+errors/warnings (DataStore/ContentId baseline only); no
+`createTextInstance`/ChildrenGuard. One playtest; stopped. Known limitation: the
+live bot trade path is still not wired (D-085), so bots honour promises but do
+not originate them; trade-attached promises remain the only origin.
+
+## M9 milestone gate G2 record (passed)
+
+**G2 — playable solo (2026-10-26).** One human Middle plus the Working,
+Capitalist and State bots played a full Normal match (`mayhem-728044`, seed
+728044) through the real client UI. The lobby printed the four seats and the
+server ran 12 Days; every Window printed `[Bots] planned Working, Capitalist,
+State`. The Day hashes ran `1b98aabd`, `1ff446bc`, `ab62e8c4`, `7b7786b7`,
+`a2573335`, `9fdcfca6`, `b5c50001`, `c09e728f`, `231eeae1`, `42517bad`,
+`a7a0dab8`, then the final snapshot hash `f65bbb50`. The server printed
+`[Match] mayhem-728044 ended (final)` and `[Match] the match ended: final`; the
+client EndSummary showed `FINAL`, `Capitalist and State win together`, `Day 12
+of the match`, and the final standings Capitalist 16 / Working 14 / State 10 /
+Middle 1 VP. The UI had 183 frames, 93 gradients, 191 labels, 39 buttons and 0
+`UICorner`. Zero project errors/warnings (DataStore/ContentId baseline only);
+after stopping, Roblox printed the engine line `Character cannot be changed as
+Player (blue_cat1379) is being removed.` with no project stack. One full
+playtest; stopped.
+
 ## Next up
 
-1. **M9-T1** — the bot framework (`BotStrategy` plus four subclasses): the
-   same pipeline as humans, a per-bot RNG, and view-restricted inputs. M8 is
-   complete and ready for the owner's merge; the owner asked to continue
-   through M9 without stopping.
+1. **M9 ready** — the owner merges `M9-dev1` into `Linux-stable` and tags the
+   milestone. Do not start M10 until the owner has merged and the next branch
+   exists.
 
 ## Verification log
 
@@ -368,6 +507,10 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 
 | Date | Task / milestone | L1 | L2 | L3 | Notes |
 |---|---|---|---|---|---|
+| 2026-10-26 | M9 milestone — gate G2 (playable solo) | CHECK PASSED (442/442 on the final code commit `056d71b`; stylua clean, selene 0 warnings, types 0 errors) | **passed** — fresh `build/game.rbxl` with the three M9-T3 runtime modules byte-identical (BotStrategy 16154/4134711702, BotService 5979/1869369081, ConfigBots 3091/667575968); Studio instance `e889683c-163e-42ec-9d15-4c847e5b29a9`, Edit -> Play -> Edit. **Full Normal match** `mayhem-728044` (one human Middle plus Working/Capitalist/State bots, seed 728044) ran all 12 Days through the real UI: `[Bots] planned Working, Capitalist, State` every Window, server Day hashes from `1b98aabd` through `a7a0dab8` and final `f65bbb50`, `[Match] mayhem-728044 ended (final)`, EndSummary `FINAL` / `Capitalist and State win together` / `Day 12 of the match`, final standings Capitalist 16, Working 14, State 10, Middle 1 VP; 183 frames, 93 gradients, 191 labels, 39 buttons, 0 `UICorner`. The earlier M9-T3 live check (`mayhem-541624`) showed `WORKING PROPOSES AN ALLIANCE`, the accepted `ALLIED WITH WORKING` / `Day 1 - age 0` card and the Working `ALLIED` badge. Zero project errors/warnings (DataStore/ContentId baseline only); after stopping, Roblox printed `Character cannot be changed as Player (blue_cat1379) is being removed.` with no project stack (engine shutdown). One full playtest; stopped. | none | Milestone M9 complete: T1 framework, T2 heuristics, T3 alliances/promises, G2 full match. Known limitation: live bot trades are deferred (D-085); balance is M10. The owner may accept the limitation at merge. |
+| 2026-10-26 | M9-T3 — bot alliances and promises (GAME_DESIGN 8.3/8.4/15, D-085) | CHECK PASSED (442/442: 438 prior + 4 alliance/promise tests; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio gate confirmed by the owner ("Yes, latest build + Rojo connected"), instance `e889683c-163e-42ec-9d15-4c847e5b29a9`, `game.rbxl`, Edit -> Play -> Edit. The three changed runtime modules were byte-identical (length/djb2): BotStrategy 16154/4134711702, BotService 5979/1869369081, ConfigBots 3091/667575968. **20 seeded bots-only Normal matches in the Server VM**: every seed played 12 Days, all four bots planned in every Window, each seed formed 6 alliances and broke 4 (totals 120/80), and every match ended `final` on Day 12 with stability 0 (seed 1 hash `7fcae55b`, seed 20 hash `ced318ce`); no errors. **Live one-human-plus-three-bots Normal** (`mayhem-541624`, seed 541624): `[Bots] planned Working, Capitalist, State`; the Politics tab showed `WORKING PROPOSES AN ALLIANCE` with Accept/Decline and the Capitalist/State `ALLIANCE` badges; accepting through the real `Alliance_Respond` remote (the Accept button sat at the viewport edge) produced `ALLIED WITH WORKING` / `Day 1 - age 0` / `Break alliance` and the Working card `ALLIED`. Zero project errors/warnings (DataStore/ContentId baseline only); no `createTextInstance`/ChildrenGuard. One playtest; stopped. | none | **Implemented:** `BotStrategy.decideLive` and `BotLiveDecision`; class preference and break-age config; `BotService.playWindow` applies live alliance decisions after each draft; `BotStrategy.vote` honours open `VoteYes` promises. Tests: `tests/bot_alliances.test.luau` (two blocs, NoBreak promise, VoteYes promise, 20 seeded matches with 120 formations / 80 breaks). **Known limitation:** the live bot trade path is deferred (D-085), so bots honour promises but do not originate them; a human offer to a bot still expires. |
+| 2026-10-26 | M9-T2 — per-class bot heuristics (GAME_DESIGN 15, D-083/D-084) | CHECK PASSED (438/438: 431 prior + 7 heuristic tests; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio gate confirmed by the owner ("studio opened, rojo & mcp connected"), instance `e889683c-163e-42ec-9d15-4c847e5b29a9`, `game.rbxl`, Edit -> Play -> Edit. Seven changed runtime modules byte-identical (length/djb2): BotStrategy 11147/3585173062, WorkingBot 1306/3423153803, MiddleBot 1622/2730072404, CapitalistBot 1763/3128518284, StateBot 1983/3407647227, ConfigBots 2309/912233688, LockDraftsStep 8081/191231032. **Server VM bots-only Normal** (seed 41, real `StateFactory`/`Match`/`BotService`): all 12 Days ran; 4/4 bots planned on Days 1-9 and 3/4 on Days 10-12; ended `final` on Day 12, Capitalist winner, stability 0, hash `b81be492`, 219 events. **Server VM class-plan probe** (seed 93928, Days 1-3): Working assigned 16/16/11; Middle built School then held 5 lines; Capitalist built Farm then another Farm; State built Clinic; market buys/sells followed the class needs. **Live one-human-plus-three-bots match** (`mayhem-93928`, Normal, seed 93928): `[Lobby] match ...` and `[Bots] planned Working, Capitalist, State`; the client App showed `Day 1 of 12` / `MARKET HOURS`, 171 frames, 88 gradients, 0 `UICorner`, and the Middle starting panel. Zero project errors/warnings (DataStore/ContentId baseline only); no `createTextInstance`/ChildrenGuard. One playtest; stopped. | none | **Implemented:** `Config/Bots` thresholds and policy preferences; `BotStrategy` shared helpers (`openOwnLines`, `build`, `sellSurplus`, `buyNeeds`, `assignWorkers`, `vote`, `acceptTrade`); the four class `decide` methods; R1 applies a validated `openSlots` value to `Line.openSlots` (D-083). Tests: `tests/bot_heuristics.test.luau` covers each class's VP build, bill direction, trade trust/premium and a full bots-only Normal match through Day 12; `bot_service` and `step_lock_drafts` updated. **Known limitations:** trade acceptance is a pure helper with no live bot-response hook yet (D-084); Working's expected-wage budget can overestimate what owners actually pay, so a Normal bot match can still end at low Stability; balance is M10. |
+| 2026-10-26 | M9-T1 — the bot framework (GAME_DESIGN 15, ARCHITECTURE 3.1, D-082) | CHECK PASSED (431/431: 424 prior + 6 bot-framework tests + 1 `MatchService` `onWindow` test; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio gate valid and Rojo connected; 11 changed runtime modules byte-identical (length/djb2): DraftHandlers 4780/1899092307, BotService 4486/2646714814, DraftRules 1285/1141446367, BotStrategy 1809/872968532, WorkingBot 919/90268498, MiddleBot 848/1089153810, CapitalistBot 895/3969943906, StateBot 836/1222889472, MatchService 7444/2417083369, init.server 6197/1928653617, ConfigBots 360/658665677. One-human-plus-three-bots match (`mayhem-171876`, Normal, seed 171876): `[Bots] planned Working, Capitalist, State` in the first Window, then after the Day 2 resolution (`hash 47f1bebd`) and Reveal, the next Window printed the same three classes. Zero project errors/warnings (DataStore/ContentId baseline only); the client stayed on the normal HUD. One playtest; stopped. The view-restriction and shared-clamp behavior is L1 because a Studio client cannot read the server's bot strategy input; the L2 checked the runtime wiring. | none | **Implemented:** `BotStrategy` + `WorkingBot`/`MiddleBot`/`CapitalistBot`/`StateBot`; `BotService` runner with per-class RNGs from `Config/Bots.rngSeedStride`; `DraftRules.apply` shared with `DraftHandlers`; `MatchService.onWindow` before the phase snapshot; `init.server` plays the `kind = "Bot"` classes. The view-key test compares a bot's `PlayerView` to a human's in Extreme and finds the other classes' Money/Influence/stocks absent. Known limitation: role-level takeover is not driven yet. Studio L2 passed. |
 | 2026-10-26 | M8-T5 — the `EveningReport` and `EndSummary` (UI_SPEC 1/3/4.2, NETWORKING 3.2) | CHECK PASSED (424/424: 417 prior + 1 client-store reveal/result test + 4 report-model tests + 1 `MatchService` resolved-Day report test + 1 final-snapshot replication test; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio available (`game.rbxl`, Edit -> Play -> Edit); the owner said Studio was synced. Eight changed modules byte-identical (length/djb2): Client 7602/2288484218, Store 22153/3792433569, Report 4899/440072089, App 13811/1408527174, EveningReport 8059/2092273694, EndSummary 6992/3584026802, MatchService 7107/2982053379, init.server 5329/3942758197. **Real reveal** (`mayhem-371003`, Normal, seed 371003; Middle + 3 bots): the top bar said `EVENING REPORT`; the overlay showed `MIDDLE` / `VP 1`, `Influence +2`, `Food -2`, `Goods -1`, `Health -1`, `Education -1`, `VP +1`, the exact log causes where present and `upkeep, sales and transfers` for the stock changes, then the 11 public lines through `Day 1 closed`. That run found the card/chat overlap; the card is now 541 px and ends at the chat bar's top, with `ClipsDescendants`. **Fixed layout** (`mayhem-492078`, Normal; synthetic `Reveal_Report`): card (424.5,22) 680x541, scroll (424.5,58) 680x505, canvas 680x594, clips true; title `DAY 1 EVENING REPORT`; broken promise danger (226,118,96), VP gain success (126,204,128); scroll to y=89 showed Working/Capitalist/State VP/stars and the footer. Synthetic `Phase_Changed` -> Window cleared it; synthetic `Match_Ended` showed `FINAL` / `Middle wins the final count` / `Day 12 of the match` / final standings, plus `SHARED` and `COLLAPSE` variants. Zero project errors/warnings (DataStore/ContentId baseline only); no `createTextInstance`/ChildrenGuard. Two playtests; stopped. The report is server-filtered to the viewer's own delta; the three-class audience is the M8-T4 handler test. | none | **Implemented:** `Store.reveal`/`match.result`/`match.endSummary` + `applyReveal`/`applyMatchEnded`; `Client.onReveal`/`onMatchEnded`; `client/State/Report` (pure delta/cause model); `UI/Panels/EveningReport`; `UI/Panels/EndSummary`; `App` mounts both (EndSummary wins); `MatchService` reports the resolved Day; `init.server` sends the final snapshot before `Match_Ended`; D-080/D-081; UI_SPEC updated to the visibility-safe report and final reputation. Studio L2 passed (see the L2 column). Known limitation: fallback causes are rule categories; final reputation is kept/broken counts, not a delta. |
 | 2026-10-26 | M8-T4 — the `ChatDrawer` (UI_SPEC 4.2, NETWORKING 3.1/3.2) | CHECK PASSED (417/417: 414 prior + 2 store tests (unread/read and drawer open) + 1 handler test (global/team/class audiences with three classes); the existing injected-filter and too-long tests cover filtering and the length cap; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio gate confirmed by the owner ("studio opened, rojo & mcp connected"); Edit -> Play -> Edit. All six changed modules byte-identical (length/djb2): ChatDrawer 9217/1308702909, Store 20620/613708789, App 12960/790292597, Text 2187/3836520901, init.client 3683/3270018667, ChatHandlers 3175/444420194. **Normal** (`mayhem-190443`, seed 190443; State + 3 bots; Day 1 -> 2, hash 06d77969): the collapsed `CHAT` bar at (554.5,563) 420x32, 8 px above the dock; the open drawer showed `Global (0)` / `Team (0)` / `Class (0)`, `Hide`, `No messages in Global yet` and `Message Global`; `hello from the chat drawer` rendered (412x14); Hide -> `CHAT (1 UNREAD)` -> reopen cleared it and showed both rows; Team `team hello`; Class target picker (`Working`/`Middle`/`Capitalist`), `Capitalist` placeholder `Message Class (Capitalist)`, `private hello` rendered as the sender's own row (D-079); a 10x "long message " row wrapped to 42 px; Economy -> Politics -> Diplomacy -> Economy and the Day 1 -> 2 snapshot kept the messages with no `createTextInstance`/ChildrenGuard. Zero project errors/warnings; the only non-baseline lines are AssistantCommand probe errors from my inspection scripts (`Visible is not a valid member of ScreenGui`, `PlaceholderText is not a valid member of TextLabel`, `malformed pattern (ends with '%')`), not project code, plus the known DataStore/ContentId baseline. One playtest; stopped; no second. The three-class audience path is the L1 handler test. | none | **Implemented:** `UI/Panels/ChatDrawer`; `Store.addChat`/`applyChatRead`/`applyDrawerOpen`; `App` mounts the drawer and wires `onSendChat`; `init.client` passes `Client.sendChat`; `Text` `wrapped`/`automatic`; `ChatHandlers` sender echo for `Class` (D-079); 3 new tests. Studio L2 passed (see the L2 column). |
 | 2026-10-25 | M8-T3 — the alliance UI and badges (UI_SPEC 4.2, GAME_DESIGN 8.4) | CHECK PASSED (414/414: 408 prior + 1 client-store proposal/alliance patch test + 1 player-view proposal-privacy test + 3 alliance-ops tests (duplicate, expiry, DayEnd) + 1 handler decline test; the existing handler alliance test now covers propose/accept/break patches and the public/private views; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio gate confirmed (owner: fresh `game.rbxl` open, Rojo connected); Edit -> Play -> Edit. All ten changed modules byte-identical (length/djb2): Types 13577/2217466642, PlayerViewBuilder 5139/1810968669, Alliances 5287/1105982648, DayEndStep 1890/280350792, AllianceHandlers 5686/406547258, Store 19634/1186599450, ClassCard 6718/593957246, App 11931/3855987246, PoliticsTab 22532/3917307084, init.client 3577/1392379615. **Normal** (`mayhem-521584`, State + 3 bots; Day 1 -> 4, hashes 97d925a7/b2eec7f0): the POLITICS tab's Alliance section showed the Working/Middle/Capitalist target buttons and "choose a class"; selecting Middle and "Propose alliance" sent the intent and showed `WAITING FOR MIDDLE` / `proposed Day 2` (the private proposal in the State view; the bot cannot answer until M9); the unanswered proposal then expired at the Day 2 end and the card cleared. A synthetic `allianceProposals` append (Middle -> State) rendered `MIDDLE PROPOSES AN ALLIANCE` with Accept/Decline. A synthetic `alliances` append `synthetic-alliance-1` (State + Capitalist, formedOnDay 1) rendered `ALLIED WITH CAPITALIST` / `Day 1 - age 2` / `Break alliance` and the Capitalist `ClassCard` badge `ALLIED`. Clicking Break sent `Alliance_Break`; the live state has no alliance, so the server refused with the Notice `State has no alliance to break` (code `Rejected`) and the synthetic card stayed. A synthetic `alliances` remove cleared the card and the `ALLIED` badge; the target form returned. Zero project errors/warnings; the only non-baseline lines are AssistantCommand inspection-path typos (`attempt to index number with 'Offset'`, `Frame is not a valid member ... Frame.7`, `Active is not a valid member of UIGradient ... Frame.3...`), not project code; the environment baseline is the DataStore/ContentId lines. One playtest; stopped; no second playtest. The two-client form/accept/break is the L1 handler test (`an alliance is proposed, accepted and broken through the remotes (M8-T3)`). | none | **Implemented:** `PlayerView.allianceProposals` (private to the two classes) and the public `alliances` (D-078); `PlayerViewBuilder` filters proposals; `AllianceHandlers` private proposal patches + public alliance/break `patchAll` + proposal remove on every answer; `Alliances.propose` same-pair guard and `expireProposals`; `DayEndStep` expires unanswered proposals; `Store.withAllianceProposals` and append/remove handling for both paths; `PoliticsTab` alliance section (active card + Break, incoming Accept/Decline, outgoing waiting, target buttons + Propose, status); `ClassCard` "Propose alliance" wired via `App`/`init.client`; 6 new tests. Studio L2 passed (see the L2 column). |
@@ -493,6 +636,18 @@ None.
   still holds the offers and can accept/decline them, but the UI will not show
   them. D-075 records the choice; a `trades` view field is a later networking
   change.
+- **Bot trade acceptance is still not live.** `BotStrategy.acceptTrade` is
+  tested as a pure helper, but no server path calls it when a human offers a
+  trade to a bot: `PlayerView` has no incoming trades and the bot runner only
+  runs at the start of a Window. D-085 defers the live bot trade path, so a
+  human offer to a bot still expires unanswered. Bots honour open promises in
+  votes and alliance breaks, but do not originate promises; trade-attached
+  promises remain the only origin.
+- **Bot balance is not tuned.** In the headless Normal run the bots reach the
+  final Day but Stability falls to 0: Working's expected-wage market budget
+  can overestimate what owners actually pay, and the class plans do not yet
+  coordinate builds with the Working's assignments. The match is error-free
+  and the Done-when is met; win rates and stability are M10's job.
 - **The server does not expire live trade offers at the Day end.**
   `Trade.expireOffers` exists and is tested, but nothing in the server pipeline
   calls it; an expired offer is refused when answered (`Trade.respond` checks
@@ -525,6 +680,12 @@ Newest first. One line per session.
 
 | Date | Summary |
 |---|---|
+| 2026-10-26 | M9 complete: gate G2 passed. A full Normal match (`mayhem-728044`, one human Middle plus three bots, seed 728044) ran all 12 Days through the real UI; bots planned every Window, the server ended `final`, and the EndSummary showed `Capitalist and State win together` on Day 12 with final standings Capitalist 16 / Working 14 / State 10 / Middle 1 VP. UI: 183 frames, 93 gradients, 191 labels, 39 buttons, 0 `UICorner`; zero project errors/warnings (DataStore/ContentId baseline only; one Roblox engine shutdown line). M9-T3 live alliance check (`mayhem-541624`) passed earlier. **Milestone M9 ready**; owner merges. |
+| 2026-10-26 | M9-T3 complete: bot live diplomacy (`BotStrategy.decideLive`, `BotService.playWindow` applying proposals/responses/breaks through the shared `Alliances` Ops), class-preference blocs and the break-age rule, `NoBreakAlliance`/`VoteYes` promise awareness, and the 20-seeded bots-only test. CHECK PASSED 442/442. Studio L2 passed: three modules byte-identical; all 20 seeded Normal matches ran 12 Days with 6 formations / 4 breaks each (120/80 total, every match `final`, stability 0); a live `mayhem-541624` Normal match showed `WORKING PROPOSES AN ALLIANCE`, the accepted `ALLIED WITH WORKING` / `Day 1 - age 0` card and the Working `ALLIED` badge, with zero project errors/warnings. Next: M9 gate G2. |
+| 2026-10-26 | M9-T2 complete: shared bot heuristics, four class plans, vote/trust trade acceptance, and a bots-only twelve-Day test; R1 now applies validated `openSlots` to the line (D-083). CHECK PASSED 438/438. Studio L2 passed: seven modules byte-identical, bots-only Normal through Day 12 in the Server VM (`final`, hash `b81be492`), and a live one-human-plus-three-bots match (`mayhem-93928`) with `[Bots] planned Working, Capitalist, State` and zero project errors/warnings. Next: M9-T3. |
+| 2026-10-26 | M8 merged into `Linux-stable` at `4784254` (`Merge M8: political and social UI`, tag `m8-complete`). `M9-dev1` was created from `Linux-stable`; the two M9-T1 commits (`c5f342b`, `3192a25`) were cherry-picked onto it as `42d91bb` and `e3b7b44`. The old `M8-dev1` tip still carries duplicate M9-T1 commits; it is not the active branch and must not be merged. |
+| 2026-10-26 | M9-T1 complete: the bot framework Studio L2 passed. 11 modules byte-identical. A Normal one-human-plus-three-bots match (`mayhem-171876`) printed `[Bots] planned Working, Capitalist, State` in the first Window and again after the Day 2 hash/Reveal; zero project errors/warnings. CHECK PASSED 431/431. Continuing to M9-T2 per the owner's instruction. |
+| 2026-10-26 | M9-T1 implemented: `BotStrategy` plus four class subclasses, the `BotService` runner with per-bot RNGs, the shared `DraftRules` clamp (used by humans and bots), `MatchService.onWindow`, and `init.server` playing the bot seats. Six bot-framework tests plus one `onWindow` test; CHECK PASSED 431/431. The view-restriction test proves a bot's view matches a human's and hides the other classes' Money/Influence/stocks. Studio L2 next. |
 | 2026-10-26 | M8-T5 complete: the EveningReport/EndSummary Studio L2 passed. Eight modules byte-identical. A real Normal Day 1 reveal (`mayhem-371003`, Middle + 3 bots) showed the six Middle deltas with causes and the 11 public lines; it found the card/chat overlap, fixed to 541 px with clipping. The fixed layout (`mayhem-492078`, synthetic reveal) showed the title, rows, danger/success colors, scroll to the other classes, auto-dismiss on a synthetic Window, and the EndSummary `FINAL`/`SHARED`/`COLLAPSE` variants with the final standings. Zero project errors/warnings. Two playtests; stopped. CHECK PASSED 424/424. **M8 ready**; continuing to M9-T1 per the owner's instruction. |
 | 2026-10-26 | M8-T5 implemented: the `EveningReport` (own-class delta rows with causes, the Day's public log, other-class VP/reputation) and `EndSummary` (winner(s), final VP table, final reputation), the store's reveal/result slice, the pure `Report` model, the resolved-Day report label and the final snapshot before `Match_Ended` (D-080/D-081). CHECK PASSED 423/423 (417 prior + 1 store + 4 report + 1 match-service). The Studio L2 is next. |
 | 2026-10-26 | M8-T4 complete: the ChatDrawer Studio L2 passed. Six modules byte-identical; match `mayhem-190443` (Normal, State + 3 bots) Day 1 -> 2 (hash 06d77969). The collapsed `CHAT` bar, open drawer with `Global (0)`/`Team (0)`/`Class (0)`, empty state, composer; Global `hello from the chat drawer`, Team `team hello`, Class `private hello` to Capitalist (sender echo D-079); Hide -> `CHAT (1 UNREAD)` -> reopen cleared; long row wrapped to 42 px; tab switch and Day change kept the messages. Zero project errors/warnings (only AssistantCommand probe errors, not project code). One playtest, stopped; no second. Next: M8-T5. |

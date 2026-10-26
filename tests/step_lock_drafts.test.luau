@@ -81,11 +81,12 @@ function M.run()
 		Lib.truthy(hasLog(state, "Middle openSlots dropped: Farm-1 value 5 is out of range"), "log")
 	end)
 
-	Lib.test("a valid openSlots value survives (9)", function()
+	Lib.test("a valid openSlots value survives and reaches the line (9)", function()
 		local state = fresh()
 		state.drafts.Middle.openSlots["Farm-1"] = 1
 		lock(state)
 		Lib.eq(state.drafts.Middle.openSlots["Farm-1"], 1, "kept")
+		Lib.eq(state.lines["Farm-1"].openSlots, 1, "the line now accepts one worker")
 		Lib.eq(#state.eventLog, 0, "no logs")
 	end)
 

@@ -27,6 +27,7 @@ type VictoryResult = Types.VictoryResult
 export type MatchServiceOptions = {
 	match: MatchType,
 	onPhaseChanged: (PhaseChangedPayload) -> (),
+	onWindow: ((MatchType) -> ())?, -- bots plan before the Window is announced
 	onReveal: ((RevealReport) -> ())?,
 	onMatchEnded: ((VictoryResult) -> ())?,
 	clock: () -> number, -- epoch seconds
@@ -48,6 +49,7 @@ export type MatchService = typeof(setmetatable(
 	{} :: {
 		_match: MatchType,
 		_onPhaseChanged: (PhaseChangedPayload) -> (),
+		_onWindow: ((MatchType) -> ())?,
 		_onReveal: ((RevealReport) -> ())?,
 		_onMatchEnded: ((VictoryResult) -> ())?,
 		_clock: () -> number,
@@ -63,6 +65,7 @@ function MatchService.new(options: MatchServiceOptions): MatchService
 	return setmetatable({
 		_match = options.match,
 		_onPhaseChanged = options.onPhaseChanged,
+		_onWindow = options.onWindow,
 		_onReveal = options.onReveal,
 		_onMatchEnded = options.onMatchEnded,
 		_clock = options.clock,
@@ -167,6 +170,11 @@ function MatchService._openWindow(self: MatchService)
 	state.phase = "Window"
 	local seconds = self._match:ruleSet():windowSeconds()
 	state.phaseEndsAt = self._clock() + seconds
+	-- Bots plan before the phase snapshot, so a viewer of a bot-controlled
+	-- class sees the draft the bots actually submitted.
+	if self._onWindow ~= nil then
+		self._onWindow(self._match)
+	end
 	self:_announce()
 	self:_after(seconds, function()
 		self:_resolve()

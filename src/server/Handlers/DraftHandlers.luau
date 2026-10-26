@@ -10,6 +10,7 @@ local Validate = require(ReplicatedStorage.Shared.Net.Validate)
 local ConfigNetwork = require(ReplicatedStorage.Shared.Config.Network)
 local Support = require(script.Parent.Support)
 local Replication = require(script.Parent.Parent.Replication)
+local DraftRules = require(script.Parent.Parent.Services.DraftRules)
 
 type ClassId = Types.ClassId
 type SupportType = Support.Support
@@ -110,11 +111,9 @@ function DraftHandlers.connect(support: SupportType)
 		end
 
 		-- The stored draft is the clamped one (NETWORKING 7), so a value
-		-- the game does not allow never reaches the resolution.
-		local safe = Validate.clampDraft(payload.draft, state)
-		safe.sequence = payload.seq
-		safe.locked = stored.locked
-		state.drafts[classId] = safe
+		-- the game does not allow never reaches the resolution. Bots use
+		-- the same DraftRules.apply (GAME_DESIGN 15).
+		local safe = DraftRules.apply(state, classId, payload.draft, payload.seq)
 
 		-- The team sees the accepted draft (NETWORKING 4).
 		Replication.patch(support, classId, "draft", safe)

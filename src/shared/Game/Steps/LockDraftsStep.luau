@@ -115,6 +115,17 @@ function LockDraftsStep.run(_self: LockDraftsStep, state: MatchState, ctx: Step.
 			draft.openSlots[key] = nil
 		end
 
+		-- The surviving values are the owner's sticky setting for the Day.
+		-- Apply them before Production and Scoring read the line, so a bot's
+		-- (or a human's) slot plan actually changes how many workers the line
+		-- accepts and what the public-staffing objective sees.
+		for lineId, value in draft.openSlots do
+			local line = state.lines[lineId]
+			if line ~= nil then
+				line.openSlots = value
+			end
+		end
+
 		-- assign: Working's field alone.
 		local droppedAssign: { string } = {}
 		for lineId, value in draft.assign do

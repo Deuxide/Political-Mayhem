@@ -506,6 +506,11 @@ D-071). Both live in `Config/Visibility.luau`.
   - Vote by class interest; commit Influence only on bills that affect VP
     criteria.
   - Trust modifier from Reputation of the counterparty.
+- v1 diplomacy: bots propose and accept alliances by class preference, review
+  an alliance after a configured age, and break it unless an open
+  `NoBreakAlliance` promise holds them. They honour an open `VoteYes` promise
+  even when it cuts against their class interest. They do not originate
+  standalone promises in v1; promises arrive through trade offers.
 - Bots use a per-bot RNG derived from the match seed.
 - Personas (Cooperative, Opportunist, Hardliner) are V2.
 
