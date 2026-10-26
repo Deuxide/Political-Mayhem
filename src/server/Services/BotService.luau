@@ -15,6 +15,7 @@ local Types = require(ReplicatedStorage.Shared.Game.Types)
 local Seats = require(ReplicatedStorage.Shared.Net.Seats)
 local Rng = require(ReplicatedStorage.Shared.Game.Rng)
 local Match = require(ReplicatedStorage.Shared.Game.Match)
+local Alliances = require(ReplicatedStorage.Shared.Game.Ops.Alliances)
 local ConfigBots = require(ReplicatedStorage.Shared.Config.Bots)
 local PlayerViewBuilder =
 	require(ReplicatedStorage.Shared.Game.Behaviors.InfoModes.PlayerViewBuilder)
@@ -115,8 +116,49 @@ function BotService.run(
 	return DraftRules.apply(state, classId, decision, stored.sequence + 1), ""
 end
 
+-- One bot's live diplomacy after its draft: alliance proposals, responses
+-- and breaks. The strategy sees only the same PlayerView; BotService applies
+-- the decision through the shared Alliances Ops (GAME_DESIGN 8.4).
+function BotService._playLive(self: BotService, match: MatchType, classId: ClassId)
+	local state = match:state()
+	if state.phase ~= "Window" then
+		return
+	end
+	local strategy: BotStrategy.BotStrategy? = self._strategies[classId]
+	if strategy == nil then
+		return
+	end
+
+	local view = PlayerViewBuilder.build(state, match:ruleSet(), classId)
+	local decision = strategy:decideLive(view, { rng = self._rngs[classId] })
+
+	if decision.respondToAlliance ~= nil then
+		local proposal: Types.AllianceProposal? = nil
+		for _, candidate in state.allianceProposals do
+			if candidate.id == decision.respondToAlliance and candidate.to == classId then
+				proposal = candidate
+				break
+			end
+		end
+		if proposal ~= nil then
+			Alliances.respond(state, proposal.id, decision.acceptAlliance == true)
+		end
+	end
+
+	if decision.breakAlliance == true then
+		Alliances.breakAlliance(state, classId)
+	end
+
+	local target: ClassId? = decision.proposeAllianceTo
+	if target ~= nil then
+		Alliances.propose(state, classId, target :: ClassId)
+	end
+end
+
 -- Run every bot class for this Window. The caller passes the classes whose
 -- seats are bots; the order is the canonical CLASS_IDS order from the lobby.
+-- Each bot's live diplomacy is applied after its draft, so a later bot in the
+-- order sees the proposal and can answer it in the same Window.
 function BotService.playWindow(
 	self: BotService,
 	match: MatchType,
@@ -127,6 +169,7 @@ function BotService.playWindow(
 		local id: ClassId = classId :: any
 		local draft = self:run(match, id)
 		if draft ~= nil then
+			self:_playLive(match, id)
 			table.insert(played, id)
 		end
 	end

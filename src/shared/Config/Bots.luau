@@ -14,6 +14,7 @@ type ClassId = Types.ClassId
 type PolicyId = Types.PolicyId
 
 export type PolicyPreference = { [ClassId]: { [PolicyId]: number } }
+export type AlliancePreference = { [ClassId]: { [ClassId]: number } }
 
 return table.freeze({
 	rngSeedStride = 104729,
@@ -37,6 +38,21 @@ return table.freeze({
 	capitalistFarmTarget = 3,
 	-- State keeps this much Health/Education when PublicServices is Universal.
 	publicServicesReserve = 2,
+
+	-- Bots form an alliance in the first Window they are free, then review it
+	-- after this many Days. A NoBreakAlliance promise delays the break.
+	allianceBreakAfterDays = 4,
+
+	-- Positive pair scores only; a bot accepts the best incoming proposal and
+	-- otherwise proposes to the best free class. The values encode the
+	-- natural bloc (Working + Middle, Capitalist + State) without making it
+	-- mandatory when a class is already allied.
+	alliancePreference = {
+		Working = { Middle = 3, State = 2, Capitalist = 1 },
+		Middle = { Working = 3, State = 2, Capitalist = 1 },
+		Capitalist = { State = 3, Middle = 2, Working = 1 },
+		State = { Capitalist = 3, Middle = 2, Working = 1 },
+	} :: AlliancePreference,
 
 	policyPreference = {
 		Working = {

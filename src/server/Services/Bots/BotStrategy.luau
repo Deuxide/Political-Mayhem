@@ -26,6 +26,9 @@ local ConfigPolicies = require(ReplicatedStorage.Shared.Config.Policies)
 local ConfigResources = require(ReplicatedStorage.Shared.Config.Resources)
 
 type ActionDraft = Types.ActionDraft
+type Alliance = Types.Alliance
+type AllianceProposal = Types.AllianceProposal
+type Bill = Types.Bill
 type ClassId = Types.ClassId
 type LineType = Types.LineType
 type LineView = Types.LineView
@@ -37,6 +40,16 @@ type TradeOffer = Types.TradeOffer
 
 export type BotContext = {
 	rng: Rng.Rng,
+}
+
+-- Live diplomacy a bot may take after its draft is stored. These are not
+-- draft fields (GAME_DESIGN 9): BotService applies them through the same
+-- Alliances Ops the human handlers use.
+export type BotLiveDecision = {
+	proposeAllianceTo: ClassId?,
+	respondToAlliance: string?,
+	acceptAlliance: boolean?,
+	breakAlliance: boolean?,
 }
 
 local BotStrategy = {}
@@ -285,22 +298,198 @@ function BotStrategy.assignWorkers(view: PlayerView, draft: ActionDraft): number
 	return assigned
 end
 
--- Vote the class's base weight by interest. The bot commits no Influence in
--- v1: the bill's policy direction is the whole decision (GAME_DESIGN 15).
+local function allianceOf(view: PlayerView): Alliance?
+	for _, alliance in view.alliances do
+		for _, member in alliance.members do
+			if member == view.viewer then
+				return alliance
+			end
+		end
+	end
+	return nil
+end
+
+local function otherMember(alliance: Alliance, viewer: ClassId): ClassId?
+	for _, member in alliance.members do
+		local memberId: ClassId = member :: any
+		if memberId ~= viewer then
+			return memberId
+		end
+	end
+	return nil
+end
+
+local function isAlliedWith(view: PlayerView, target: ClassId): boolean
+	for _, alliance in view.alliances do
+		local hasViewer = false
+		local hasTarget = false
+		for _, member in alliance.members do
+			if member == view.viewer then
+				hasViewer = true
+			elseif member == target then
+				hasTarget = true
+			end
+		end
+		if hasViewer and hasTarget then
+			return true
+		end
+	end
+	return false
+end
+
+-- A NoBreakAlliance promise the bot made is still running until the end of
+-- its untilDay; the bot will not break before that Closing Bell (8.3).
+local function hasNoBreakPromise(view: PlayerView, other: ClassId): boolean
+	for _, promise in view.promises do
+		if
+			promise.status == "open"
+			and promise.from == view.viewer
+			and promise.to == other
+			and promise.kind == "NoBreakAlliance"
+		then
+			local spec = promise.spec
+			if spec.kind == "NoBreakAlliance" and view.day <= spec.untilDay then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function hasVoteYesPromise(view: PlayerView, bill: Bill): boolean
+	for _, promise in view.promises do
+		if
+			promise.status == "open"
+			and promise.from == view.viewer
+			and promise.kind == "VoteYes"
+		then
+			local spec = promise.spec
+			if
+				spec.kind == "VoteYes"
+				and spec.policyId == bill.policyId
+				and spec.level == bill.level
+				and view.day <= spec.byDay
+			then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function bestIncomingProposal(view: PlayerView): AllianceProposal?
+	local prefs = (ConfigBots.alliancePreference :: any)[view.viewer]
+	if prefs == nil then
+		return nil
+	end
+	local best: AllianceProposal? = nil
+	local bestScore = 0
+	for _, proposal in view.allianceProposals do
+		if proposal.to == view.viewer then
+			local score = (prefs :: any)[proposal.from] or 0
+			if score > bestScore then
+				bestScore = score
+				best = proposal
+			end
+		end
+	end
+	return best
+end
+
+local function hasOutgoingProposal(view: PlayerView): boolean
+	for _, proposal in view.allianceProposals do
+		if proposal.from == view.viewer then
+			return true
+		end
+	end
+	return false
+end
+
+local function bestFreeTarget(view: PlayerView): ClassId?
+	local prefs = (ConfigBots.alliancePreference :: any)[view.viewer]
+	if prefs == nil then
+		return nil
+	end
+	local best: ClassId? = nil
+	local bestScore = 0
+	for ci = 1, #Types.CLASS_IDS do
+		local classId: ClassId = Types.CLASS_IDS[ci] :: any
+		if
+			classId ~= view.viewer
+			and view.others[classId] ~= nil
+			and not isAlliedWith(view, classId)
+		then
+			local score = (prefs :: any)[classId] or 0
+			if score > bestScore then
+				bestScore = score
+				best = classId
+			end
+		end
+	end
+	return best :: ClassId?
+end
+
+-- Vote the class's base weight by interest, except when an open VoteYes
+-- promise covers the bill: a promise is honoured before preference. The bot
+-- commits no Influence in v1 (GAME_DESIGN 15).
 function BotStrategy.vote(view: PlayerView, draft: ActionDraft)
 	local prefs = (ConfigBots.policyPreference :: any)[view.viewer]
 	if prefs == nil then
 		return
 	end
 	for _, bill in view.bills do
-		local current = (view.policies :: any)[bill.policyId]
-		local preference = (prefs :: any)[bill.policyId] or 0
-		if current ~= nil and preference ~= 0 and bill.level ~= current then
-			local direction = if bill.level > current then 1 else -1
-			local side: Types.VoteSide = if preference * direction > 0 then "yes" else "no"
-			draft.votes[bill.id] = { side = side, influence = 0 }
+		if hasVoteYesPromise(view, bill) then
+			draft.votes[bill.id] = { side = "yes", influence = 0 }
+		else
+			local current = (view.policies :: any)[bill.policyId]
+			local preference = (prefs :: any)[bill.policyId] or 0
+			if current ~= nil and preference ~= 0 and bill.level ~= current then
+				local direction = if bill.level > current then 1 else -1
+				local side: Types.VoteSide = if preference * direction > 0 then "yes" else "no"
+				draft.votes[bill.id] = { side = side, influence = 0 }
+			end
 		end
 	end
+end
+
+-- The live diplomacy decision (M9-T3). A bot with an alliance reviews it
+-- after the configured age, but an open NoBreakAlliance promise holds it
+-- until that promise is audited. A free bot accepts the best incoming
+-- proposal, otherwise proposes to the best free class by alliance
+-- preference. The shared default applies to every class; a subclass may
+-- override it later.
+function BotStrategy.decideLive(
+	_self: BotStrategy,
+	view: PlayerView,
+	_ctx: BotContext
+): BotLiveDecision
+	local alliance = allianceOf(view)
+	if alliance ~= nil then
+		local other: ClassId? = otherMember(alliance, view.viewer)
+		if
+			other ~= nil
+			and view.day - alliance.formedOnDay >= ConfigBots.allianceBreakAfterDays
+			and not hasNoBreakPromise(view, other :: ClassId)
+		then
+			return { breakAlliance = true }
+		end
+		return { acceptAlliance = false, breakAlliance = false }
+	end
+
+	local incoming = bestIncomingProposal(view)
+	if incoming ~= nil then
+		return { respondToAlliance = incoming.id, acceptAlliance = true }
+	end
+
+	if hasOutgoingProposal(view) then
+		return { acceptAlliance = false, breakAlliance = false }
+	end
+
+	local target: ClassId? = bestFreeTarget(view)
+	if target ~= nil then
+		return { proposeAllianceTo = target :: ClassId }
+	end
+	return { acceptAlliance = false, breakAlliance = false }
 end
 
 -- Trade acceptance: weigh what the bot receives against what it gives at
