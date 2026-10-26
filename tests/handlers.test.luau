@@ -65,6 +65,13 @@ function M.run()
 			lobby:setClass(second.UserId, options.second)
 			lobby:setReady(second.UserId, true)
 		end
+		if options.third ~= nil then
+			local third = { UserId = 33, Name = "Cy" }
+			table.insert(players, third)
+			lobby:join(third.UserId, third.Name)
+			lobby:setClass(third.UserId, options.third)
+			lobby:setReady(third.UserId, true)
+		end
 		local match = lobby:start(player.UserId)
 		-- the scheduler is not running in the test, so the Window has no end
 		-- yet; the handlers read it
@@ -607,6 +614,57 @@ function M.run()
 		Lib.eq(#game.ofRemote(), 0, "nothing went out")
 		Lib.eq(game.notices()[1].code, "InvalidPayload", "the client is told why")
 	end)
+
+	-- The messages one player heard through Chat_Message.
+	local function heard(game, name)
+		local list = {}
+		for _, entry in game.sent do
+			if
+				entry.player.Name == name
+				and entry.payload
+				and entry.payload.code == nil
+				and entry.payload.channel ~= nil
+			then
+				table.insert(list, entry.payload)
+			end
+		end
+		return list
+	end
+
+	Lib.test(
+		"the channel audiences: global everywhere, team to the class, class private plus the sender",
+		function()
+			local game = newGame({ second = "Capitalist", third = "Working" })
+			-- Global: every seated class hears it.
+			game.remotes.Chat_Send.fire(game.player, { channel = "Global", text = "hi all" })
+			Lib.eq(#heard(game, "Ana"), 1, "the sender heard the global message")
+			Lib.eq(#heard(game, "Bo"), 1, "the second class heard the global message")
+			Lib.eq(#heard(game, "Cy"), 1, "the third class heard the global message")
+
+			game.advance(1)
+			-- Team: only the sender's own class (here the sender alone).
+			game.remotes.Chat_Send.fire(game.player, { channel = "Team", text = "team only" })
+			Lib.eq(#heard(game, "Ana"), 2, "the sender's team got the team message")
+			Lib.eq(#heard(game, "Bo"), 1, "the second class did not hear the team message")
+			Lib.eq(#heard(game, "Cy"), 1, "the third class did not hear the team message")
+
+			game.advance(1)
+			-- Class: the target class and the sender (D-079), nobody else.
+			game.remotes.Chat_Send.fire(game.player, {
+				channel = "Class",
+				classTo = "Capitalist",
+				text = "psst",
+			})
+			local ana = heard(game, "Ana")
+			local bo = heard(game, "Bo")
+			Lib.eq(#ana, 3, "the sender heard their own private message")
+			Lib.eq(ana[3].channel, "Class", "the private line")
+			Lib.eq(ana[3].text, "psst", "the private text")
+			Lib.eq(#bo, 2, "the target class heard the private message")
+			Lib.eq(bo[2].channel, "Class", "the private line reached the target")
+			Lib.eq(#heard(game, "Cy"), 1, "a class outside the pair heard nothing")
+		end
+	)
 
 	Lib.test("a player who left cannot act (NETWORKING 6)", function()
 		local game = newGame()

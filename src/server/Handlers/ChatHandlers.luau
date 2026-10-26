@@ -62,7 +62,9 @@ function ChatHandlers.connect(support: SupportType)
 			return
 		end
 
-		-- The audience: everybody, the sender's own class, or one class.
+		-- The audience: everybody, the sender's own class, or one class. A
+		-- private Class line also reaches the sender, or they would never
+		-- see what they sent (D-079).
 		local audience: { any } = {}
 		if channel == "Global" then
 			audience = support.players()
@@ -71,6 +73,16 @@ function ChatHandlers.connect(support: SupportType)
 		else
 			local classTo: ClassId = payload.classTo :: any
 			audience = Support.membersOf(support, classTo)
+			local senderHeard = false
+			for _, member in audience do
+				if member == player then
+					senderHeard = true
+					break
+				end
+			end
+			if not senderHeard then
+				table.insert(audience, player)
+			end
 		end
 
 		local message = {

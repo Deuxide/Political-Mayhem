@@ -414,6 +414,38 @@ function M.run()
 		Lib.eq(#state.inbox.notices, 0, "the old state did not change")
 	end)
 
+	Lib.test("chat unread rises per channel and reading a channel clears it", function()
+		local state = Store.initialState()
+		local first = Store.addChat(state, { channel = "Global", fromName = "Ana", text = "hello" })
+		Lib.eq(first.chat.unread.Global, 1, "the unread count rose")
+		Lib.eq(state.chat.unread.Global, nil, "the old state did not change")
+		Lib.eq(state.chat.channels.Global, nil, "the old channel list did not change")
+
+		local second = Store.addChat(first, { channel = "Global", fromName = "Bo", text = "hi" })
+		Lib.eq(second.chat.unread.Global, 2, "the count rose again")
+		Lib.eq(#first.chat.channels.Global, 1, "the old list did not change")
+
+		local team = Store.addChat(second, { channel = "Team", fromName = "Bo", text = "team" })
+		Lib.eq(team.chat.unread.Team, 1, "the other channel counts on its own")
+		Lib.eq(team.chat.unread.Global, 2, "the first channel untouched")
+
+		local read = Store.applyChatRead(team, "Global")
+		Lib.eq(read.chat.unread.Global, 0, "the channel was read")
+		Lib.eq(read.chat.unread.Team, 1, "the other channel keeps its count")
+		Lib.eq(#read.chat.channels.Global, 2, "the messages stay")
+		Lib.eq(team.chat.unread.Global, 2, "the old state did not change")
+	end)
+
+	Lib.test("the drawer opens and closes as a local choice", function()
+		local state = Store.initialState()
+		local opened = Store.applyDrawerOpen(state, true)
+		Lib.eq(opened.ui.drawerOpen, true, "the drawer opened")
+		Lib.eq(state.ui.drawerOpen, false, "the old state did not change")
+		local closed = Store.applyDrawerOpen(opened, false)
+		Lib.eq(closed.ui.drawerOpen, false, "the drawer closed")
+		Lib.eq(opened.ui.drawerOpen, true, "the opened state did not change")
+	end)
+
 	Lib.test("the store tells its listeners about every change", function()
 		local store = Store.new()
 		local seen = 0

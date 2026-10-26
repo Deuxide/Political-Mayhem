@@ -555,16 +555,40 @@ function Store.addNotice(state: StoreState, notice: any): StoreState
 	return next
 end
 
--- A chat message (NETWORKING 3.2).
+-- A chat message (NETWORKING 3.2). It is appended to its channel and the
+-- channel's unread count rises; the drawer marks the channel read while it
+-- shows it (Store.applyChatRead). Both maps are copied, so the old state is
+-- never mutated.
 function Store.addChat(state: StoreState, message: any): StoreState
 	local next = Store.copy(state)
-	local channel = message.channel
-	local list = next.chat.channels[channel]
-	if list == nil then
-		list = {}
-		next.chat.channels[channel] = list
+	local channels: { [string]: { any } } = {}
+	for name, list in next.chat.channels do
+		channels[name] = { table.unpack(list) }
 	end
+	local list = channels[message.channel] or {}
 	table.insert(list, message)
+	channels[message.channel] = list
+	next.chat.channels = channels
+	local unread = table.clone(next.chat.unread)
+	unread[message.channel] = (unread[message.channel] or 0) + 1
+	next.chat.unread = unread
+	return next
+end
+
+-- The drawer showed a channel: its unread count returns to zero. The
+-- messages themselves stay.
+function Store.applyChatRead(state: StoreState, channel: string): StoreState
+	local next = Store.copy(state)
+	local unread = table.clone(next.chat.unread)
+	unread[channel] = 0
+	next.chat.unread = unread
+	return next
+end
+
+-- The chat drawer opens or closes (UI_SPEC section 7): a local UI choice.
+function Store.applyDrawerOpen(state: StoreState, open: boolean): StoreState
+	local next = Store.copy(state)
+	next.ui.drawerOpen = open
 	return next
 end
 

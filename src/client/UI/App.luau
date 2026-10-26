@@ -21,6 +21,7 @@ local ClassCard = require(script.Parent.Panels.ClassCard)
 local EconomyTab = require(script.Parent.Panels.EconomyTab)
 local PoliticsTab = require(script.Parent.Panels.PoliticsTab)
 local DiplomacyTab = require(script.Parent.Panels.DiplomacyTab)
+local ChatDrawer = require(script.Parent.Panels.ChatDrawer)
 local Store = require(script.Parent.Parent.State.Store)
 
 export type AppProps = {
@@ -43,6 +44,8 @@ export type AppProps = {
 	onProposeAlliance: ((to: Types.ClassId) -> ())?,
 	onRespondAlliance: ((from: Types.ClassId, accept: boolean) -> ())?,
 	onBreakAlliance: (() -> ())?,
+	-- the live chat intent (NETWORKING 3.1); nil in a bare render
+	onSendChat: ((channel: Types.ChatChannel, text: string, classTo: Types.ClassId?) -> ())?,
 	-- overrides for the four corners, in the order of the layout: [1] the
 	-- viewer's own panel (bottom-left), [2] top-left, [3] top-right, [4]
 	-- bottom-right. Absent slots are built from the view.
@@ -380,6 +383,33 @@ function App.render(props: AppProps): any
 			zIndex = 6,
 		}, dock)
 	)
+
+	-- the chat drawer above the dock (UI_SPEC 2): collapsed by default, with
+	-- the unread badges of the channels. The text is filtered server-side;
+	-- the drawer only sends the intent.
+	if view ~= nil then
+		table.insert(
+			children,
+			React.createElement(ChatDrawer.render, {
+				open = state.ui.drawerOpen,
+				channels = state.chat.channels,
+				unread = state.chat.unread,
+				viewer = view.viewer,
+				onToggle = function()
+					local current = store:state()
+					store:set(Store.applyDrawerOpen(current, not current.ui.drawerOpen))
+				end,
+				onSend = function(channel, text, classTo)
+					if props.onSendChat ~= nil then
+						props.onSendChat(channel, text, classTo)
+					end
+				end,
+				onRead = function(channel)
+					store:set(Store.applyChatRead(store:state(), channel))
+				end,
+			})
+		)
+	end
 
 	return React.createElement(
 		ThemeContext.provider,

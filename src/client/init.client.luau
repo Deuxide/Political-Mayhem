@@ -77,6 +77,9 @@ appRoot:render(React.createElement(
 		onBreakAlliance = function()
 			Client.breakAlliance(client)
 		end,
+		onSendChat = function(channel, text, classTo)
+			Client.sendChat(client, channel, text, classTo)
+		end,
 	})
 ))
 
