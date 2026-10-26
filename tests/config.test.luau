@@ -383,7 +383,7 @@ function M.run()
 			"Capitalist criteria"
 		)
 		Lib.eq(Objectives.Capitalist[1].vp, 3, "money gain criterion caps at 3 VP")
-		Lib.eq(Objectives.Capitalist[1].params.divisor, 8, "floor(gain / 8)")
+		Lib.eq(Objectives.Capitalist[1].params.divisor, 20, "floor(gain / 20)")
 		Lib.eq(Objectives.Capitalist[2].params.level, 1, "taxCapitalistAtMost level 1")
 		expectList(idsOf(Objectives.State), {
 			"moneyNotDecreasing",
