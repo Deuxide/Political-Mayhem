@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# M10-T2 balance report. Runs the Normal and Hard baselines plus the
+# dominant-strategy probes through the real modules under Lune.
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+export PATH="$HOME/.rokit/bin:$PATH"
+exec lune run scripts/sim_report.luau "$@"

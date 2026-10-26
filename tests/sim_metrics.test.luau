@@ -94,6 +94,45 @@ function M.run()
 		Lib.eq(summary.promisesBroken, 3)
 	end)
 
+	Lib.test("counts early solo/shared victories before the last Day", function()
+		local summary = Sim.summarize({
+			row("solo", { "Working" }, 10, 0, 0, 0, 0, 0),
+			row("final", { "Capitalist" }, 12, 0, 0, 0, 0, 0),
+			row("shared", { "Middle", "Capitalist" }, 11, 0, 0, 0, 0, 0),
+		}, CLASSES, 12)
+		Lib.eq(summary.earlyVictoryMatches, 2)
+		Lib.eq(string.format("%.1f", summary.earlyVictoryRate), "66.7")
+	end)
+
+	Lib.test("the strike probe forces the Working strike", function()
+		local result = Sim.runProbe({ n = 1, difficulty = "Normal", seed = 1, probe = "strike" })
+		Lib.eq(#result.rows, 1)
+		Lib.eq(result.rows[1].probe, "strike")
+		Lib.eq(result.rows[1].probeClass, "Working")
+		Lib.truthy(result.rows[1].probeActions >= 1, "the strike was set")
+		Lib.eq(result.summary.probeClass, "Working")
+		Lib.eq(result.summary.probeWins, result.summary.wins.Working)
+	end)
+
+	Lib.test("the zero-tax probe forces all tax tracks to zero", function()
+		local result = Sim.runProbe({ n = 1, difficulty = "Normal", seed = 1, probe = "zero-tax" })
+		Lib.eq(#result.rows, 1)
+		Lib.eq(result.rows[1].probe, "zero-tax")
+		Lib.eq(result.rows[1].probeClass, "Capitalist")
+		Lib.truthy(result.rows[1].probeActions >= 1, "the tax tracks were forced")
+		Lib.eq(result.summary.probeClass, "Capitalist")
+		Lib.eq(result.summary.probeWins, result.summary.wins.Capitalist)
+	end)
+
+	Lib.test("parses the report command line", function()
+		local options =
+			Sim.parseReportArgs({ "--n", "500", "--seed", "7", "--out", "build/sim-test" })
+		Lib.eq(options.n, 500)
+		Lib.eq(options.seed, 7)
+		Lib.eq(options.out, "build/sim-test")
+		Lib.eq(pcall(Sim.parseReportArgs, { "--n", "0" }), false)
+	end)
+
 	Lib.test("writes the full metric columns to CSV", function()
 		local csv = Sim.toCsv({
 			row("shared", { "Capitalist", "State" }, 12, 0, 6, 4, 0, 0),
