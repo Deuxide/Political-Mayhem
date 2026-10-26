@@ -10,6 +10,7 @@
 
 local Types = require(script.Parent.Parent.Types)
 local Step = require(script.Parent.Step)
+local Alliances = require(script.Parent.Parent.Ops.Alliances)
 
 type ClassId = Types.ClassId
 type LogEntry = Types.LogEntry
@@ -34,6 +35,10 @@ function DayEndStep.run(_self: DayEndStep, state: MatchState, _ctx: StepContext)
 		day = state.day,
 		text = `Day {state.day} closed`,
 	})
+
+	-- An unanswered alliance proposal ends with the Window (8.4); the next
+	-- Day must not open with a stale offer. The active alliances stay.
+	Alliances.expireProposals(state)
 
 	-- The match ended at this Closing Bell (R13): the Day just closed is the
 	-- last one, so there is no next Day to roll the drafts into (D-070).

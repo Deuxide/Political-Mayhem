@@ -65,9 +65,10 @@ function AllianceHandlers.connect(support: SupportType)
 			Support.notice(support, player, "Rejected", reason)
 			return
 		end
-		-- both classes hear about the proposal
-		Replication.patch(support, classId, "alliances", proposal, "append")
-		Replication.patch(support, to, "alliances", proposal, "append")
+		-- both classes hear about the proposal; the active alliance list is
+		-- untouched, and the other classes do not see the private proposal
+		Replication.patch(support, classId, "allianceProposals", proposal, "append")
+		Replication.patch(support, to, "allianceProposals", proposal, "append")
 	end)
 
 	support.remotes.Alliance_Respond.OnServerEvent:Connect(function(player: any, payload: any)
@@ -115,10 +116,17 @@ function AllianceHandlers.connect(support: SupportType)
 			if reason ~= "" then
 				Support.notice(support, player, "Rejected", reason)
 			end
+			-- The answer consumed the proposal (a decline, or an acceptance
+			-- that lost the race for an alliance): both classes drop it.
+			Replication.patch(support, proposal.from, "allianceProposals", proposal, "remove")
+			Replication.patch(support, proposal.to, "allianceProposals", proposal, "remove")
 			return
 		end
-		Replication.patch(support, alliance.members[1] :: any, "alliances", alliance)
-		Replication.patch(support, alliance.members[2] :: any, "alliances", alliance)
+		Replication.patch(support, proposal.from, "allianceProposals", proposal, "remove")
+		Replication.patch(support, proposal.to, "allianceProposals", proposal, "remove")
+		-- An active alliance is public (8.4): every client's cards get the
+		-- badge, not only the two members.
+		Replication.patchAll(support, "alliances", alliance, "append")
 	end)
 
 	support.remotes.Alliance_Break.OnServerEvent:Connect(function(player: any, payload: any)
@@ -143,9 +151,16 @@ function AllianceHandlers.connect(support: SupportType)
 			return
 		end
 
-		local broken, reason = Alliances.breakAlliance(match:state(), classId)
+		local state = match:state()
+		local alliance = Alliances.allianceOf(state, classId)
+		local broken, reason = Alliances.breakAlliance(state, classId)
 		if not broken then
 			Support.notice(support, player, "Rejected", reason)
+			return
+		end
+		if alliance ~= nil then
+			-- The break is public (8.4): every client drops the badge.
+			Replication.patchAll(support, "alliances", alliance, "remove")
 		end
 	end)
 end

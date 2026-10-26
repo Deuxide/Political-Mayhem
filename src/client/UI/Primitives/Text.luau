@@ -26,6 +26,8 @@ export type TextProps = {
 	uppercase: boolean?,
 	align: Enum.TextXAlignment?,
 	truncate: boolean?,
+	wrapped: boolean?, -- wrap at the width instead of one line
+	automatic: boolean?, -- the label grows with its text (AutomaticSize Y)
 	position: UDim2?,
 	size2: UDim2?,
 	anchorPoint: Vector2?,
@@ -49,6 +51,7 @@ function Text.render(props: TextProps): any
 		TextXAlignment = props.align or Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Center,
 		TextTruncate = props.truncate == true and Enum.TextTruncate.AtEnd or Enum.TextTruncate.None,
+		TextWrapped = props.wrapped == true,
 		BackgroundTransparency = 1,
 		Position = props.position or UDim2.fromOffset(0, 0),
 		Size = props.size2 or UDim2.fromScale(1, 0),
@@ -60,6 +63,9 @@ function Text.render(props: TextProps): any
 	end
 	if props.layoutOrder ~= nil then
 		labelProps.LayoutOrder = props.layoutOrder
+	end
+	if props.automatic == true then
+		labelProps.AutomaticSize = Enum.AutomaticSize.Y
 	end
 	return React.createElement("TextLabel", labelProps)
 end

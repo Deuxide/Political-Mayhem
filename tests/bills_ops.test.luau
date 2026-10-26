@@ -116,6 +116,20 @@ function M.run()
 		Lib.truthy(bill ~= nil, "two steps accepted")
 	end)
 
+	Lib.test("the legal target bounds are shared with the UI (7.3)", function()
+		local wageLow, wageHigh = Bills.targetBounds("Wage", 2)
+		Lib.eq(wageLow, 1, "Wage low")
+		Lib.eq(wageHigh, 3, "Wage high")
+
+		local taxLow, taxHigh = Bills.targetBounds("TaxWorking", 1)
+		Lib.eq(taxLow, 0, "TaxWorking low")
+		Lib.eq(taxHigh, 2, "TaxWorking high")
+
+		local tariffLow, tariffHigh = Bills.targetBounds("Tariff", 1)
+		Lib.eq(tariffLow, 0, "Tariff low")
+		Lib.eq(tariffHigh, 2, "Tariff high")
+	end)
+
 	Lib.test("the level must be inside the track's range (7.3)", function()
 		local state = fresh()
 		local bill, reason = Bills.propose(state, "Capitalist", "Tariff", 3, 60)

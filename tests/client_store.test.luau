@@ -46,6 +46,7 @@ function M.run()
 			bills = {},
 			promises = {},
 			alliances = {},
+			allianceProposals = {},
 			reputation = {},
 			victory = nil,
 		}
@@ -105,8 +106,55 @@ function M.run()
 		Lib.eq(next.draft.syncState, "clean", "and it is in sync")
 		Lib.eq(#next.inbox.bills, 1, "the bill arrived")
 		Lib.eq(next.inbox.bills[1].id, "Bill-1", "the bill")
+		Lib.eq(#next.match.view.bills, 1, "the live bill is in the view")
+		Lib.eq(next.match.view.bills[1].id, "Bill-1", "the live bill")
+		Lib.eq(#state.match.view.bills, 0, "the old view did not change")
 		Lib.eq(#next.match.view.alliances, 1, "the alliance arrived")
+		Lib.eq(#state.match.view.alliances, 0, "the old view's alliances did not change")
 		Lib.eq(#state.inbox.bills, 0, "the old state did not change")
+	end)
+
+	Lib.test("alliance proposals arrive and leave; a break removes the public alliance", function()
+		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+		local proposal = {
+			id = "AllianceProposal-1",
+			from = "Middle",
+			to = "Capitalist",
+			proposedDay = 1,
+		}
+		local withProposal = Store.applyPatch(state, {
+			{ op = "append", path = "allianceProposals", value = proposal },
+		})
+		Lib.eq(#withProposal.match.view.allianceProposals, 1, "the proposal arrived")
+		Lib.eq(withProposal.match.view.allianceProposals[1].to, "Capitalist", "the recipient")
+		Lib.eq(#state.match.view.allianceProposals, 0, "the old view did not change")
+
+		local removed = Store.applyPatch(withProposal, {
+			{ op = "remove", path = "allianceProposals", value = proposal },
+		})
+		Lib.eq(#removed.match.view.allianceProposals, 0, "the proposal left")
+		Lib.eq(#withProposal.match.view.allianceProposals, 1, "the old view kept it")
+
+		local alliance = {
+			id = "Alliance-1",
+			members = { "Middle", "Capitalist" },
+			formedOnDay = 1,
+		}
+		local withAlliance = Store.applyPatch(removed, {
+			{ op = "append", path = "alliances", value = alliance },
+		})
+		Lib.eq(#withAlliance.match.view.alliances, 1, "the alliance arrived")
+		Lib.eq(#removed.match.view.alliances, 0, "the old view did not change")
+		local twice = Store.applyPatch(withAlliance, {
+			{ op = "append", path = "alliances", value = alliance },
+		})
+		Lib.eq(#twice.match.view.alliances, 1, "an append is idempotent")
+
+		local broken = Store.applyPatch(withAlliance, {
+			{ op = "remove", path = "alliances", value = alliance },
+		})
+		Lib.eq(#broken.match.view.alliances, 0, "the break removed the alliance")
+		Lib.eq(#withAlliance.match.view.alliances, 1, "the old view kept it")
 	end)
 
 	Lib.test("the active tab is a local choice", function()
@@ -173,6 +221,145 @@ function M.run()
 		Lib.eq(buy.draft.current.market.sell.food, 2, "the sell stays")
 	end)
 
+	Lib.test("a vote edits the draft, switches and clears", function()
+		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+		local yes = Store.setVote(state, "Bill-1", "yes", 1)
+		Lib.eq(yes.draft.current.votes["Bill-1"].side, "yes", "the side")
+		Lib.eq(yes.draft.current.votes["Bill-1"].influence, 1, "the Influence")
+		Lib.eq(yes.draft.seq, 5, "the sequence bumps")
+		Lib.eq(yes.draft.syncState, "pending", "pending")
+		Lib.eq(state.draft.current.votes["Bill-1"], nil, "the old draft did not change")
+
+		local no = Store.setVote(yes, "Bill-1", "no", 0)
+		Lib.eq(no.draft.current.votes["Bill-1"].side, "no", "the switched side")
+		Lib.eq(no.draft.current.votes["Bill-1"].influence, 0, "no extra Influence")
+		Lib.eq(no.draft.seq, 6, "the sequence bumps again")
+
+		local cleared = Store.setVote(no, "Bill-1", nil, 0)
+		Lib.eq(cleared.draft.current.votes["Bill-1"], nil, "the cleared vote")
+		Lib.eq(cleared.draft.seq, 7, "the clear bumps the sequence")
+	end)
+
+	Lib.test(
+		"trade offers arrive, the ack names the outgoing one, and the result closes it",
+		function()
+			local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+			local incoming = {
+				id = "Trade-1",
+				from = "Capitalist",
+				to = "Middle",
+				give = { Money = 5 },
+				want = { Food = 1 },
+				promises = {},
+				expiresAt = 500,
+			}
+			local withIncoming = Store.addIncomingOffer(state, incoming)
+			Lib.eq(#withIncoming.inbox.offers, 1, "the incoming offer")
+			Lib.eq(withIncoming.inbox.offers[1].direction, "in", "incoming")
+			Lib.eq(withIncoming.inbox.offers[1].status, "pending", "pending")
+			Lib.eq(withIncoming.inbox.offers[1].pendingAck, false, "no ack needed")
+			Lib.eq(#state.inbox.offers, 0, "the old state did not change")
+
+			local outgoing = {
+				id = "pending-trade-1",
+				from = "Middle",
+				to = "State",
+				give = { Food = 2 },
+				want = { Money = 3 },
+				promises = {},
+				expiresAt = 500,
+			}
+			local withOutgoing = Store.addOutgoingOffer(withIncoming, outgoing, "trade-1")
+			Lib.eq(#withOutgoing.inbox.offers, 2, "the outgoing offer")
+			Lib.eq(withOutgoing.inbox.offers[2].direction, "out", "outgoing")
+			Lib.eq(withOutgoing.inbox.offers[2].pendingAck, true, "waiting for the ack")
+
+			local acked = Store.applyTradeResult(withOutgoing, {
+				requestId = "trade-1",
+				offerId = "Trade-2",
+				status = "accepted",
+			})
+			Lib.eq(acked.inbox.offers[2].offer.id, "Trade-2", "the server id")
+			Lib.eq(acked.inbox.offers[2].pendingAck, false, "the ack arrived")
+			Lib.eq(acked.inbox.offers[2].status, "pending", "the trade is still pending")
+			Lib.eq(
+				withOutgoing.inbox.offers[2].offer.id,
+				"pending-trade-1",
+				"the old state did not change"
+			)
+
+			local answered =
+				Store.applyTradeResult(acked, { offerId = "Trade-2", status = "accepted" })
+			Lib.eq(answered.inbox.offers[2].status, "accepted", "the trade was accepted")
+			Lib.eq(answered.inbox.offers[1].status, "pending", "the other offer is untouched")
+
+			local declined =
+				Store.applyTradeResult(acked, { offerId = "Trade-1", status = "declined" })
+			Lib.eq(declined.inbox.offers[1].status, "declined", "the incoming offer was declined")
+
+			local duplicate = Store.addIncomingOffer(withOutgoing, incoming)
+			Lib.eq(#duplicate.inbox.offers, 2, "the duplicate incoming offer was ignored")
+		end
+	)
+
+	Lib.test("the Closing Bell expires pending offers and the next Window clears them", function()
+		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+		local withOffer = Store.addIncomingOffer(state, {
+			id = "Trade-1",
+			from = "Capitalist",
+			to = "Middle",
+			give = {},
+			want = {},
+			promises = {},
+			expiresAt = 500,
+		})
+		local resolved = Store.applyPhase(withOffer, "Resolve", 1, 1100, 1000, 900)
+		Lib.eq(resolved.inbox.offers[1].status, "expired", "expired at the Closing Bell")
+		Lib.eq(withOffer.inbox.offers[1].status, "pending", "the old state did not change")
+
+		local revealed = Store.applyPhase(resolved, "Reveal", 2, 1200, 1100, 1000)
+		Lib.eq(revealed.inbox.offers[1].status, "expired", "still shown in the report")
+
+		local nextWindow = Store.applyPhase(revealed, "Window", 2, 1300, 1200, 1100)
+		Lib.eq(#nextWindow.inbox.offers, 0, "the new Window starts clean")
+
+		local nextView = view()
+		nextView.day = 2
+		local snapshot = Store.applySnapshot(withOffer, nextView, 1, 1200, 1100)
+		Lib.eq(#snapshot.inbox.offers, 0, "a snapshot for a new Day clears the offers")
+	end)
+
+	Lib.test("a promises patch appends the public promise without mutating the old view", function()
+		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+		local promise = {
+			id = "Promise-1",
+			kind = "Deliver",
+			spec = {
+				kind = "Deliver",
+				resource = "Money",
+				amount = 3,
+				to = "Capitalist",
+				byDay = 2,
+			},
+			from = "Middle",
+			to = "Capitalist",
+			createdDay = 1,
+			status = "open",
+			progress = { delivered = 0 },
+		}
+		local next = Store.applyPatch(state, {
+			{ op = "append", path = "promises", value = promise },
+		})
+		Lib.eq(#next.match.view.promises, 1, "the promise arrived")
+		Lib.eq(next.match.view.promises[1].id, "Promise-1", "the promise")
+		Lib.eq(#state.match.view.promises, 0, "the old view did not change")
+
+		local again = Store.applyPatch(next, {
+			{ op = "append", path = "promises", value = promise },
+		})
+		Lib.eq(#again.match.view.promises, 1, "the duplicate is ignored")
+	end)
+
 	Lib.test("an older echo does not overwrite a newer local edit", function()
 		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
 		local first = Store.setOpenSlots(state, "Farm-1", 1) -- seq 5
@@ -225,6 +412,69 @@ function M.run()
 		Lib.eq(#withChat.chat.channels.Global, 1, "the message")
 		Lib.eq(withChat.chat.channels.Global[1].text, "hello", "the text")
 		Lib.eq(#state.inbox.notices, 0, "the old state did not change")
+	end)
+
+	Lib.test("chat unread rises per channel and reading a channel clears it", function()
+		local state = Store.initialState()
+		local first = Store.addChat(state, { channel = "Global", fromName = "Ana", text = "hello" })
+		Lib.eq(first.chat.unread.Global, 1, "the unread count rose")
+		Lib.eq(state.chat.unread.Global, nil, "the old state did not change")
+		Lib.eq(state.chat.channels.Global, nil, "the old channel list did not change")
+
+		local second = Store.addChat(first, { channel = "Global", fromName = "Bo", text = "hi" })
+		Lib.eq(second.chat.unread.Global, 2, "the count rose again")
+		Lib.eq(#first.chat.channels.Global, 1, "the old list did not change")
+
+		local team = Store.addChat(second, { channel = "Team", fromName = "Bo", text = "team" })
+		Lib.eq(team.chat.unread.Team, 1, "the other channel counts on its own")
+		Lib.eq(team.chat.unread.Global, 2, "the first channel untouched")
+
+		local read = Store.applyChatRead(team, "Global")
+		Lib.eq(read.chat.unread.Global, 0, "the channel was read")
+		Lib.eq(read.chat.unread.Team, 1, "the other channel keeps its count")
+		Lib.eq(#read.chat.channels.Global, 2, "the messages stay")
+		Lib.eq(team.chat.unread.Global, 2, "the old state did not change")
+	end)
+
+	Lib.test("the drawer opens and closes as a local choice", function()
+		local state = Store.initialState()
+		local opened = Store.applyDrawerOpen(state, true)
+		Lib.eq(opened.ui.drawerOpen, true, "the drawer opened")
+		Lib.eq(state.ui.drawerOpen, false, "the old state did not change")
+		local closed = Store.applyDrawerOpen(opened, false)
+		Lib.eq(closed.ui.drawerOpen, false, "the drawer closed")
+		Lib.eq(opened.ui.drawerOpen, true, "the opened state did not change")
+	end)
+
+	Lib.test("the Evening Report and the end result live in the store", function()
+		local state = Store.applySnapshot(Store.initialState(), view(), 1, 1000, 900)
+		local report = {
+			day = 1,
+			events = { { day = 1, text = "Middle gained 1 VP (needsMet)", actor = "Middle" } },
+			deltas = {
+				Middle = { money = 0, influence = 0, stock = { food = -2 }, vp = 1 },
+			},
+		}
+		local withReveal = Store.applyReveal(state, report)
+		Lib.eq(withReveal.reveal.day, 1, "the report is stored")
+		Lib.eq(withReveal.reveal.deltas.Middle.vp, 1, "the own delta")
+		Lib.eq(state.reveal, nil, "the old state has no report")
+
+		local nextWindow = Store.applyPhase(withReveal, "Window", 2, 1200, 1100, 1000)
+		Lib.eq(nextWindow.reveal, nil, "the next Window clears the report")
+
+		local result = { kind = "final", winners = { "Middle" }, day = 12 }
+		local ended = Store.applyMatchEnded(withReveal, result, "the end")
+		Lib.eq(ended.match.result.kind, "final", "the result is stored")
+		Lib.eq(ended.match.endSummary, "the end", "the summary is stored")
+		Lib.eq(ended.reveal, nil, "the end screen replaces the report")
+		Lib.eq(withReveal.reveal.day, 1, "the old state kept its report")
+
+		local finalView = view()
+		finalView.victory = result
+		local finalSnapshot = Store.applySnapshot(state, finalView, 1, 1000, 900)
+		Lib.eq(finalSnapshot.match.result.kind, "final", "the final snapshot carries the result")
+		Lib.eq(state.match.result, nil, "the old state had no result")
 	end)
 
 	Lib.test("the store tells its listeners about every change", function()

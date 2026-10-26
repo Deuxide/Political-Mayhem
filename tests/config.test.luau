@@ -320,6 +320,11 @@ function M.run()
 				track.default >= track.minLevel and track.default <= track.maxLevel,
 				`default within bounds ({id})`
 			)
+			Lib.truthy(type(track.name) == "string" and #track.name > 0, `name ({id})`)
+			for level = track.minLevel, track.maxLevel do
+				local label = track.levelLabels[level]
+				Lib.truthy(type(label) == "string" and #label > 0, `level label {level} ({id})`)
+			end
 		end
 	end)
 

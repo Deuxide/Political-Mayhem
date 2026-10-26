@@ -91,6 +91,9 @@ LobbyHandlers.connect(remotes, lobby, function(match)
 		end,
 		onMatchEnded = function(result)
 			print(`[Match] the match ended: {result.kind}`)
+			-- The final snapshot carries the VPs and reputation after the
+			-- last resolution, so the EndSummary is not stale.
+			Replication.snapshotAll(support)
 			Replication.ended(
 				support,
 				result,

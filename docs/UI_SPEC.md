@@ -82,10 +82,10 @@ min/max), `Slider`, `Toggle`, `Modal`, `Badge`, `StarRating`, `Countdown`
 | `PromiseBuilder` | Choose kind + params, shows exactly what will be audited and when | Prevents ambiguity |
 | `ChatDrawer` | Channels: Global, Team, Class (private), with unread badges | Server-filtered text only |
 | `EventTicker` | Last N log lines | Click to open full log |
-| `EveningReport` | Per-class cards: resource deltas with causes; policy changes; broken promises highlighted; VP gains | Auto-dismiss at end of Reveal |
+| `EveningReport` | Own-class resource deltas with causes; public VP and reputation for every class; policy changes; broken promises highlighted | Auto-dismiss at end of Reveal; other classes' resource deltas never travel (GAME_DESIGN 13) |
 | `CityViewport` | 3D city camera + overlays | Reads view only (M11); placeholder panel until then |
 | `LobbySeatList` | Class slots, humans/bots, roles | |
-| `EndSummary` | Winner(s), VP table, reputation changes | |
+| `EndSummary` | Winner(s), final VP table, final reputation (kept/broken) | |
 
 ## 5. Behaviors
 

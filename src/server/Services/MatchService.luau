@@ -186,6 +186,9 @@ function MatchService._resolve(self: MatchService)
 
 	local before = captureValues(state)
 	local logLength = #state.eventLog
+	-- R14 advances the Day counter during resolution, so remember the Day
+	-- that is being resolved before it moves: the report is about that Day.
+	local resolvedDay = state.day
 	local resolved = match:resolveDay(match:rng())
 	print(`[Match] {resolved.id} day {resolved.day} hash {match:hash()}`)
 
@@ -197,7 +200,7 @@ function MatchService._resolve(self: MatchService)
 	end
 	if self._onReveal ~= nil then
 		self._onReveal({
-			day = resolved.day,
+			day = resolvedDay,
 			events = events,
 			deltas = diffValues(before, resolved),
 		})

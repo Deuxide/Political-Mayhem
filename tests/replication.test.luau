@@ -172,6 +172,17 @@ function M.run()
 		Lib.eq(#game.payloadsFor(game.bo), 1, "Bo got it")
 		Lib.eq(game.payloadsFor(game.ana)[1].result.kind, "final", "the result")
 	end)
+
+	Lib.test("a final snapshot carries the victory and the final standings", function()
+		local game = newGame("Normal")
+		local result = { kind = "final", winners = { "Middle" }, day = 12 }
+		game.match:state().victory = result
+		Replication.snapshot(game.support, game.ana)
+		local view = game.payloadsFor(game.ana)[1].view
+		Lib.eq(view.victory.kind, "final", "the result travels in the snapshot")
+		Lib.eq(view.victory.day, 12, "the final Day")
+		Lib.eq(view.own.vp, game.match:state().classes.Middle.vp, "the final own VP")
+	end)
 end
 
 return M

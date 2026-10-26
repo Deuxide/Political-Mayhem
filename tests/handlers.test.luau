@@ -22,6 +22,8 @@ function M.run()
 	local AllianceHandlers = Loader.require(root.server.Handlers.AllianceHandlers)
 	local BillHandlers = Loader.require(root.server.Handlers.BillHandlers)
 	local ChatHandlers = Loader.require(root.server.Handlers.ChatHandlers)
+	local Bills = Loader.require(root.shared.Game.Ops.Bills)
+	local PlayerViewBuilder = Loader.require(root.shared.Game.Behaviors.InfoModes.PlayerViewBuilder)
 
 	-- A fake remote: it records what the server sent and lets the test fire
 	-- the server handler.
@@ -62,6 +64,13 @@ function M.run()
 			lobby:join(second.UserId, second.Name)
 			lobby:setClass(second.UserId, options.second)
 			lobby:setReady(second.UserId, true)
+		end
+		if options.third ~= nil then
+			local third = { UserId = 33, Name = "Cy" }
+			table.insert(players, third)
+			lobby:join(third.UserId, third.Name)
+			lobby:setClass(third.UserId, options.third)
+			lobby:setReady(third.UserId, true)
 		end
 		local match = lobby:start(player.UserId)
 		-- the scheduler is not running in the test, so the Window has no end
@@ -119,6 +128,19 @@ function M.run()
 					end
 				end
 				return list
+			end,
+			patches = function(player, path, op)
+				local values = {}
+				for _, entry in sent do
+					if entry.player == player and entry.payload and entry.payload.ops then
+						for _, patch in entry.payload.ops do
+							if patch.path == path and patch.op == op then
+								table.insert(values, patch.value)
+							end
+						end
+					end
+				end
+				return values
 			end,
 		}
 	end
@@ -320,17 +342,166 @@ function M.run()
 		Lib.eq(game.state().classes.Middle.money, 25, "no money moved")
 	end)
 
-	Lib.test("an alliance is proposed and accepted through the remotes", function()
+	Lib.test("a trade with a promise is accepted and the promise becomes public", function()
 		local game = newGame({ second = "Capitalist" })
-		game.remotes.Alliance_Propose.fire(game.player, { to = "Capitalist" })
-		Lib.eq(#game.state().allianceProposals, 1, "the proposal is live")
-		Lib.eq(game.state().allianceProposals[1].from, "Middle", "the sender's class")
+		game.remotes.Trade_Propose.fire(game.player, {
+			requestId = "r1",
+			to = "Capitalist",
+			give = { Money = 5 },
+			want = { Goods = 1 },
+			promises = {
+				{ kind = "Deliver", resource = "Money", amount = 3, to = "Capitalist", byDay = 2 },
+			},
+		})
+		local offerId = game.state().trades[1].id
+		Lib.eq(offerId, "Trade-1", "the offer id")
 
 		local capitalist = game.players[2]
+		game.remotes.Trade_Respond.fire(capitalist, { offerId = offerId, accept = true })
+
+		Lib.eq(#game.state().trades, 0, "the offer is gone")
+		Lib.eq(game.state().classes.Middle.money, 20, "Middle paid 5")
+		Lib.eq(game.state().classes.Capitalist.money, 55, "Capitalist got 5")
+		Lib.eq(game.state().classes.Capitalist.stock.goods, 1, "Capitalist paid 1 Goods")
+		Lib.eq(game.state().classes.Middle.stock.goods, 2, "Middle got 1 Goods")
+
+		Lib.eq(#game.state().promises, 1, "the promise exists")
+		local promise = game.state().promises[1]
+		Lib.eq(promise.from, "Middle", "the promisor")
+		Lib.eq(promise.to, "Capitalist", "the promisee")
+		Lib.eq(promise.kind, "Deliver", "the kind")
+		Lib.eq(promise.spec.amount, 3, "the amount")
+		Lib.eq(promise.status, "open", "the promise is open")
+
+		-- the acceptance reached both parties, and so did the public patch
+		local results = 0
+		local patches = 0
+		for _, entry in game.sent do
+			local payload = entry.payload
+			if
+				payload
+				and payload.offerId == offerId
+				and payload.status == "accepted"
+				and payload.requestId == nil
+			then
+				results += 1
+			end
+			if payload and payload.ops and payload.ops[1].path == "promises" then
+				Lib.eq(payload.ops[1].op, "append", "the patch is an append")
+				Lib.eq(payload.ops[1].value.id, promise.id, "the patch carries the promise")
+				patches += 1
+			end
+		end
+		Lib.eq(results, 2, "both parties heard the acceptance")
+		Lib.eq(patches, 2, "both parties got the promise patch")
+	end)
+
+	Lib.test("a withdrawn offer reaches both parties (NETWORKING 3.2)", function()
+		local game = newGame({ second = "Capitalist" })
+		game.remotes.Trade_Propose.fire(game.player, {
+			requestId = "r1",
+			to = "Capitalist",
+			give = { Money = 5 },
+			want = {},
+			promises = {},
+		})
+		local offerId = game.state().trades[1].id
+		game.remotes.Trade_Cancel.fire(game.player, { offerId = offerId })
+		Lib.eq(#game.state().trades, 0, "the offer is gone")
+
+		local results = 0
+		for _, entry in game.sent do
+			local payload = entry.payload
+			if payload and payload.offerId == offerId and payload.status == "declined" then
+				results += 1
+			end
+		end
+		Lib.eq(results, 2, "both parties heard the withdrawal")
+	end)
+
+	Lib.test("an alliance is proposed, accepted and broken through the remotes (M8-T3)", function()
+		local game = newGame({ second = "Capitalist" })
+		local capitalist = game.players[2]
+		game.remotes.Alliance_Propose.fire(game.player, { to = "Capitalist" })
+		Lib.eq(#game.state().allianceProposals, 1, "the proposal is live")
+		local proposal = game.state().allianceProposals[1]
+		Lib.eq(proposal.from, "Middle", "the sender's class")
+		Lib.eq(
+			#game.patches(game.player, "allianceProposals", "append"),
+			1,
+			"the proposer got the proposal"
+		)
+		Lib.eq(
+			#game.patches(capitalist, "allianceProposals", "append"),
+			1,
+			"the recipient got the proposal"
+		)
+		Lib.eq(#game.patches(game.player, "alliances", "append"), 0, "no active alliance yet")
+
+		local stateBefore = game.state()
+		local middleView = PlayerViewBuilder.build(stateBefore, game.match:ruleSet(), "Middle")
+		local outsiderView = PlayerViewBuilder.build(stateBefore, game.match:ruleSet(), "State")
+		Lib.eq(#middleView.allianceProposals, 1, "the proposal is in the proposer's view")
+		Lib.eq(#outsiderView.allianceProposals, 0, "a third class does not see it")
+
 		game.remotes.Alliance_Respond.fire(capitalist, { from = "Middle", accept = true })
 		Lib.eq(#game.state().alliances, 1, "the alliance exists")
-		Lib.eq(game.state().alliances[1].members[1], "Middle", "the first member")
-		Lib.eq(game.state().alliances[1].members[2], "Capitalist", "the second member")
+		local alliance = game.state().alliances[1]
+		Lib.eq(alliance.members[1], "Middle", "the first member")
+		Lib.eq(alliance.members[2], "Capitalist", "the second member")
+		Lib.eq(#game.state().allianceProposals, 0, "the proposal is gone")
+		Lib.eq(
+			#game.patches(game.player, "allianceProposals", "remove"),
+			1,
+			"the proposer dropped the proposal"
+		)
+		Lib.eq(
+			#game.patches(capitalist, "allianceProposals", "remove"),
+			1,
+			"the recipient dropped the proposal"
+		)
+		Lib.eq(
+			#game.patches(game.player, "alliances", "append"),
+			1,
+			"the proposer got the public alliance"
+		)
+		Lib.eq(#game.patches(capitalist, "alliances", "append"), 1, "the recipient got it too")
+
+		local alliedView = PlayerViewBuilder.build(game.state(), game.match:ruleSet(), "State")
+		Lib.eq(#alliedView.alliances, 1, "the active alliance is public")
+		Lib.eq(#alliedView.allianceProposals, 0, "the proposal stays private")
+
+		game.remotes.Alliance_Break.fire(game.player, {})
+		Lib.eq(#game.state().alliances, 0, "the alliance is gone")
+		Lib.eq(#game.patches(game.player, "alliances", "remove"), 1, "the proposer got the break")
+		Lib.eq(#game.patches(capitalist, "alliances", "remove"), 1, "the recipient got the break")
+		Lib.eq(
+			game.patches(game.player, "alliances", "remove")[1].id,
+			alliance.id,
+			"the right alliance"
+		)
+		local brokenView = PlayerViewBuilder.build(game.state(), game.match:ruleSet(), "State")
+		Lib.eq(#brokenView.alliances, 0, "the public badge is gone")
+	end)
+
+	Lib.test("a declined alliance proposal leaves both views", function()
+		local game = newGame({ second = "Capitalist" })
+		local capitalist = game.players[2]
+		game.remotes.Alliance_Propose.fire(game.player, { to = "Capitalist" })
+		game.remotes.Alliance_Respond.fire(capitalist, { from = "Middle", accept = false })
+		Lib.eq(#game.state().alliances, 0, "no alliance")
+		Lib.eq(#game.state().allianceProposals, 0, "the proposal is gone")
+		Lib.eq(
+			#game.patches(game.player, "allianceProposals", "remove"),
+			1,
+			"the proposer dropped it"
+		)
+		Lib.eq(
+			#game.patches(capitalist, "allianceProposals", "remove"),
+			1,
+			"the recipient dropped it"
+		)
+		Lib.eq(#game.patches(game.player, "alliances", "append"), 0, "no public alliance")
 	end)
 
 	Lib.test("an alliance answer for the wrong proposer is refused", function()
@@ -365,6 +536,54 @@ function M.run()
 		end
 	)
 
+	Lib.test("a bill passes with the votes of two clients", function()
+		local game = newGame({ second = "Capitalist" })
+		game.remotes.Bill_Propose.fire(
+			game.player,
+			{ requestId = "b1", policyId = "Wage", level = 3 }
+		)
+		Lib.eq(#game.state().bills, 1, "the bill is live")
+		local billId = game.state().bills[1].id
+		Lib.eq(game.state().classes.Middle.influence, 1, "the Middle paid the proposal cost")
+
+		local function castVote(player, side)
+			game.remotes.Draft_Update.fire(player, {
+				seq = 1,
+				draft = {
+					sequence = 1,
+					locked = false,
+					openSlots = {},
+					assign = {},
+					market = { sell = {}, buy = {} },
+					votes = { [billId] = { side = side, influence = 0 } },
+				},
+			})
+		end
+		castVote(game.player, "yes")
+		local capitalist = game.players[2]
+		castVote(capitalist, "yes")
+
+		Lib.eq(game.state().drafts.Middle.votes[billId].side, "yes", "the Middle's ballot")
+		Lib.eq(game.state().drafts.Capitalist.votes[billId].side, "yes", "the Capitalist's ballot")
+
+		local tally = Bills.tally(game.state(), billId)
+		Lib.eq(tally.yesWeight, 5, "Middle 3 + Capitalist 2")
+		Lib.eq(tally.noWeight, 0, "no votes against")
+		Lib.eq(tally.passed, true, "the bill passes")
+
+		local heard = 0
+		for _, entry in game.sent do
+			if entry.player == capitalist and entry.payload.ops ~= nil then
+				for _, op in entry.payload.ops do
+					if op.path == "bills" and op.value.id == billId then
+						heard += 1
+					end
+				end
+			end
+		end
+		Lib.eq(heard, 1, "the other client heard about the bill")
+	end)
+
 	Lib.test("chat is filtered before it goes out, and only to the audience", function()
 		local game = newGame({
 			filter = function(text)
@@ -395,6 +614,57 @@ function M.run()
 		Lib.eq(#game.ofRemote(), 0, "nothing went out")
 		Lib.eq(game.notices()[1].code, "InvalidPayload", "the client is told why")
 	end)
+
+	-- The messages one player heard through Chat_Message.
+	local function heard(game, name)
+		local list = {}
+		for _, entry in game.sent do
+			if
+				entry.player.Name == name
+				and entry.payload
+				and entry.payload.code == nil
+				and entry.payload.channel ~= nil
+			then
+				table.insert(list, entry.payload)
+			end
+		end
+		return list
+	end
+
+	Lib.test(
+		"the channel audiences: global everywhere, team to the class, class private plus the sender",
+		function()
+			local game = newGame({ second = "Capitalist", third = "Working" })
+			-- Global: every seated class hears it.
+			game.remotes.Chat_Send.fire(game.player, { channel = "Global", text = "hi all" })
+			Lib.eq(#heard(game, "Ana"), 1, "the sender heard the global message")
+			Lib.eq(#heard(game, "Bo"), 1, "the second class heard the global message")
+			Lib.eq(#heard(game, "Cy"), 1, "the third class heard the global message")
+
+			game.advance(1)
+			-- Team: only the sender's own class (here the sender alone).
+			game.remotes.Chat_Send.fire(game.player, { channel = "Team", text = "team only" })
+			Lib.eq(#heard(game, "Ana"), 2, "the sender's team got the team message")
+			Lib.eq(#heard(game, "Bo"), 1, "the second class did not hear the team message")
+			Lib.eq(#heard(game, "Cy"), 1, "the third class did not hear the team message")
+
+			game.advance(1)
+			-- Class: the target class and the sender (D-079), nobody else.
+			game.remotes.Chat_Send.fire(game.player, {
+				channel = "Class",
+				classTo = "Capitalist",
+				text = "psst",
+			})
+			local ana = heard(game, "Ana")
+			local bo = heard(game, "Bo")
+			Lib.eq(#ana, 3, "the sender heard their own private message")
+			Lib.eq(ana[3].channel, "Class", "the private line")
+			Lib.eq(ana[3].text, "psst", "the private text")
+			Lib.eq(#bo, 2, "the target class heard the private message")
+			Lib.eq(bo[2].channel, "Class", "the private line reached the target")
+			Lib.eq(#heard(game, "Cy"), 1, "a class outside the pair heard nothing")
+		end
+	)
 
 	Lib.test("a player who left cannot act (NETWORKING 6)", function()
 		local game = newGame()

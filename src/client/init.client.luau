@@ -56,6 +56,30 @@ appRoot:render(React.createElement(
 		onDraft = function(draft)
 			Client.queueDraft(client, draft)
 		end,
+		onProposeBill = function(requestId, policyId, level)
+			Client.proposeBill(client, requestId, policyId, level)
+		end,
+		onProposeTrade = function(requestId, to, give, want, promises)
+			Client.proposeTrade(client, requestId, to, give, want, promises)
+		end,
+		onRespondTrade = function(offerId, accept)
+			Client.respondTrade(client, offerId, accept)
+		end,
+		onCancelTrade = function(offerId)
+			Client.cancelTrade(client, offerId)
+		end,
+		onProposeAlliance = function(to)
+			Client.proposeAlliance(client, to)
+		end,
+		onRespondAlliance = function(from, accept)
+			Client.respondAlliance(client, from, accept)
+		end,
+		onBreakAlliance = function()
+			Client.breakAlliance(client)
+		end,
+		onSendChat = function(channel, text, classTo)
+			Client.sendChat(client, channel, text, classTo)
+		end,
 	})
 ))
 

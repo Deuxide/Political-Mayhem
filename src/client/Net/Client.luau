@@ -107,9 +107,7 @@ end
 function Client.onReveal(client: Client, payload: any)
 	-- the report of the Day: the events are public, the deltas are the
 	-- viewer's own (NETWORKING 3.2)
-	client._store:set(Store.applyPatch(client._store:state(), {
-		{ op = "set", path = "reveal", value = payload },
-	}))
+	client._store:set(Store.applyReveal(client._store:state(), payload))
 end
 
 function Client.onNotice(client: Client, payload: any)
@@ -131,23 +129,29 @@ function Client.onChat(client: Client, payload: any)
 end
 
 function Client.onTradeIncoming(client: Client, payload: any)
-	client._store:set(Store.addNotice(client._store:state(), {
+	local state = Store.addIncomingOffer(client._store:state(), payload.offer)
+	state = Store.addNotice(state, {
 		code = "TradeIncoming",
 		message = "a trade offer arrived",
 		offer = payload.offer,
-	}))
+	})
+	client._store:set(state)
 end
 
 function Client.onTradeResult(client: Client, payload: any)
-	client._store:set(Store.addNotice(client._store:state(), {
+	local state = Store.applyTradeResult(client._store:state(), payload)
+	state = Store.addNotice(state, {
 		code = "TradeResult",
 		message = payload.status,
 		offerId = payload.offerId,
-	}))
+		reason = payload.reason,
+	})
+	client._store:set(state)
 end
 
 function Client.onMatchEnded(client: Client, payload: any)
-	client._store:set(Store.addNotice(client._store:state(), {
+	local state = Store.applyMatchEnded(client._store:state(), payload.result, payload.summary)
+	client._store:set(Store.addNotice(state, {
 		code = "MatchEnded",
 		message = payload.summary,
 		result = payload.result,

@@ -10,6 +10,7 @@ local Validate = require(ReplicatedStorage.Shared.Net.Validate)
 local ConfigNetwork = require(ReplicatedStorage.Shared.Config.Network)
 local Trade = require(ReplicatedStorage.Shared.Game.Ops.Trade)
 local Support = require(script.Parent.Support)
+local Replication = require(script.Parent.Parent.Replication)
 
 type ClassId = Types.ClassId
 type SupportType = Support.Support
@@ -190,6 +191,7 @@ function TradeHandlers.connect(support: SupportType)
 		end
 
 		-- The engine checks that both sides can still pay (NETWORKING 8).
+		local promisesBefore = #state.promises
 		local ok, reason = Trade.respond(state, payload.offerId, payload.accept, support.clock())
 		local status = if not payload.accept then "declined" elseif ok then "accepted" else "failed"
 		local result = { offerId = payload.offerId, status = status }
@@ -200,6 +202,16 @@ function TradeHandlers.connect(support: SupportType)
 		announce(support, offer.to, result)
 		if not ok then
 			Support.notice(support, player, "Rejected", reason)
+		end
+
+		-- An accepted trade turns its promise specs into public Promise
+		-- records (GAME_DESIGN 8.3). The view has no trade field, so the new
+		-- records go out as a promises patch to every client; otherwise the
+		-- ledger would only update at the next snapshot.
+		if ok then
+			for index = promisesBefore + 1, #state.promises do
+				Replication.patchAll(support, "promises", state.promises[index], "append")
+			end
 		end
 	end)
 
@@ -230,12 +242,19 @@ function TradeHandlers.connect(support: SupportType)
 		end
 
 		local state = match:state()
+		local offer = Trade.find(state, payload.offerId)
 		local cancelled, reason = Trade.cancel(state, payload.offerId, classId)
 		if not cancelled then
 			Support.notice(support, player, "Rejected", reason)
 			return
 		end
-		announce(support, classId, { offerId = payload.offerId, status = "declined" })
+		-- Both parties hear about the withdrawal (NETWORKING 3.2: Trade_Result
+		-- goes to both), so the recipient's inbox does not keep a dead offer.
+		if offer ~= nil then
+			local result = { offerId = payload.offerId, status = "declined" }
+			announce(support, offer.from, result)
+			announce(support, offer.to, result)
+		end
 	end)
 end
 

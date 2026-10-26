@@ -306,6 +306,7 @@ export type PlayerView = {
 	bills: { Bill }, -- live proposals; ballots stay secret in the drafts
 	promises: { Promise }, -- public in every mode
 	alliances: { Alliance }, -- public in every mode
+	allianceProposals: { AllianceProposal }, -- the viewer's pending proposals (8.4)
 	reputation: { [ClassId]: Reputation }, -- public in every mode
 	victory: VictoryResult?, -- nil until the match ends
 }
