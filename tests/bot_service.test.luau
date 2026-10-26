@@ -139,7 +139,7 @@ function M.run()
 		)
 	end)
 
-	Lib.test("all four class strategies are registered and return a safe empty draft", function()
+	Lib.test("all four class strategies are registered and plan a draft", function()
 		local match = newMatch("Normal", 41)
 		local service = BotService.new(41)
 		local strategies = {
@@ -154,9 +154,11 @@ function M.run()
 			Lib.truthy(draft ~= nil, `{classId} acted`)
 			Lib.eq(reason, "", `{classId} was accepted`)
 			Lib.eq(draft.sequence, 1, `{classId} sequence`)
-			Lib.eq(next(draft.openSlots), nil, `{classId} has no slots`)
-			Lib.eq(next(draft.assign), nil, `{classId} has no assignment`)
-			Lib.eq(next(draft.votes), nil, `{classId} has no votes`)
+			if classId == "Working" then
+				Lib.truthy(next(draft.assign) ~= nil, "Working assigns its workers")
+			else
+				Lib.truthy(next(draft.openSlots) ~= nil, `{classId} opens its lines`)
+			end
 		end
 	end)
 
