@@ -102,6 +102,7 @@
 │  │  │  ├─ LobbyService.luau
 │  │  │  ├─ TeamService.luau
 │  │  │  ├─ MatchService.luau
+│  │  │  ├─ DraftRules.luau      # one clamp/store for human and bot drafts
 │  │  │  ├─ BotService.luau      # + Bots/: BotStrategy (abstract) + 4 subclasses
 │  │  │  └─ ProfileService.luau   # ranks, cosmetics (later)
 │  │  ├─ Handlers/

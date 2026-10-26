@@ -12,6 +12,7 @@ local LobbyService = require(script.Services.LobbyService)
 local ConfigLobby = require(ReplicatedStorage.Shared.Config.Lobby)
 local Types = require(ReplicatedStorage.Shared.Game.Types)
 local MatchService = require(script.Services.MatchService)
+local BotService = require(script.Services.BotService)
 local LobbyHandlers = require(script.Handlers.LobbyHandlers)
 local Replication = require(script.Replication)
 local Support = require(script.Handlers.Support)
@@ -72,10 +73,34 @@ LobbyHandlers.connect(remotes, lobby, function(match)
 		)}`
 	)
 
+	-- The classes whose seats are bots. A bot seat is created only for a
+	-- class no human took (M9-T1); a disconnected human's role-level takeover
+	-- is not driven by this runner yet.
+	local botSeats: { [Types.ClassId]: boolean } = {}
+	for _, seat in lobby:seats() do
+		if seat.kind == "Bot" and seat.classId ~= nil then
+			botSeats[seat.classId] = true
+		end
+	end
+	local botClasses: { Types.ClassId } = {}
+	for index = 1, #Types.CLASS_IDS do
+		local classId: Types.ClassId = Types.CLASS_IDS[index] :: any
+		if botSeats[classId] then
+			table.insert(botClasses, classId)
+		end
+	end
+	local bots = BotService.new(state.seed)
+
 	-- The phase scheduler: the server owns the clock, and no client can move
 	-- a phase (NETWORKING 5 and 8).
 	MatchService.new({
 		match = match,
+		onWindow = function(activeMatch)
+			local played = bots:playWindow(activeMatch, botClasses)
+			if #played > 0 then
+				print(`[Bots] planned {table.concat(played, ", ")}`)
+			end
+		end,
 		onPhaseChanged = function(payload)
 			for _, player in Players:GetPlayers() do
 				remotes.Phase_Changed:FireClient(player, payload)

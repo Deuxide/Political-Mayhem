@@ -41,10 +41,17 @@ function M.run()
 		local announced = {}
 		local ended = nil
 		local reveal = nil
+		local windows = {}
 		local service = MatchService.new({
 			match = match,
 			onPhaseChanged = function(payload)
 				table.insert(announced, payload)
+			end,
+			onWindow = function(activeMatch)
+				table.insert(windows, {
+					phase = activeMatch:state().phase,
+					announced = #announced,
+				})
 			end,
 			onReveal = function(report)
 				reveal = report
@@ -68,6 +75,9 @@ function M.run()
 			end,
 			getReveal = function()
 				return reveal
+			end,
+			getWindows = function()
+				return windows
 			end,
 			fire = function()
 				local timer = pending
@@ -97,6 +107,22 @@ function M.run()
 		Lib.eq(harness.pendingDelay(), 120, "the Window timer")
 		Lib.eq(harness.match:state().phase, "Window", "the state agrees")
 		Lib.eq(harness.match:state().phaseEndsAt, payload.endsAt, "the state knows the end time")
+	end)
+
+	Lib.test("the Window lets the bots plan before it is announced", function()
+		local harness = newService("Normal")
+		harness.service:start()
+		local windows = harness.getWindows()
+		Lib.eq(#windows, 1, "the first Window opened")
+		Lib.eq(windows[1].phase, "Window", "the state is already Window")
+		Lib.eq(windows[1].announced, 0, "the bots planned before the announcement")
+
+		harness.fire() -- Resolve + Reveal
+		Lib.eq(#windows, 1, "no new Window during the Reveal")
+		harness.fire() -- the next Window
+		Lib.eq(#windows, 2, "the next Window opened")
+		Lib.eq(windows[2].phase, "Window", "and is a Window")
+		Lib.eq(windows[2].announced, 3, "before its own announcement")
 	end)
 
 	Lib.test("the timer resolves the Day and opens the Reveal", function()
