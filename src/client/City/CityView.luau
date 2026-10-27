@@ -24,6 +24,48 @@ type Visual = LineVisual.LineVisual
 local CityView = {}
 CityView.__index = CityView
 
+-- The 5x7 block letters above each district use the same W/M/C/S initials as
+-- the theme icon set. A ViewportFrame does not render BillboardGui/SurfaceGui
+-- (verified in Studio), so the owner mark is real 3D geometry.
+local LETTERS: { [ClassId]: { string } } = {
+	Working = {
+		"#...#",
+		"#...#",
+		"#...#",
+		"#.#.#",
+		"#.#.#",
+		"##.##",
+		"#...#",
+	},
+	Middle = {
+		"#...#",
+		"##.##",
+		"#.#.#",
+		"#...#",
+		"#...#",
+		"#...#",
+		"#...#",
+	},
+	Capitalist = {
+		".###.",
+		"#...#",
+		"#....",
+		"#....",
+		"#....",
+		"#...#",
+		".###.",
+	},
+	State = {
+		".####",
+		"#....",
+		"#....",
+		".###.",
+		"....#",
+		"....#",
+		"####.",
+	},
+}
+
 local function makePart(name: string, size: Vector3, cframe: CFrame, parent: Instance): Part
 	local part = Instance.new("Part")
 	part.Name = name
@@ -38,34 +80,36 @@ local function makePart(name: string, size: Vector3, cframe: CFrame, parent: Ins
 	return part
 end
 
-local function districtText(theme: Theme, owner: ClassId, count: number): string
-	local icon = theme.icons[owner] or string.sub(owner, 1, 1)
-	return `{icon} {owner}  {count}`
-end
+local function makeDistrictSign(
+	parent: Instance,
+	theme: Theme,
+	owner: ClassId,
+	x: number,
+	z: number
+)
+	local tone = theme.tones[string.lower(owner)] or theme.tones.state
+	local model = Instance.new("Model")
+	model.Name = `DistrictSign_{owner}`
+	model.Parent = parent
 
-local function makeDistrictLabel(parent: BasePart, theme: Theme, owner: ClassId): TextLabel
-	local billboard = Instance.new("BillboardGui")
-	billboard.Name = `DistrictLabel_{owner}`
-	billboard.Size = UDim2.fromOffset(150, 24)
-	billboard.StudsOffset = Vector3.new(0, 1.0, CityLayout.DISTRICT_SIZE / 2 - 1.5)
-	billboard.AlwaysOnTop = true
-	billboard.LightInfluence = 0
-	billboard.MaxDistance = 120
-	billboard.Parent = parent
+	local plaque = makePart("Plaque", Vector3.new(2.6, 3.2, 0.12), CFrame.new(x, 5.4, z), model)
+	plaque.Color = tone.dark
 
-	local label = Instance.new("TextLabel")
-	label.Name = "Name"
-	label.BackgroundTransparency = 1
-	label.Size = UDim2.fromScale(1, 1)
-	label.Font = theme.font.family
-	label.TextSize = theme.type.s
-	label.TextColor3 = theme.colors["text.primary"]
-	label.TextStrokeTransparency = 1
-	label.TextXAlignment = Enum.TextXAlignment.Center
-	label.TextYAlignment = Enum.TextYAlignment.Center
-	label.Text = districtText(theme, owner, 0)
-	label.Parent = billboard
-	return label
+	local bitmap = LETTERS[owner]
+	for row = 1, 7 do
+		local line = bitmap[row]
+		for column = 1, 5 do
+			if string.sub(line, column, column) == "#" then
+				local block = makePart(
+					"Mark",
+					Vector3.new(0.28, 0.28, 0.1),
+					CFrame.new(x + (column - 3) * 0.32, 5.4 + (4 - row) * 0.32, z + 0.11),
+					model
+				)
+				block.Color = tone.light
+			end
+		end
+	end
 end
 
 function CityView.new(viewport: ViewportFrame, theme: Theme): CityView
@@ -100,7 +144,6 @@ function CityView.new(viewport: ViewportFrame, theme: Theme): CityView
 		makePart("RoadZ", Vector3.new(2, 0.04, CityLayout.CITY_SIZE), CFrame.new(0, 0.02, 0), world)
 	roadZ.Color = theme.colors["line.hairline"]
 
-	local districtLabels: { [ClassId]: TextLabel? } = {}
 	local empty = CityLayout.build(nil)
 	for _, district in empty.districts do
 		local base = makePart(
@@ -111,14 +154,13 @@ function CityView.new(viewport: ViewportFrame, theme: Theme): CityView
 		)
 		local tone = theme.tones[string.lower(district.owner)] or theme.tones.state
 		base.Color = tone.dark
-		districtLabels[district.owner] = makeDistrictLabel(base, theme, district.owner)
+		makeDistrictSign(world, theme, district.owner, district.centerX, district.centerZ)
 	end
 
 	local self = setmetatable({
 		_viewport = viewport,
 		_world = world,
 		_camera = camera,
-		_districtLabels = districtLabels,
 		_visuals = {} :: { [string]: Visual? },
 		_theme = theme,
 	}, CityView) :: CityView
@@ -128,14 +170,6 @@ end
 
 function CityView.sync(self: CityView, view: PlayerView?)
 	local layout = CityLayout.build(view)
-
-	for _, district in layout.districts do
-		local label = self._districtLabels[district.owner]
-		if label ~= nil then
-			label.Text = districtText(self._theme, district.owner, district.count)
-		end
-	end
-
 	local seen: { [string]: boolean } = {}
 	for _, plot in layout.plots do
 		seen[plot.lineId] = true
@@ -177,7 +211,6 @@ export type CityView = typeof(setmetatable(
 		_viewport: ViewportFrame,
 		_world: WorldModel,
 		_camera: Camera,
-		_districtLabels: { [ClassId]: TextLabel? },
 		_visuals: { [string]: Visual? },
 		_theme: Theme,
 	},

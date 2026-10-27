@@ -1,8 +1,8 @@
 --!strict
 -- LineVisual: the 3D building for one production line. A line type picks the
--- silhouette (a low farm, a chimneyed factory, a cross-marked clinic, a roofed
--- school); the owner's class tone carries ownership. The type icon is drawn
--- above the building too, so meaning never relies on color alone.
+-- silhouette (a low farm with crop rows, a chimneyed factory, a cross-marked
+-- clinic, a roofed school); the owner's class tone carries ownership. The
+-- silhouettes carry the line-type meaning without relying on color alone.
 --
 -- This is a view object: it owns Instances and its lifecycle, but it never
 -- reads MatchState or changes gameplay. CityView creates, updates and destroys
@@ -39,31 +39,7 @@ local function makePart(name: string, size: Vector3, cframe: CFrame, parent: Ins
 	return part
 end
 
-local function makeLabel(parent: BasePart, theme: Theme, height: number): TextLabel
-	local billboard = Instance.new("BillboardGui")
-	billboard.Name = "LineLabel"
-	billboard.Size = UDim2.fromOffset(40, 22)
-	billboard.StudsOffset = Vector3.new(0, height + 0.8, 0)
-	billboard.AlwaysOnTop = true
-	billboard.LightInfluence = 0
-	billboard.MaxDistance = 100
-	billboard.Parent = parent
-
-	local label = Instance.new("TextLabel")
-	label.Name = "TypeIcon"
-	label.BackgroundTransparency = 1
-	label.Size = UDim2.fromScale(1, 1)
-	label.Font = theme.font.family
-	label.TextSize = theme.type.xs
-	label.TextColor3 = theme.colors["text.primary"]
-	label.TextStrokeTransparency = 1
-	label.TextXAlignment = Enum.TextXAlignment.Center
-	label.TextYAlignment = Enum.TextYAlignment.Center
-	label.Parent = billboard
-	return label
-end
-
-local function buildFarm(model: Model, tone: Tone, accent: { BasePart }): (BasePart, number)
+local function buildFarm(model: Model, tone: Tone, accent: { BasePart }): BasePart
 	local body = makePart("Farm", Vector3.new(2.4, 0.5, 2.4), CFrame.new(0, 0.35, 0), model)
 	body.Color = tone.base
 	for row = -1, 1 do
@@ -76,10 +52,10 @@ local function buildFarm(model: Model, tone: Tone, accent: { BasePart }): (BaseP
 		crop.Color = tone.light
 		table.insert(accent, crop)
 	end
-	return body, 1.2
+	return body
 end
 
-local function buildFactory(model: Model, tone: Tone, accent: { BasePart }): (BasePart, number)
+local function buildFactory(model: Model, tone: Tone, accent: { BasePart }): BasePart
 	local body = makePart("Factory", Vector3.new(2.4, 2.4, 2.4), CFrame.new(0, 1.3, 0), model)
 	body.Color = tone.base
 	local roof = makePart("Roof", Vector3.new(2.6, 0.18, 2.6), CFrame.new(0, 2.58, 0), model)
@@ -94,7 +70,7 @@ local function buildFactory(model: Model, tone: Tone, accent: { BasePart }): (Ba
 	)
 	chimney.Color = tone.dark
 	table.insert(accent, chimney)
-	return body, 3.8
+	return body
 end
 
 local function buildClinic(
@@ -103,7 +79,7 @@ local function buildClinic(
 	tone: Tone,
 	accent: { BasePart },
 	health: { BasePart }
-): (BasePart, number)
+): BasePart
 	local body = makePart("Clinic", Vector3.new(2.4, 1.8, 2.4), CFrame.new(0, 1.0, 0), model)
 	body.Color = tone.base
 	local roof = makePart("Roof", Vector3.new(2.6, 0.18, 2.6), CFrame.new(0, 1.98, 0), model)
@@ -119,16 +95,16 @@ local function buildClinic(
 		part.Color = theme.colors["state.success"]
 		table.insert(health, part)
 	end
-	return body, 2.8
+	return body
 end
 
-local function buildSchool(model: Model, tone: Tone, accent: { BasePart }): (BasePart, number)
+local function buildSchool(model: Model, tone: Tone, accent: { BasePart }): BasePart
 	local body = makePart("School", Vector3.new(2.4, 2.0, 2.4), CFrame.new(0, 1.1, 0), model)
 	body.Color = tone.base
 	local roof = makePart("Roof", Vector3.new(2.8, 0.2, 2.8), CFrame.new(0, 2.2, 0), model)
 	roof.Color = tone.light
 	table.insert(accent, roof)
-	return body, 3.0
+	return body
 end
 
 function LineVisual.new(parent: Instance, plot: Plot, theme: Theme): LineVisual
@@ -143,18 +119,15 @@ function LineVisual.new(parent: Instance, plot: Plot, theme: Theme): LineVisual
 	local accent: { BasePart } = {}
 	local health: { BasePart } = {}
 	local body: BasePart
-	local height: number
 	if plot.lineType == "Farm" then
-		body, height = buildFarm(model, tone, accent)
+		body = buildFarm(model, tone, accent)
 	elseif plot.lineType == "Factory" then
-		body, height = buildFactory(model, tone, accent)
+		body = buildFactory(model, tone, accent)
 	elseif plot.lineType == "Clinic" then
-		body, height = buildClinic(model, theme, tone, accent, health)
+		body = buildClinic(model, theme, tone, accent, health)
 	else
-		body, height = buildSchool(model, tone, accent)
+		body = buildSchool(model, tone, accent)
 	end
-
-	local label = makeLabel(body, theme, height)
 	model.WorldPivot = CFrame.new(0, 0, 0)
 
 	local self = setmetatable({
@@ -164,7 +137,6 @@ function LineVisual.new(parent: Instance, plot: Plot, theme: Theme): LineVisual
 		_toneParts = { body },
 		_accentParts = accent,
 		_healthParts = health,
-		_label = label,
 	}, LineVisual) :: LineVisual
 	self:update(plot, theme)
 	return self
@@ -191,7 +163,6 @@ function LineVisual.update(self: LineVisual, plot: Plot, theme: Theme)
 	for _, part in self._healthParts do
 		part.Color = theme.colors["state.success"]
 	end
-	self._label.Text = theme.icons[plot.lineType] or string.sub(plot.lineType, 1, 1)
 end
 
 function LineVisual.destroy(self: LineVisual)
@@ -206,7 +177,6 @@ export type LineVisual = typeof(setmetatable(
 		_toneParts: { BasePart },
 		_accentParts: { BasePart },
 		_healthParts: { BasePart },
-		_label: TextLabel,
 	},
 	LineVisual
 ))
