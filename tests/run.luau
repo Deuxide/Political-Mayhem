@@ -48,6 +48,7 @@ local suites = {
 	require("./client_store.test"),
 	require("./client_report.test"),
 	require("./city_layout.test"),
+	require("./reveal_events.test"),
 	require("./bot_service.test"),
 	require("./bot_heuristics.test"),
 	require("./bot_alliances.test"),

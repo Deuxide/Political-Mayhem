@@ -6,8 +6,8 @@
 --
 -- CityLayout turns the view into plot positions. This class turns that plan
 -- into Instances and keeps them in step: a new line appears, a removed line
--- disappears, and an owner/type change replaces the building. M11-T2 will add
--- the Reveal animations on top of this model; M11-T3 owns the camera/lighting
+-- disappears, and an owner/type change replaces the building. M11-T2 adds the
+-- Reveal animations through CityAnimator; M11-T3 owns the camera/lighting
 -- budget.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,11 +15,14 @@ local Types = require(ReplicatedStorage.Shared.Game.Types)
 local Tokens = require(script.Parent.Parent.UI.Theme.Tokens)
 local CityLayout = require(script.Parent.CityLayout)
 local LineVisual = require(script.Parent.LineVisual)
+local CityAnimator = require(script.Parent.CityAnimator)
+local RevealEvents = require(script.Parent.Parent.State.RevealEvents)
 
 type ClassId = Types.ClassId
 type PlayerView = Types.PlayerView
 type Theme = Tokens.Theme
 type Visual = LineVisual.LineVisual
+type CityEvent = RevealEvents.CityEvent
 
 local CityView = {}
 CityView.__index = CityView
@@ -144,6 +147,7 @@ function CityView.new(viewport: ViewportFrame, theme: Theme): CityView
 		makePart("RoadZ", Vector3.new(2, 0.04, CityLayout.CITY_SIZE), CFrame.new(0, 0.02, 0), world)
 	roadZ.Color = theme.colors["line.hairline"]
 
+	local districtBases: { [ClassId]: BasePart? } = {}
 	local empty = CityLayout.build(nil)
 	for _, district in empty.districts do
 		local base = makePart(
@@ -154,6 +158,7 @@ function CityView.new(viewport: ViewportFrame, theme: Theme): CityView
 		)
 		local tone = theme.tones[string.lower(district.owner)] or theme.tones.state
 		base.Color = tone.dark
+		districtBases[district.owner] = base
 		makeDistrictSign(world, theme, district.owner, district.centerX, district.centerZ)
 	end
 
@@ -162,6 +167,10 @@ function CityView.new(viewport: ViewportFrame, theme: Theme): CityView
 		_world = world,
 		_camera = camera,
 		_visuals = {} :: { [string]: Visual? },
+		_districtBases = districtBases,
+		_animator = CityAnimator.new(theme),
+		_pendingNewBuilds = {} :: { [string]: CityEvent },
+		_lastRevealDay = -1,
 		_theme = theme,
 	}, CityView) :: CityView
 	self:sync(nil)
@@ -178,12 +187,19 @@ function CityView.sync(self: CityView, view: PlayerView?)
 			visual:destroy()
 			visual = nil
 		end
+		local created = false
 		if visual == nil then
 			visual = LineVisual.new(self._world, plot, self._theme)
 			self._visuals[plot.lineId] = visual
+			created = true
 		end
 		if visual ~= nil then
 			visual:update(plot, self._theme)
+			local pending = self._pendingNewBuilds[plot.lineId]
+			if created and pending ~= nil then
+				self._pendingNewBuilds[plot.lineId] = nil
+				self._animator:playLine(pending, visual)
+			end
 		end
 	end
 
@@ -195,13 +211,70 @@ function CityView.sync(self: CityView, view: PlayerView?)
 	end
 end
 
+-- One Reveal report per Day. A report can arrive just before the view snapshot
+-- (the server sends Reveal_Report first), so a NewBuild whose line is not in
+-- the view yet is parked and played when sync creates it; the Day guard keeps
+-- the other events from replaying when the snapshot re-renders the city.
+function CityView.playReveal(self: CityView, events: { CityEvent }, day: number)
+	if self._lastRevealDay == day then
+		return
+	end
+	self._lastRevealDay = day
+	table.clear(self._pendingNewBuilds)
+
+	for _, event in events do
+		if event.kind == "NewBuild" then
+			local lineId = event.lineId
+			if lineId ~= nil then
+				local visual = self._visuals[lineId]
+				if visual ~= nil then
+					self._animator:playLine(event, visual)
+				else
+					self._pendingNewBuilds[lineId] = event
+				end
+			end
+		elseif event.kind == "Production" then
+			local lineId = event.lineId
+			if lineId ~= nil then
+				local visual = self._visuals[lineId]
+				if visual ~= nil then
+					self._animator:playLine(event, visual)
+				end
+			end
+		elseif event.kind == "Strike" then
+			local target: ClassId? = event.target
+			if target ~= nil then
+				for _, visual in self._visuals do
+					if visual ~= nil and visual:owner() == target then
+						self._animator:playLine(event, visual)
+					end
+				end
+				local district = self._districtBases[target]
+				if district ~= nil then
+					self._animator:markDistrict(event, district)
+				end
+			end
+		elseif event.kind == "Protest" then
+			local actor: ClassId? = event.actor
+			if actor ~= nil then
+				local district = self._districtBases[actor]
+				if district ~= nil then
+					self._animator:playProtest(event, district)
+				end
+			end
+		end
+	end
+end
+
 function CityView.destroy(self: CityView)
+	self._animator:destroy()
 	for _, visual in self._visuals do
 		if visual ~= nil then
 			visual:destroy()
 		end
 	end
 	table.clear(self._visuals)
+	table.clear(self._pendingNewBuilds)
 	self._camera:Destroy()
 	self._world:Destroy()
 end
@@ -212,6 +285,10 @@ export type CityView = typeof(setmetatable(
 		_world: WorldModel,
 		_camera: Camera,
 		_visuals: { [string]: Visual? },
+		_districtBases: { [ClassId]: BasePart? },
+		_animator: CityAnimator.CityAnimator,
+		_pendingNewBuilds: { [string]: CityEvent },
+		_lastRevealDay: number,
 		_theme: Theme,
 	},
 	CityView

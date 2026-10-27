@@ -148,6 +148,26 @@ function LineVisual.matches(self: LineVisual, plot: Plot): boolean
 	return self._plot.lineType == plot.lineType and self._plot.owner == plot.owner
 end
 
+function LineVisual.model(self: LineVisual): Model
+	return self._model
+end
+
+function LineVisual.owner(self: LineVisual): ClassId
+	return self._plot.owner
+end
+
+function LineVisual.lineId(self: LineVisual): string
+	return self._plot.lineId
+end
+
+function LineVisual.plotPart(self: LineVisual): BasePart
+	return self._plotPart
+end
+
+function LineVisual.accentParts(self: LineVisual): { BasePart }
+	return self._accentParts
+end
+
 function LineVisual.update(self: LineVisual, plot: Plot, theme: Theme)
 	self._plot = plot
 	self._model:PivotTo(CFrame.new(plot.x, 0, plot.z))

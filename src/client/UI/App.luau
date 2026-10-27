@@ -205,7 +205,12 @@ function App.render(props: AppProps): any
 	-- the city, which reads only the view.
 	local center = props.center
 	if center == nil then
-		center = React.createElement(CityViewport.render, { view = view })
+		center = React.createElement(CityViewport.render, {
+			view = view,
+			reveal = state.reveal,
+			phase = state.match.phase,
+			matchEnded = state.match.result ~= nil,
+		})
 	end
 	table.insert(
 		children,

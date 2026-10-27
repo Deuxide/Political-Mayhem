@@ -116,7 +116,9 @@
 │  │  └─ Replication.luau
 │  └─ client/                # -> StarterPlayerScripts.Client
 │     ├─ init.client.luau
-│     ├─ State/Store.luau
+│     ├─ State/
+│     │  ├─ Store.luau
+│     │  └─ RevealEvents.luau # log -> typed visual events (M11-T2)
 │     ├─ UI/                 # layered design system: docs/UI_STYLE.md
 │     │  ├─ Theme/           # Tokens, Gradients, Skins/, ThemeContext
 │     │  ├─ Primitives/      # Surface, Text, Button, Icon, Divider ...
@@ -129,6 +131,7 @@
 │     └─ City/               # 3D city view objects (D-091)
 │        ├─ CityLayout.luau  # pure PlayerView -> plot plan
 │        ├─ CityView.luau    # camera, districts, line lifecycle
+│        ├─ CityAnimator.luau # Reveal tweens on the city
 │        └─ LineVisual.luau  # one line building
 ├─ scripts/             # check + sim + sim_report (headless tools; not shipped to Roblox)
 ├─ tests/
