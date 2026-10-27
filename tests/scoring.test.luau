@@ -206,16 +206,16 @@ function M.run()
 		Lib.eq(four.classes.Middle.vp, 0, "4 lines pay nothing")
 	end)
 
-	Lib.test("moneyGainScaled: floor(gain / 8), capped at 3 (11.1)", function()
+	Lib.test("moneyGainScaled: floor(gain / 20), capped at 3 (11.1)", function()
 		local state = quiet()
 		local scratch = quietScratch(state)
 		scratch.salesRevenue.Capitalist = 24
 		score(state, scratch)
-		Lib.eq(state.classes.Capitalist.vp, 3, "24 gained -> 3 VP")
+		Lib.eq(state.classes.Capitalist.vp, 1, "24 gained -> 1 VP")
 
 		local huge = quiet()
 		local hugeScratch = quietScratch(huge)
-		hugeScratch.salesRevenue.Capitalist = 40 -- raw 5, capped at 3
+		hugeScratch.salesRevenue.Capitalist = 100 -- raw 5, capped at 3
 		score(huge, hugeScratch)
 		Lib.eq(huge.classes.Capitalist.vp, 3, "the scale caps at 3")
 

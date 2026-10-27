@@ -140,7 +140,7 @@ function M.run()
 		Lib.truthy(formed > 0, "at least some alliances formed")
 		Lib.truthy(broken > 0, "at least some alliances broke")
 		Lib.eq(formed, 120, "two pairs formed six times in each of 20 matches")
-		Lib.eq(broken, 80, "the age rule broke two pairs four times in each match")
+		Lib.eq(broken, 120, "the age rule broke two pairs six times in each match")
 	end)
 end
 

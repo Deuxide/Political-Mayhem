@@ -126,6 +126,7 @@
 │     │  ├─ Gallery/         # dev-only component gallery
 │     │  └─ App.luau
 │     └─ City/               # reactive 3D city (later); OOP view classes
+├─ scripts/             # check + sim + sim_report (headless tools; not shipped to Roblox)
 ├─ tests/
 └─ docs/
 ```

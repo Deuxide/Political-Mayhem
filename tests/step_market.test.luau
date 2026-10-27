@@ -162,6 +162,18 @@ function M.run()
 		)
 	end)
 
+	Lib.test("a disabled Tariff track reads as level 0 on Easy (D-041)", function()
+		local ctx = makeCtx()
+		local state = StateFactory.create("Easy", SEATS, 41)
+		trade(state, "Capitalist", {}, { goods = 1 })
+		run(state, ctx)
+		-- Easy scales Capitalist Money to floor(50 x 1.25) = 62; one Goods
+		-- costs the base 6 when the Tariff track is absent from the state.
+		Lib.eq(state.classes.Capitalist.money, 56, "62 - 6, with no nil tariff")
+		Lib.eq(state.classes.Capitalist.stock.goods, 3, "one Goods bought")
+		Lib.eq(state.classes.State.money, 37, "no tariff revenue")
+	end)
+
 	Lib.test("a sale funds the same class's buy on the same Day (6.6)", function()
 		local ctx = makeCtx()
 		local state = fresh()

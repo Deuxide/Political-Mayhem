@@ -403,7 +403,7 @@ Rules:
 |---|---|
 | Working | All needs met; employment >= 75 percent of workers; Wage level >= Medium; a bill Working proposed passed this Day |
 | Middle | Education stock after upkeep >= 2; Money gained this Day >= 5; owns >= 5 lines; all needs met |
-| Capitalist | `min(3, floor(Money gained / 8))` (up to 3 VP); `TaxCapitalist <= 1` at end of Day |
+| Capitalist | `min(3, floor(Money gained / 20))` (up to 3 VP); `TaxCapitalist <= 1` at end of Day |
 | State | Money >= 0 and not decreasing this Day; Stability >= 60; Stability >= 80; public lines >= 75 percent of open slots staffed |
 
 Max 4 VP per class per Day. Criteria are data (`Config/Objectives.luau`) mapped
@@ -507,8 +507,8 @@ D-071). Both live in `Config/Visibility.luau`.
     criteria.
   - Trust modifier from Reputation of the counterparty.
 - v1 diplomacy: bots propose and accept alliances by class preference, review
-  an alliance after a configured age, and break it unless an open
-  `NoBreakAlliance` promise holds them. They honour an open `VoteYes` promise
+  an alliance after 3 Days (`Config/Bots.allianceBreakAfterDays`), and break it
+  unless an open `NoBreakAlliance` promise holds them. They honour an open `VoteYes` promise
   even when it cuts against their class interest. They do not originate
   standalone promises in v1; promises arrive through trade offers.
 - Bots use a per-bot RNG derived from the match seed.

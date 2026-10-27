@@ -50,6 +50,7 @@ local suites = {
 	require("./bot_service.test"),
 	require("./bot_heuristics.test"),
 	require("./bot_alliances.test"),
+	require("./sim_metrics.test"),
 	require("./lobby_service.test"),
 	require("./match_service.test"),
 	require("./handlers.test"),

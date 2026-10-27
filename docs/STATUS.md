@@ -3,18 +3,18 @@
 **This file is the handoff.** Update it after every task (even if the session
 may end abruptly), including the Verification log.
 
-Last updated: 2026-10-26
+Last updated: 2026-10-27
 
 ## Snapshot
 
 - **Project:** Political Mayhem
-- **Current milestone:** M9 (bots)
-- **Current task:** M9 milestone — **complete (L1 442/442, L2 gate G2 passed 2026-10-26); M9 ready for owner merge.** All three M9 tasks are done: the bot framework, the per-class heuristics, and live alliances with promise awareness. Gate G2 ran a full Normal match (`mayhem-728044`, one human Middle plus three bots, seed 728044) through the real UI: all 12 Days, bots planning every Window, `Capitalist and State win together` on Day 12, final standings Capitalist 16 / Working 14 / State 10 / Middle 1 VP. The live bot trade path remains deferred (D-085); balance is M10. **Stop here; the owner merges `M9-dev1`.**
-- **Project phase:** M8 merged to stable (`4784254 "Merge M8: political and social UI"`, tag `m8-complete`); M9 runs on `M9-dev1` off that merge.
-- **Current branch:** M9-dev1 — created 2026-10-26 off `Linux-stable` after the M8 merge (`4784254`). The M9-T1 commits were cherry-picked from `M8-dev1`; that old branch still has duplicate M9-T1 commits at its tip and should not be used or merged. The older `*-dev1` branches on origin are the abandoned 2026-10-18 pre-restart lineage — **never merge or cherry-pick them**. Push this branch with `git push` (it must never target `Linux-stable`).
+- **Current milestone:** M10 (simulation and balance)
+- **Current task:** M10-T4 (docs reconciliation) — **complete (L1 452/452, L2 N/A: docs only); M10 ready for owner merge.** `docs/GAME_DESIGN.md` now matches Config: the Capitalist money-gain formula is `floor(Money gained / 20)` and the alliance review is 3 Days. The M10-T3 Studio L2 remains the milestone runtime evidence (both Config hashes/values matched; 12-Day bots-only Normal `Working` final, VP 13/13/12/10, alliances 6/6, hash `98a7f677`, zero project errors/warnings). The headless simulator/report are L1 (`scripts/sim --n 500`, `scripts/sim_report --n 500`); the two balance misses and proposed fixes are D-089. **Stop here; the owner merges `M10-dev1`.**
+- **Project phase:** M9 merged to stable (`5af98c3 "Merge M9"`, tag `m9-complete`); M10 runs on `M10-dev1` off that merge.
+- **Current branch:** M10-dev1 — created 2026-10-26 from `Linux-stable` at `5af98c3` (`Merge M9`, tag `m9-complete`). Push this branch with `git push`; it must never target `Linux-stable`. The older `M9-dev1`/`M8-dev1` branches are historical and must not be merged.
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
-- **Last milestone merged to stable:** M8 (4784254, tag `m8-complete`)
-- **Last `scripts/check` result:** CHECK PASSED (442/442 tests)
+- **Last milestone merged to stable:** M9 (5af98c3, tag `m9-complete`)
+- **Last `scripts/check` result:** CHECK PASSED (452/452 tests)
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
 
@@ -69,6 +69,10 @@ Last updated: 2026-10-26
 - [x] M9-T2: the per-class heuristics — `Config/Bots` now carries the slot, market, trust, build and policy-preference numbers; `BotStrategy` has the shared open-slots, build, sell-surplus, buy-needs, assign-workers, vote and trade-acceptance helpers; `WorkingBot` assigns and buys Food/Health, `MiddleBot` builds toward five lines and keeps Education, `CapitalistBot` builds Farms then Factories, and `StateBot` builds Clinics/Schools. A bill is voted by class interest with no Influence, and trade acceptance weighs market value against the counterparty's Reputation. R1 now applies a validated `openSlots` value to the line (D-083), so the bots' slot plans change production. CHECK PASSED 438/438 (431 prior + 7 heuristic tests; stylua clean, selene 0 warnings, types 0 errors). The bots-only Normal test runs all four bots through twelve Days and ends with the final-Day comparison. Studio L2 passed on 2026-10-26: all seven changed runtime modules byte-identical; the Server VM ran a bots-only Normal match through Day 12 (`final`, Capitalist, hash `b81be492`, 219 events) and a three-Day class-plan probe; a live one-human-plus-three-bots match (`mayhem-93928`, Normal) printed `[Bots] planned Working, Capitalist, State` and the client rendered normally with zero project errors/warnings.
 - [x] M9-T3: bot alliances and promise awareness — `BotStrategy.decideLive` returns alliance proposals, responses and breaks, and `BotService.playWindow` applies them through the shared `Alliances` Ops after each bot's draft, so a later bot in the canonical order can answer a proposal in the same Window. Class preference pairs Working+Middle and Capitalist+State; an alliance is reviewed after `Config/Bots.allianceBreakAfterDays`, and an open `NoBreakAlliance` promise delays the break. `BotStrategy.vote` honours an open `VoteYes` promise before class interest. The 20-seeded bots-only test forms 120 alliances and breaks 80 across the 20 matches. CHECK PASSED 442/442 (438 prior + 4 alliance/promise tests; stylua clean, selene 0 warnings, types 0 errors). Studio L2 passed on 2026-10-26: the three changed runtime modules were byte-identical; the Server VM ran all 20 seeded bots-only matches (6 formations / 4 breaks each, 120/80 total) and a live `mayhem-541624` Normal match showed `WORKING PROPOSES AN ALLIANCE`, the accepted `ALLIED WITH WORKING` / `Day 1 - age 0` card, and the Working `ALLIED` badge, with zero project errors/warnings.
 - [x] M9 milestone: gate G2 passed on 2026-10-26 — a fresh `build/game.rbxl` with the three M9-T3 modules byte-identical ran a full Normal match (`mayhem-728044`, one human Middle plus three bots, seed 728044) through the real UI: all 12 Days, `[Bots] planned Working, Capitalist, State` every Window, `Capitalist and State win together` on Day 12, final standings Capitalist 16 / Working 14 / State 10 / Middle 1 VP, 183 frames / 93 gradients / 191 labels / 39 buttons / 0 `UICorner`, zero project errors/warnings (only the DataStore/ContentId baseline; a Roblox engine shutdown line after stopping). **M9 ready for owner merge.**
+- [x] M10-T1: the headless simulator — `scripts/sim` and `scripts/sim_lib.luau` load the real modules through `tests/loader.luau`, run bots-only matches by seed range, print a summary, and write per-match CSV plus JSON to `build/sim`. `scripts/sim --n 500 --difficulty Normal` simulated seeds 1-500 in 11.8 s: all 500 reached the final-Day comparison, Capitalist+State won together every time, Stability ended 0, and alliances formed and broke in every match. The run exposed the Easy `Tariff`-disabled `MarketStep` nil, fixed with the D-041 default-to-0 rule and a regression test. CHECK PASSED 448/448 (442 prior + 5 simulator tests + 1 Easy Tariff test; stylua clean, selene 0 warnings, types 0 errors). Studio L2 passed: `MarketStep` hash 6493/1381651809, Easy bots-only Server VM buy with Tariff absent, zero project errors/warnings.
+- [x] M10-T2: the metrics report — `scripts/sim_report` runs Normal and Hard baselines plus the permanent-strike and zero-tax probes through the real modules, prints section 19 metrics with PASS/FAIL, and writes `build/sim/m10-t2-report.txt`/`.json`. `scripts/sim_report --n 500` took 59.4 s and passed 3/10 checks: Normal class rates 0/0/100/100 and early victories 0% failed; alliances formed/broken 100%/100% passed; Hard collapse 100% failed; strike probe Working 100% failed; zero-tax probe Capitalist 0% passed. CHECK PASSED 452/452 (448 prior + 4 report/probe tests; stylua clean, selene 0 warnings, types 0 errors). No runtime change, so L2 is N/A; M10-T3 owns the tuning.
+- [x] M10-T3: the Config-only tuning pass — `allianceBreakAfterDays` 4→3 and the Capitalist money-gain divisor 8→20. `scripts/sim_report --n 500` passes 4/10: alliances formed/broken 100%/100%, strike probe 0% Working, zero-tax probe 0% Capitalist; Normal is 500/500 final with Working 100% (class rates and 0% early fail), and Hard collapses 100%. The two misses are documented with proposed fixes in D-089; CHECK PASSED 452/452 (tests updated for the new divisor and alliance age; stylua clean, selene 0 warnings, types 0 errors). Studio L2 passed: both Config values and hashes matched, and a 12-Day bots-only Normal Server VM match ended `Working` final (VP 13/13/12/10, alliances 6/6, hash `98a7f677`) with zero project errors/warnings.
+- [x] M10-T4: docs reconciliation — `GAME_DESIGN.md` now matches Config (`floor(Money gained / 20)` in §11.1; the 3-Day alliance review in §15); D-090 records the reconciliation. CHECK PASSED 452/452 (docs only; no runtime change). The M10-T3 Studio L2 is the milestone runtime evidence; D-089 documents the remaining balance misses and proposed fixes.
 - [x] M7-T3: `OwnClassPanel` and `ClassCard` — six resource chips, this Day's needs against the stock (from the new `PlayerView.needs`, computed by `Game/Needs` in the builder), the VP criteria from Config/Objectives with their awards, the sticky-draft summary and the Economy/Politics/Diplomacy tab strip wired through `Store.applyActiveTab`; the other classes show exact values, `PowerTier` words, or `?` per the view, plus reputation stars and the public alliance badge, with the M8 trade/alliance buttons visibly disabled. `ResourceChip` lays its mark, value and delta out in a row and shows a tier word. CHECK PASSED 397/397; the batched Studio L2 passed on 2026-10-23 (Normal open, Hard partial, Extreme fog; the tabs switch; it found and fixed the chip layout and the hardcoded match length)
 - [x] M7-T2: the app shell — `UI/App` (the top bar, the four corners with the viewer's own class bottom-left, the city viewport in the middle and the action dock at the bottom), `UI/Panels/TopBar` (the Day, the themed phase name, the countdown, the Stability track and the policy ticker) and `UI/Composites/Countdown` (the server-driven clock with the warning and urgent states); the client now creates the store, connects the net client and mounts the app, and the Gallery stays available as a dev screen
 - [x] M7-T1: the client net layer and the store — `client/Net/Client` (waits for the server's remotes, sends the intents, feeds the store) and `client/State/Store` (the shape of UI_SPEC section 7 with pure reducers: the snapshot replaces the view and the draft, a phase change sets the phase and the server offset, the patches set the draft and append the bills and the alliances, the local draft is pending until the server echoes it and a refusal shows the server's copy again); 7 new tests
@@ -495,11 +499,115 @@ after stopping, Roblox printed the engine line `Character cannot be changed as
 Player (blue_cat1379) is being removed.` with no project stack. One full
 playtest; stopped.
 
+## M10-T1 build record (complete; L2 passed)
+
+**M10-T1 — the headless simulator (2026-10-26; CHECK PASSED 448/448).**
+`scripts/sim` is the executable wrapper; `scripts/sim_lib.luau` owns the CLI
+(`--n`, `--difficulty`, `--seed`, `--out`, `--format`, `--help`), the real-module
+run, row extraction, aggregation and CSV/JSON output; `scripts/sim.luau` is the
+small entrypoint. The simulator mounts `src` through `tests/loader.luau`, so it
+uses the same `StateFactory`, `Match`, `RuleSet` and `BotService` as the game:
+for each seed it sets the Window, calls `BotService.playWindow`, resolves the
+Day, stops on victory, and records victory kind/winners, Day count, Stability
+and collapse counter, VP/Money per class, alliance formation/break counts,
+promise audit totals, event count and hash. Outputs default to
+`build/sim/<difficulty>-<n>.csv` and `.json`.
+
+The documented command `scripts/sim --n 500 --difficulty Normal` ran seeds 1-500
+in 11.8 s and printed: all 500 `final`, Capitalist+State winners, Stability 0,
+average 12.0 Days, alliances formed in 500/500 and broken in 500/500, 0 promises
+kept/broken. That degenerate result is the M10-T2 report and M10-T3 tuning
+input, not a simulator error. A 5-seed pass on each difficulty exercised Easy
+(5 solo Capitalist wins), Hard (5 collapses on Day 9) and Extreme (5 collapses
+on Day 7). The Easy pass exposed `MarketStep` reading a missing `Tariff` track
+as nil; it now treats a missing track as level 0 (D-041) and a regression test
+pins the Easy buy price. Studio L2 passed after the owner reopened the latest `build/game.rbxl`:
+`MarketStep` matched the repo at 6493/1381651809; a Server VM Easy seed 41
+match with all four seats bot-run reached `Working bought 1 Food for 4 Money`
+with the `Tariff` track absent, advanced to Day 2 (Stability 62, 29 events,
+hash `dd9f0633`), and produced no project errors or warnings (only the
+DataStore/ContentId baseline). The playtest was stopped and Edit restored.
+
+## M10-T2 build record (complete; L2 N/A)
+
+**M10-T2 — metrics and dominant-strategy probes (2026-10-26; CHECK PASSED
+452/452).** `scripts/sim_report` reuses `scripts/sim_lib.luau` and runs four
+blocks on the same seed range: Normal bots-only, Hard bots-only, a permanent
+strike probe (Working sets `strike = { target = "Capitalist" }` every Window),
+and a zero-tax counterfactual (all three tax tracks held at 0; Capitalist's
+win rate is measured). A probe win counts the class in `victory.winners`, so
+shared wins count. The report adds `earlyVictoryMatches/Rate` (solo/shared
+before the last Day) and prints PASS/FAIL against GAME_DESIGN section 19;
+outputs are `build/sim/m10-t2-report.txt` and `.json`.
+
+The 500-match report ran in 59.4 s and passed **3/10** checks:
+
+| Metric | Result | Section 19 |
+|---|---|---|
+| Normal victory types | 500 final, 0 solo/shared/collapse | report only |
+| Normal class win rates | Working 0%, Middle 0%, Capitalist 100%, State 100% | 15-40% — **FAIL** |
+| Normal early solo/shared | 0% (all final on Day 12) | 30-60% — **FAIL** |
+| Normal alliances formed / broken | 100% / 100% | >=50% / >=15% — **PASS** |
+| Hard collapse | 100% (all 500, Day 9) | <=20% — **FAIL** |
+| Permanent strike (Working) | Working wins 100% | <=50% — **FAIL** |
+| Zero-tax counterfactual (Capitalist) | Capitalist wins 0% | <=50% — **PASS** |
+
+The Normal class rates are 100% for both Capitalist and State because every
+final-Day comparison selected their alliance; the report's class rate counts
+each member of a shared win. This is the baseline M10-T3 tunes; it is not a
+simulator error. The zero-tax probe is deliberately a counterfactual (D-087):
+a lone Capitalist cannot pass a tax cut against the bots' class-interest votes.
+
+## M10-T3 build record (complete; L2 passed)
+
+**M10-T3 — Config-only tuning (2026-10-26; CHECK PASSED 452/452).** Two
+Config values changed: `Config/Bots.allianceBreakAfterDays` 4→3 (shorter
+alliance review; the permanent-strike probe no longer wins) and
+`Config/Objectives.Capitalist` money-gain divisor 8→20 (24 Money now pays 1
+VP instead of 3; the zero-tax probe no longer wins). The tests that pin those
+numbers and the 20-seed alliance count were updated, not weakened.
+
+`scripts/sim_report --n 500` took 60.9 s and passed **4/10** checks:
+
+| Metric | Result | Section 19 |
+|---|---|---|
+| Normal victory types | 500 final | report only |
+| Normal class win rates | Working 100%, Middle 0%, Capitalist 0%, State 0% | 15-40% — **FAIL** (D-089) |
+| Normal early solo/shared | 0% | 30-60% — **FAIL** (D-089) |
+| Normal alliances formed / broken | 100% / 100% | >=50% / >=15% — **PASS** |
+| Hard collapse | 100% (all 500, Day 9) | <=20% — **FAIL** (D-089) |
+| Permanent strike (Working) | Working wins 0% | <=50% — **PASS** |
+| Zero-tax counterfactual (Capitalist) | Capitalist wins 0% | <=50% — **PASS** |
+
+The two remaining miss classes are documented in D-089 with proposed fixes:
+the bots are deterministic (no `decide` reads its RNG, so all seeds repeat one
+result), and the economy still drives Stability to 0 on Hard (Working needs
+cost more than Medium wages, and the owners run out of Money). The broad
+economy retune is deferred rather than hidden in a metric; it would touch many
+pinned scenario tests. Studio L2 passed after the owner reopened the latest build: `Config/Bots`
+matched 3091/2249797791 with `allianceBreakAfterDays = 3`; `Config/Objectives`
+matched 1731/844280605 with divisor 20; a bots-only Normal Server VM match
+resolved all 12 Days to a `Working` final (VP 13/13/12/10, alliances 6/6,
+hash `98a7f677`) with zero project errors/warnings (only the DataStore/ContentId
+baseline). `GAME_DESIGN.md` still carries the old 4/8 values until M10-T4
+reconciles it with Config.
+
+## M10-T4 build record (complete; L2 N/A)
+
+**M10-T4 — docs reconciliation (2026-10-27; CHECK PASSED 452/452).** Updated
+`docs/GAME_DESIGN.md` §11.1 to `min(3, floor(Money gained / 20))` and §15 to
+the 3-Day alliance review, matching `Config/Objectives.Capitalist` and
+`Config/Bots.allianceBreakAfterDays`. D-090 records the reconciliation and
+notes that D-067/D-085's `/8` and 4-Day values are historical. No runtime
+change; L2 is the M10-T3 fresh-build Studio check, and the headless
+simulator/report remain L1 evidence. The section 19 misses remain in D-089.
+
 ## Next up
 
-1. **M9 ready** — the owner merges `M9-dev1` into `Linux-stable` and tags the
-   milestone. Do not start M10 until the owner has merged and the next branch
-   exists.
+1. **Owner merges `M10-dev1` into `Linux-stable` and tags the milestone.**
+   Do not merge it yourself. The two section 19 misses are documented with
+   proposed fixes in D-089; the owner accepts them by merging.
+2. After the merge and the next branch, start **M11-T1** (city model).
 
 ## Verification log
 
@@ -507,6 +615,11 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 
 | Date | Task / milestone | L1 | L2 | L3 | Notes |
 |---|---|---|---|---|---|
+| 2026-10-27 | M10-T4 — docs reconciliation (ROADMAP M10-T4, D-090) | CHECK PASSED (452/452; docs only, no runtime change; stylua clean, selene 0 warnings, types 0 errors) | N/A (docs only; the M10-T3 fresh-build Studio check is the runtime evidence) | none | `GAME_DESIGN.md` §11.1 now matches Config at `floor(Money gained / 20)`; §15 states the 3-Day alliance review. D-090 records the reconciliation; D-067/D-085 are historical. The D-089 balance misses remain documented with proposed fixes. |
+| 2026-10-27 | M10 milestone — simulation and balance | CHECK PASSED (452/452 on `M10-dev1`; `scripts/sim --n 500 --difficulty Normal` and `scripts/sim_report --n 500` are L1) | **PASS** — the M10-T3 fresh-build Studio check: both tuned Config modules byte-identical (Bots 3091/2249797791, Objectives 1731/844280605); 12-Day bots-only Normal Server VM match ended `Working` final (VP 13/13/12/10, alliances 6/6, hash `98a7f677`), zero project errors/warnings (DataStore/ContentId baseline only), playtest stopped. The simulator/report are headless L1, not Studio features. | none | M10-T1/T2 done; M10-T3 4/10 report with D-089 misses; M10-T4 docs reconciled. **Milestone M10 ready for owner merge.** |
+| 2026-10-26 | M10-T3 — Config-only tuning (ROADMAP M10-T3, D-088/D-089) | CHECK PASSED (452/452: tests updated for divisor 20 and alliance age 3; stylua clean, selene 0 warnings, types 0 errors) | **PASS** — Studio `b198ac74-1f75-42ab-b04a-0cfa7c82248e` Edit/Play; `Config/Bots` source 3091/2249797791 with `allianceBreakAfterDays = 3`; `Config/Objectives` 1731/844280605 with Capitalist divisor 20; Server VM bots-only Normal seed 1 resolved all 12 Days to `Working` final (VP 13/13/12/10, Stability 0, alliances formed/broken 6/6, hash `98a7f677`); zero project errors/warnings, only the DataStore/ContentId baseline; playtest stopped, Edit restored. | none | `scripts/sim_report --n 500` (60.9 s): **4/10**. Pass: alliances formed/broken 100%/100%, strike probe 0% Working, zero-tax probe 0% Capitalist. Fail: Normal class rates Working 100%/others 0%, early 0%, Hard collapse 100%; D-089 documents the determinism and unmet-needs causes and proposed fixes. GAME_DESIGN reconciliation is M10-T4. |
+| 2026-10-26 | M10-T2 — metrics and dominant-strategy probes (ROADMAP M10-T2, D-087) | CHECK PASSED (452/452: 448 prior + 4 report/probe tests; stylua clean, selene 0 warnings, types 0 errors) | N/A (scripts and tests only; no runtime change) | none | **Implemented:** `scripts/sim_report` wrapper, `scripts/sim_report.luau` entrypoint, `Sim.runProbe`/`Sim.runReport`/`Sim.formatReport`/`Sim.writeReport`, early-victory aggregation, and 4 tests. `scripts/sim_report --n 500` printed the section 19 report in 59.4 s: Normal 500 final, class rates 0/0/100/100, early 0%, alliances 100%/100%; Hard collapse 100%; strike probe Working 100%; zero-tax probe Capitalist 0%; **3/10 checks pass**. Outputs `build/sim/m10-t2-report.txt`/`.json`. |
+| 2026-10-26 | M10-T1 — headless simulator (ROADMAP M10-T1, D-086) | CHECK PASSED (448/448: 442 prior + 5 simulator tests + 1 Easy Tariff regression; stylua clean, selene 0 warnings, types 0 errors) | **PASS** — Studio `ad97f598-0c97-41a1-8cf6-d2e339b2a3af` Edit/Play; `MarketStep` source hash 6493/1381651809 matched the repo; Server VM Easy seed 41, all four seats bots: `Tariff` absent, `Working bought 1 Food for 4 Money`, Day 2, Stability 62, 29 events, hash `dd9f0633`; no project errors/warnings, only the DataStore/ContentId baseline; playtest stopped, Edit restored. | none | **Implemented:** `scripts/sim` (wrapper), `scripts/sim_lib.luau` (CLI, run, rows, summary, CSV/JSON), `scripts/sim.luau` (entrypoint), `tests/sim_metrics.test.luau` (5 tests), and the Easy `MarketStep` missing-track default with its regression test. The documented `scripts/sim --n 500 --difficulty Normal` run printed: 500 final, Capitalist+State 100%, Stability 0, 12.0 Days average, alliances formed/broken 500/500, 0 promises. The metrics are untuned by design; M10-T2 reports them and M10-T3 tunes. |
 | 2026-10-26 | M9 milestone — gate G2 (playable solo) | CHECK PASSED (442/442 on the final code commit `056d71b`; stylua clean, selene 0 warnings, types 0 errors) | **passed** — fresh `build/game.rbxl` with the three M9-T3 runtime modules byte-identical (BotStrategy 16154/4134711702, BotService 5979/1869369081, ConfigBots 3091/667575968); Studio instance `e889683c-163e-42ec-9d15-4c847e5b29a9`, Edit -> Play -> Edit. **Full Normal match** `mayhem-728044` (one human Middle plus Working/Capitalist/State bots, seed 728044) ran all 12 Days through the real UI: `[Bots] planned Working, Capitalist, State` every Window, server Day hashes from `1b98aabd` through `a7a0dab8` and final `f65bbb50`, `[Match] mayhem-728044 ended (final)`, EndSummary `FINAL` / `Capitalist and State win together` / `Day 12 of the match`, final standings Capitalist 16, Working 14, State 10, Middle 1 VP; 183 frames, 93 gradients, 191 labels, 39 buttons, 0 `UICorner`. The earlier M9-T3 live check (`mayhem-541624`) showed `WORKING PROPOSES AN ALLIANCE`, the accepted `ALLIED WITH WORKING` / `Day 1 - age 0` card and the Working `ALLIED` badge. Zero project errors/warnings (DataStore/ContentId baseline only); after stopping, Roblox printed `Character cannot be changed as Player (blue_cat1379) is being removed.` with no project stack (engine shutdown). One full playtest; stopped. | none | Milestone M9 complete: T1 framework, T2 heuristics, T3 alliances/promises, G2 full match. Known limitation: live bot trades are deferred (D-085); balance is M10. The owner may accept the limitation at merge. |
 | 2026-10-26 | M9-T3 — bot alliances and promises (GAME_DESIGN 8.3/8.4/15, D-085) | CHECK PASSED (442/442: 438 prior + 4 alliance/promise tests; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio gate confirmed by the owner ("Yes, latest build + Rojo connected"), instance `e889683c-163e-42ec-9d15-4c847e5b29a9`, `game.rbxl`, Edit -> Play -> Edit. The three changed runtime modules were byte-identical (length/djb2): BotStrategy 16154/4134711702, BotService 5979/1869369081, ConfigBots 3091/667575968. **20 seeded bots-only Normal matches in the Server VM**: every seed played 12 Days, all four bots planned in every Window, each seed formed 6 alliances and broke 4 (totals 120/80), and every match ended `final` on Day 12 with stability 0 (seed 1 hash `7fcae55b`, seed 20 hash `ced318ce`); no errors. **Live one-human-plus-three-bots Normal** (`mayhem-541624`, seed 541624): `[Bots] planned Working, Capitalist, State`; the Politics tab showed `WORKING PROPOSES AN ALLIANCE` with Accept/Decline and the Capitalist/State `ALLIANCE` badges; accepting through the real `Alliance_Respond` remote (the Accept button sat at the viewport edge) produced `ALLIED WITH WORKING` / `Day 1 - age 0` / `Break alliance` and the Working card `ALLIED`. Zero project errors/warnings (DataStore/ContentId baseline only); no `createTextInstance`/ChildrenGuard. One playtest; stopped. | none | **Implemented:** `BotStrategy.decideLive` and `BotLiveDecision`; class preference and break-age config; `BotService.playWindow` applies live alliance decisions after each draft; `BotStrategy.vote` honours open `VoteYes` promises. Tests: `tests/bot_alliances.test.luau` (two blocs, NoBreak promise, VoteYes promise, 20 seeded matches with 120 formations / 80 breaks). **Known limitation:** the live bot trade path is deferred (D-085), so bots honour promises but do not originate them; a human offer to a bot still expires. |
 | 2026-10-26 | M9-T2 — per-class bot heuristics (GAME_DESIGN 15, D-083/D-084) | CHECK PASSED (438/438: 431 prior + 7 heuristic tests; stylua clean, selene 0 warnings, types 0 errors) | **passed** — Studio gate confirmed by the owner ("studio opened, rojo & mcp connected"), instance `e889683c-163e-42ec-9d15-4c847e5b29a9`, `game.rbxl`, Edit -> Play -> Edit. Seven changed runtime modules byte-identical (length/djb2): BotStrategy 11147/3585173062, WorkingBot 1306/3423153803, MiddleBot 1622/2730072404, CapitalistBot 1763/3128518284, StateBot 1983/3407647227, ConfigBots 2309/912233688, LockDraftsStep 8081/191231032. **Server VM bots-only Normal** (seed 41, real `StateFactory`/`Match`/`BotService`): all 12 Days ran; 4/4 bots planned on Days 1-9 and 3/4 on Days 10-12; ended `final` on Day 12, Capitalist winner, stability 0, hash `b81be492`, 219 events. **Server VM class-plan probe** (seed 93928, Days 1-3): Working assigned 16/16/11; Middle built School then held 5 lines; Capitalist built Farm then another Farm; State built Clinic; market buys/sells followed the class needs. **Live one-human-plus-three-bots match** (`mayhem-93928`, Normal, seed 93928): `[Lobby] match ...` and `[Bots] planned Working, Capitalist, State`; the client App showed `Day 1 of 12` / `MARKET HOURS`, 171 frames, 88 gradients, 0 `UICorner`, and the Middle starting panel. Zero project errors/warnings (DataStore/ContentId baseline only); no `createTextInstance`/ChildrenGuard. One playtest; stopped. | none | **Implemented:** `Config/Bots` thresholds and policy preferences; `BotStrategy` shared helpers (`openOwnLines`, `build`, `sellSurplus`, `buyNeeds`, `assignWorkers`, `vote`, `acceptTrade`); the four class `decide` methods; R1 applies a validated `openSlots` value to `Line.openSlots` (D-083). Tests: `tests/bot_heuristics.test.luau` covers each class's VP build, bill direction, trade trust/premium and a full bots-only Normal match through Day 12; `bot_service` and `step_lock_drafts` updated. **Known limitations:** trade acceptance is a pure helper with no live bot-response hook yet (D-084); Working's expected-wage budget can overestimate what owners actually pay, so a Normal bot match can still end at low Stability; balance is M10. |
@@ -680,6 +793,10 @@ Newest first. One line per session.
 
 | Date | Summary |
 |---|---|
+| 2026-10-27 | M10-T4 docs reconciliation: `GAME_DESIGN` §11.1 now `floor(Money gained / 20)` and §15 the 3-Day alliance review, matching Config; D-090 records it. CHECK PASSED 452/452 (docs only). M10-T3 Studio L2 remains the runtime evidence; D-089 documents the two balance misses. **Milestone M10 ready for owner merge**; do not merge. |
+| 2026-10-26 | M10-T3 implementation + L1: Config-only tuning (`allianceBreakAfterDays` 4→3, Capitalist money-gain divisor 8→20); tests updated. `scripts/sim_report --n 500` (60.9 s) now passes 4/10: alliances 100%/100%, strike 0% Working, zero-tax 0% Capitalist; class rates, early victories and Hard collapse still miss and are documented in D-089. CHECK PASSED 452/452. Studio L2 passed: both Config hashes/values matched, and a 12-Day bots-only Normal Server VM match ended `Working` final (VP 13/13/12/10, alliances 6/6, hash `98a7f677`) with zero project errors/warnings. M10-T4 next. |
+| 2026-10-26 | M10-T2 implementation + L1: `scripts/sim_report` runs Normal/Hard baselines plus permanent-strike and zero-tax probes, prints section 19 PASS/FAIL, and writes `build/sim/m10-t2-report.txt`/`.json`. `scripts/sim_report --n 500` took 59.4 s and passed 3/10: Normal 500 final, class rates 0/0/100/100, early 0%, alliances 100%/100%; Hard collapse 100%; strike probe Working 100%; zero-tax probe Capitalist 0%. CHECK PASSED 452/452. L2 N/A (no runtime change). Next: M10-T3 Config-only tuning. |
+| 2026-10-26 | M10-T1 implementation + L1: `scripts/sim` / `scripts/sim_lib.luau` run the real modules through `tests/loader.luau`, print a summary, and write per-match CSV + JSON to `build/sim`. `scripts/sim --n 500 --difficulty Normal` ran 500 seeds in 11.8 s (all final, Capitalist+State 100%, Stability 0, alliances 500/500 formed and broken); Easy/Hard/Extreme smoke runs also passed. The Easy run exposed and fixed the missing `Tariff` track nil in `MarketStep` (D-041). CHECK PASSED 448/448. Studio L2 passed after the rebuild: `MarketStep` 6493/1381651809, Easy bots-only buy with Tariff absent, zero project errors/warnings. Next: M10-T2. |
 | 2026-10-26 | M9 complete: gate G2 passed. A full Normal match (`mayhem-728044`, one human Middle plus three bots, seed 728044) ran all 12 Days through the real UI; bots planned every Window, the server ended `final`, and the EndSummary showed `Capitalist and State win together` on Day 12 with final standings Capitalist 16 / Working 14 / State 10 / Middle 1 VP. UI: 183 frames, 93 gradients, 191 labels, 39 buttons, 0 `UICorner`; zero project errors/warnings (DataStore/ContentId baseline only; one Roblox engine shutdown line). M9-T3 live alliance check (`mayhem-541624`) passed earlier. **Milestone M9 ready**; owner merges. |
 | 2026-10-26 | M9-T3 complete: bot live diplomacy (`BotStrategy.decideLive`, `BotService.playWindow` applying proposals/responses/breaks through the shared `Alliances` Ops), class-preference blocs and the break-age rule, `NoBreakAlliance`/`VoteYes` promise awareness, and the 20-seeded bots-only test. CHECK PASSED 442/442. Studio L2 passed: three modules byte-identical; all 20 seeded Normal matches ran 12 Days with 6 formations / 4 breaks each (120/80 total, every match `final`, stability 0); a live `mayhem-541624` Normal match showed `WORKING PROPOSES AN ALLIANCE`, the accepted `ALLIED WITH WORKING` / `Day 1 - age 0` card and the Working `ALLIED` badge, with zero project errors/warnings. Next: M9 gate G2. |
 | 2026-10-26 | M9-T2 complete: shared bot heuristics, four class plans, vote/trust trade acceptance, and a bots-only twelve-Day test; R1 now applies validated `openSlots` to the line (D-083). CHECK PASSED 438/438. Studio L2 passed: seven modules byte-identical, bots-only Normal through Day 12 in the Server VM (`final`, hash `b81be492`), and a live one-human-plus-three-bots match (`mayhem-93928`) with `[Bots] planned Working, Capitalist, State` and zero project errors/warnings. Next: M9-T3. |

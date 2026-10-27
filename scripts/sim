@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Headless simulator (M10-T1). Runs the real game modules under Lune; see
+# scripts/sim.luau for the CLI and scripts/sim_lib.luau for the core.
+set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+export PATH="$HOME/.rokit/bin:$PATH"
+exec lune run scripts/sim.luau "$@"

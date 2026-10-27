@@ -34,7 +34,7 @@ return table.freeze({
 	} :: { Objective },
 
 	Capitalist = {
-		{ id = "moneyGainScaled", vp = 3, params = { divisor = 8 } }, -- min(3, floor(gain / 8))
+		{ id = "moneyGainScaled", vp = 3, params = { divisor = 20 } }, -- min(3, floor(gain / 20))
 		{ id = "taxCapitalistAtMost", params = { level = 1 } },
 	} :: { Objective },
 

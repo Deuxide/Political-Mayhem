@@ -41,7 +41,7 @@ return table.freeze({
 
 	-- Bots form an alliance in the first Window they are free, then review it
 	-- after this many Days. A NoBreakAlliance promise delays the break.
-	allianceBreakAfterDays = 4,
+	allianceBreakAfterDays = 3,
 
 	-- Positive pair scores only; a bot accepts the best incoming proposal and
 	-- otherwise proposes to the best free class. The values encode the
