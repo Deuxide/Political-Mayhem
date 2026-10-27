@@ -17,6 +17,7 @@ export type CityViewportProps = {
 	view: Types.PlayerView?,
 	reveal: Remotes.RevealReportPayload?,
 	phase: Types.Phase?,
+	day: number?,
 	matchEnded: boolean?,
 }
 
@@ -40,6 +41,15 @@ function CityViewport.render(props: CityViewportProps): any
 			city:destroy()
 		end
 	end, { theme } :: { any })
+
+	-- The phase clock, not a local timer, selects the day/dusk/night look and the
+	-- camera. The effect runs only when the phase or Day changes.
+	React.useEffect(function()
+		local city = cityRef.current
+		if city ~= nil then
+			city:setPhase(props.phase or "Window", props.day)
+		end
+	end, { props.phase, props.day, theme } :: { any })
 
 	-- Keep the report until the Evening Report closes. The report overlay covers
 	-- the city (UI_SPEC 2), so playing its events under the overlay would hide

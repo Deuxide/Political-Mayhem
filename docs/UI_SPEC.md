@@ -83,7 +83,7 @@ min/max), `Slider`, `Toggle`, `Modal`, `Badge`, `StarRating`, `Countdown`
 | `ChatDrawer` | Channels: Global, Team, Class (private), with unread badges | Server-filtered text only |
 | `EventTicker` | Last N log lines | Click to open full log |
 | `EveningReport` | Own-class resource deltas with causes; public VP and reputation for every class; policy changes; broken promises highlighted | Auto-dismiss at end of Reveal; other classes' resource deltas never travel (GAME_DESIGN 13) |
-| `CityViewport` | 3D city camera + overlays | Reads view only (M11); M11-T1 renders four owner districts with 3D W/M/C/S signs and one building per line; M11-T2 plays the Reveal events at the next Window (production hop/green flash, strike shake/red flash, protest rising markers, new build rise); camera/lighting M11-T3 |
+| `CityViewport` | 3D city camera + overlays | Reads view only (M11); M11-T1 renders four owner districts with 3D W/M/C/S signs and one building per line; M11-T2 plays the Reveal events at the next Window (production hop/green flash, strike shake/red flash, protest rising markers, new build rise); M11-T3 ties the camera and day/dusk/night lighting to the phase clock (Window day, Resolve dusk, Reveal night) with a static one-ViewportFrame / under-250-parts budget |
 | `LobbySeatList` | Class slots, humans/bots, roles | |
 | `EndSummary` | Winner(s), final VP table, final reputation (kept/broken) | |
 

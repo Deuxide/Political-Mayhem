@@ -209,6 +209,7 @@ function App.render(props: AppProps): any
 			view = view,
 			reveal = state.reveal,
 			phase = state.match.phase,
+			day = state.match.day,
 			matchEnded = state.match.result ~= nil,
 		})
 	end
