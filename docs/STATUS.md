@@ -8,13 +8,13 @@ Last updated: 2026-10-27
 ## Snapshot
 
 - **Project:** Political Mayhem
-- **Current milestone:** M10 (simulation and balance)
-- **Current task:** M10-T4 (docs reconciliation) — **complete (L1 452/452, L2 N/A: docs only); M10 ready for owner merge.** `docs/GAME_DESIGN.md` now matches Config: the Capitalist money-gain formula is `floor(Money gained / 20)` and the alliance review is 3 Days. The M10-T3 Studio L2 remains the milestone runtime evidence (both Config hashes/values matched; 12-Day bots-only Normal `Working` final, VP 13/13/12/10, alliances 6/6, hash `98a7f677`, zero project errors/warnings). The headless simulator/report are L1 (`scripts/sim --n 500`, `scripts/sim_report --n 500`); the two balance misses and proposed fixes are D-089. **Stop here; the owner merges `M10-dev1`.**
-- **Project phase:** M9 merged to stable (`5af98c3 "Merge M9"`, tag `m9-complete`); M10 runs on `M10-dev1` off that merge.
-- **Current branch:** M10-dev1 — created 2026-10-26 from `Linux-stable` at `5af98c3` (`Merge M9`, tag `m9-complete`). Push this branch with `git push`; it must never target `Linux-stable`. The older `M9-dev1`/`M8-dev1` branches are historical and must not be merged.
+- **Current milestone:** M11 (city visuals)
+- **Current task:** M11-T1 (city model) — **in progress: L1 CHECK PASSED 456/456; L2 pending the Studio gate.** The city is now a 3D `ViewportFrame`: four owner districts around a central road crossing, one building per `LineView` on a deterministic grid, with the owner's class tone, a district label and a line-type icon. `CityLayout` is pure and tested; `CityView`/`LineVisual` own the Instances; `CityViewport` is the React host. `scripts/check` also rebuilt `build/game.rbxl`. The next step is the batched Studio check (structure, line count/owners, no errors/warnings); the owner must confirm the latest build is open and Rojo is connected first.
+- **Project phase:** M10 merged to stable (`479e2f0 "Merge M10"`, tag `m10-complete`); M11 runs on `M11-dev1` off that merge.
+- **Current branch:** M11-dev1 — created 2026-10-27 from `Linux-stable` at `479e2f0` (`Merge M10`, tag `m10-complete`). Push this branch with `git push`; it must never target `Linux-stable`. The older `M10-dev1`/`M9-dev1`/`M8-dev1` branches are historical and must not be merged.
 - **Stable branch:** Linux-stable (rules: `docs/GIT_WORKFLOW.md`)
-- **Last milestone merged to stable:** M9 (5af98c3, tag `m9-complete`)
-- **Last `scripts/check` result:** CHECK PASSED (452/452 tests)
+- **Last milestone merged to stable:** M10 (479e2f0, tag `m10-complete`)
+- **Last `scripts/check` result:** CHECK PASSED (456/456 tests)
 - **How to run checks:** `scripts/check` (must print CHECK PASSED)
 - **How code reaches Studio:** build, owner opens `build/game.rbxl`, owner runs `rojo serve` and connects (`docs/ENVIRONMENT.md`, D-030)
 
@@ -602,12 +602,32 @@ notes that D-067/D-085's `/8` and 4-Day values are historical. No runtime
 change; L2 is the M10-T3 fresh-build Studio check, and the headless
 simulator/report remain L1 evidence. The section 19 misses remain in D-089.
 
+## M11-T1 build record (in progress; L1 passed, L2 pending)
+
+**M11-T1 — the city model (2026-10-27; CHECK PASSED 456/456).** The match
+screen's center is now a `ViewportFrame` (`UI/City/CityViewport`) with a
+`WorldModel`, a static camera and four class districts. `City/CityLayout` is a
+pure function from `PlayerView` to a plot plan: one plot per line, grouped by
+owner, deterministic and independent of the viewer. `City/CityView` creates the
+ground, roads, district bases/labels and keeps one `City/LineVisual` per line
+id; `LineVisual` gives each line type its silhouette (low farm, chimneyed
+factory, cross-marked clinic, roofed school), colors it with the owner's class
+tone, and shows the line-type icon. `App` uses the city when no center override
+is supplied, so the Gallery/bare renders still work. `tests/city_layout.test.luau`
+checks the pure plan (10 initial lines: Middle 4, Capitalist 4, State 2; all
+four line types; stable positions; no shared plots). L2 is pending the owner's
+Studio gate; no Studio claim is made yet.
+
 ## Next up
 
-1. **Owner merges `M10-dev1` into `Linux-stable` and tags the milestone.**
-   Do not merge it yourself. The two section 19 misses are documented with
-   proposed fixes in D-089; the owner accepts them by merging.
-2. After the merge and the next branch, start **M11-T1** (city model).
+1. **M11-T1 L2 — the batched Studio check.** After the owner confirms that the
+   latest `build/game.rbxl` is open and Rojo is connected: inspect
+   `AppScreenGui` -> `ViewportFrame` -> `CityWorld`, prove one `Line_*` model per
+   line (10 initially), the four district labels/counts and the owner colors;
+   run a live match far enough for the client to render, and read Output for
+   zero project errors/warnings. Do not use Studio before that confirmation.
+2. Commit the L2 evidence as `M11-T1: the city Studio check`, push
+   `M11-dev1`, and update this file. Then start **M11-T2** (Reveal animations).
 
 ## Verification log
 
@@ -615,6 +635,7 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 
 | Date | Task / milestone | L1 | L2 | L3 | Notes |
 |---|---|---|---|---|---|
+| 2026-10-27 | M11-T1 — city model (ROADMAP M11-T1, D-091) | CHECK PASSED (456/456: 452 prior + 4 CityLayout tests; stylua clean, selene 0 warnings, types 0 errors; `rojo build` rebuilt `build/game.rbxl`) | **PENDING** — the owner's Studio gate has not been confirmed; no Studio tool has been called. Batched L2: tree/byte hashes, `ViewportFrame`/`CityWorld`/10 `Line_*` models, district counts/labels/owner colors, live render, zero project errors/warnings. | none | `CityLayout` maps every public `LineView` to one plot in its owner's district; `CityView`/`LineVisual` draw it; `CityViewport` hosts it; `App` falls back to the city. The pure plan is L1-tested; the Instances await L2. |
 | 2026-10-27 | M10-T4 — docs reconciliation (ROADMAP M10-T4, D-090) | CHECK PASSED (452/452; docs only, no runtime change; stylua clean, selene 0 warnings, types 0 errors) | N/A (docs only; the M10-T3 fresh-build Studio check is the runtime evidence) | none | `GAME_DESIGN.md` §11.1 now matches Config at `floor(Money gained / 20)`; §15 states the 3-Day alliance review. D-090 records the reconciliation; D-067/D-085 are historical. The D-089 balance misses remain documented with proposed fixes. |
 | 2026-10-27 | M10 milestone — simulation and balance | CHECK PASSED (452/452 on `M10-dev1`; `scripts/sim --n 500 --difficulty Normal` and `scripts/sim_report --n 500` are L1) | **PASS** — the M10-T3 fresh-build Studio check: both tuned Config modules byte-identical (Bots 3091/2249797791, Objectives 1731/844280605); 12-Day bots-only Normal Server VM match ended `Working` final (VP 13/13/12/10, alliances 6/6, hash `98a7f677`), zero project errors/warnings (DataStore/ContentId baseline only), playtest stopped. The simulator/report are headless L1, not Studio features. | none | M10-T1/T2 done; M10-T3 4/10 report with D-089 misses; M10-T4 docs reconciled. **Milestone M10 ready for owner merge.** |
 | 2026-10-26 | M10-T3 — Config-only tuning (ROADMAP M10-T3, D-088/D-089) | CHECK PASSED (452/452: tests updated for divisor 20 and alliance age 3; stylua clean, selene 0 warnings, types 0 errors) | **PASS** — Studio `b198ac74-1f75-42ab-b04a-0cfa7c82248e` Edit/Play; `Config/Bots` source 3091/2249797791 with `allianceBreakAfterDays = 3`; `Config/Objectives` 1731/844280605 with Capitalist divisor 20; Server VM bots-only Normal seed 1 resolved all 12 Days to `Working` final (VP 13/13/12/10, Stability 0, alliances formed/broken 6/6, hash `98a7f677`); zero project errors/warnings, only the DataStore/ContentId baseline; playtest stopped, Edit restored. | none | `scripts/sim_report --n 500` (60.9 s): **4/10**. Pass: alliances formed/broken 100%/100%, strike probe 0% Working, zero-tax probe 0% Capitalist. Fail: Normal class rates Working 100%/others 0%, early 0%, Hard collapse 100%; D-089 documents the determinism and unmet-needs causes and proposed fixes. GAME_DESIGN reconciliation is M10-T4. |
@@ -686,6 +707,8 @@ One row per task or milestone (format: `docs/VERIFICATION.md`).
 | 2026-10-20 | M0-T2 | CHECK PASSED (first full pass: stylua, selene 0 warnings, `rojo sourcemap`, type check 0 errors, pasted-copies guard, `rojo build`, 20/20 tests) | **passed via the M0-T6 playtest** — `Server booted` printed; the React-roblox mount rendered the scaffold into PlayerGui; zero errors/warnings from game code | **confirmed** by the owner (see M0-T6 row) | Skeleton exactly per roadmap: `Types.luau` (4 enums as type unions + frozen runtime mirrors of their values, nothing else), `src/server/init.server.luau` prints `Server booted`, `src/client/init.client.luau` mounts a React root (`ReactRoblox.createRoot`) showing `ScaffoldLabel` ("Political Mayhem: scaffold OK") + the four class corner labels, named for the classes (key-named per selene's Roact rule; React-Lua sets `domElement.Name` from the children key). Sourcemap verified: `ReplicatedStorage.Shared.Game.Types`, `ServerScriptService.Server`, `StarterPlayerScripts.Client`. All 3 files `--!strict`. Tooling note: react `export type` names (e.g. `React.Element`) are invisible to luau-lsp through the Wally shims (values are fully typed) — shim requires + inference used; typed re-export module deferred to M7-T0 (Suggestions) |
 
 ## Open questions for the owner
+
+- **M11-T1 Studio gate:** confirm that the latest `build/game.rbxl` is open in Studio and Rojo is connected, then the city L2 can run. The check will inspect the city tree/line count/owners and read Output; no Studio tool has been called yet.
 
 | ID | Question | Default being used |
 |---|---|---|
@@ -793,6 +816,7 @@ Newest first. One line per session.
 
 | Date | Summary |
 |---|---|
+| 2026-10-27 | M11-T1 city model implementation + L1: added `City/CityLayout` (pure view -> plot plan), `City/CityView` (ViewportFrame/WorldModel/camera/districts/line lifecycle), `City/LineVisual` (one building per line type/owner), `UI/City/CityViewport` (React host), wired the center in `App`, and added `tests/city_layout.test.luau`. CHECK PASSED 456/456; `rojo build` refreshed `build/game.rbxl`. L2 pending the owner's Studio gate. |
 | 2026-10-27 | M10-T4 docs reconciliation: `GAME_DESIGN` §11.1 now `floor(Money gained / 20)` and §15 the 3-Day alliance review, matching Config; D-090 records it. CHECK PASSED 452/452 (docs only). M10-T3 Studio L2 remains the runtime evidence; D-089 documents the two balance misses. **Milestone M10 ready for owner merge**; do not merge. |
 | 2026-10-26 | M10-T3 implementation + L1: Config-only tuning (`allianceBreakAfterDays` 4→3, Capitalist money-gain divisor 8→20); tests updated. `scripts/sim_report --n 500` (60.9 s) now passes 4/10: alliances 100%/100%, strike 0% Working, zero-tax 0% Capitalist; class rates, early victories and Hard collapse still miss and are documented in D-089. CHECK PASSED 452/452. Studio L2 passed: both Config hashes/values matched, and a 12-Day bots-only Normal Server VM match ended `Working` final (VP 13/13/12/10, alliances 6/6, hash `98a7f677`) with zero project errors/warnings. M10-T4 next. |
 | 2026-10-26 | M10-T2 implementation + L1: `scripts/sim_report` runs Normal/Hard baselines plus permanent-strike and zero-tax probes, prints section 19 PASS/FAIL, and writes `build/sim/m10-t2-report.txt`/`.json`. `scripts/sim_report --n 500` took 59.4 s and passed 3/10: Normal 500 final, class rates 0/0/100/100, early 0%, alliances 100%/100%; Hard collapse 100%; strike probe Working 100%; zero-tax probe Capitalist 0%. CHECK PASSED 452/452. L2 N/A (no runtime change). Next: M10-T3 Config-only tuning. |

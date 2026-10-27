@@ -24,6 +24,7 @@ local DiplomacyTab = require(script.Parent.Panels.DiplomacyTab)
 local ChatDrawer = require(script.Parent.Panels.ChatDrawer)
 local EveningReport = require(script.Parent.Panels.EveningReport)
 local EndSummary = require(script.Parent.Panels.EndSummary)
+local CityViewport = require(script.Parent.City.CityViewport)
 local Store = require(script.Parent.Parent.State.Store)
 
 export type AppProps = {
@@ -199,7 +200,13 @@ function App.render(props: AppProps): any
 		})
 	)
 
-	-- the middle: the city viewport (M11) with the panels over it
+	-- the middle: the city viewport (M11) with the panels over it. The center
+	-- override is for the dev gallery and bare renders; the match screen gets
+	-- the city, which reads only the view.
+	local center = props.center
+	if center == nil then
+		center = React.createElement(CityViewport.render, { view = view })
+	end
 	table.insert(
 		children,
 		React.createElement(Surface.render, {
@@ -207,7 +214,7 @@ function App.render(props: AppProps): any
 			position = UDim2.fromOffset(0, theme.layout.topBar + 1),
 			size = UDim2.new(1, 0, 1, -(theme.layout.topBar + 1)),
 			zIndex = 1,
-		}, props.center)
+		}, center)
 	)
 
 	-- the four corners: the viewer's own panel bottom-left, the other three

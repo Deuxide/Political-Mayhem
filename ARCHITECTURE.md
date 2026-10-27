@@ -124,8 +124,12 @@
 │     │  ├─ Panels/          # OwnClassPanel, ClassCard, PolicyBoard, PoliticsTab, DiplomacyTab, TradeComposer, PromiseBuilder ...
 │     │  ├─ Screens/         # LobbyScreen, MatchHUD, EndScreen
 │     │  ├─ Gallery/         # dev-only component gallery
+│     │  ├─ City/            # CityViewport (React host for the 3D city)
 │     │  └─ App.luau
-│     └─ City/               # reactive 3D city (later); OOP view classes
+│     └─ City/               # 3D city view objects (D-091)
+│        ├─ CityLayout.luau  # pure PlayerView -> plot plan
+│        ├─ CityView.luau    # camera, districts, line lifecycle
+│        └─ LineVisual.luau  # one line building
 ├─ scripts/             # check + sim + sim_report (headless tools; not shipped to Roblox)
 ├─ tests/
 └─ docs/
